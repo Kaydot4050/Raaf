@@ -242,7 +242,7 @@ export default function Header() {
             </div>
           </div>
 
-          <div className="hidden lg:grid lg:grid-cols-[auto_1fr_auto] items-center gap-6 xl:gap-10 py-5">
+          <div className="hidden lg:grid lg:grid-cols-[auto_1fr_auto] items-center gap-6 xl:gap-10 py-3">
             <Link to="/" className="flex items-center gap-3 shrink-0">
               <span className="w-11 h-11 rounded-full bg-beige-soft border border-border/70 flex overflow-hidden shrink-0">
                 <img src="/images/cropped-cropped-gooo-1-1.png" alt="Raafortagro" className="w-full h-full object-cover" />
@@ -280,7 +280,7 @@ export default function Header() {
           </div>
         </div>
       </header>
-      <div className="h-14 lg:h-[92px] shrink-0" aria-hidden="true" />
+      <div className="h-14 lg:h-[76px] shrink-0" aria-hidden="true" />
       {mobileMenu}
     </>
   );

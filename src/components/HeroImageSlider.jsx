@@ -14,6 +14,15 @@ export default function HeroImageSlider({ className = '' }) {
   const SLIDES = data.slides?.length ? data.slides : FALLBACK_SLIDES;
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : false,
+  );
+
+  useEffect(() => {
+    const onResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (isHovered) return;
@@ -27,7 +36,7 @@ export default function HeroImageSlider({ className = '' }) {
 
   return (
     <div 
-      className={`relative w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 -mt-2 sm:-mt-4 ${className}`}
+      className={`relative w-full mx-auto -mt-2 sm:-mt-4 ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onTouchStart={() => setIsHovered(true)}
@@ -41,7 +50,7 @@ export default function HeroImageSlider({ className = '' }) {
               key={i}
               className="relative h-full overflow-hidden cursor-pointer"
               animate={{
-                flex: isActive ? 8 : 1,
+                flex: isActive ? (isDesktop ? 9.5 : 8) : isDesktop ? 0.7 : 1,
               }}
               transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
               onMouseEnter={() => setActiveIndex(i)}
