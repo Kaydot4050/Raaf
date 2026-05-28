@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { usePageSection } from '../context/ContentContext.jsx';
 
 const FALLBACK_SLIDES = [
-  { src: '/images/Raafortagro-2.png', alt: 'Poultry & Livestock', title: 'LIVESTOCK' },
+  { src: '/images/logo.png', alt: 'Poultry & Livestock', title: 'LIVESTOCK' },
   { src: '/images/Raafortagro-3.png', alt: 'Agro Chemicals', title: 'CHEMICALS' },
   { src: '/images/Raafortagro.png', alt: 'Farm Equipment', title: 'EQUIPMENT' },
   { src: '/images/a.jpg', alt: 'Sustainable agriculture', title: 'FARMING' },
