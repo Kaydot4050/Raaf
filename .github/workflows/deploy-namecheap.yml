@@ -1,0 +1,66 @@
+name: Namecheap Deployment
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Main Frontend
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Build Admin Dashboard
+        run: npm run build:admin
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+
+      - name: Prepare Backend Server
+        run: node scripts/prepare-server.js
+
+      - name: Deploy Main Frontend (Customer)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: ${{ secrets.FTP_CUSTOMER_DIR }}
+
+      - name: Deploy Admin Dashboard
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist-admin/
+          server-dir: ${{ secrets.FTP_ADMIN_DIR }}
+
+      - name: Deploy Backend Server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./deploy-server/
+          server-dir: ${{ secrets.FTP_API_DIR }}
+          exclude: |
+            **/node_modules/**
+            **/.env
+            **/data/**

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Raafortagro Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <script>
+      window.onerror = function (msg, url, lineNo, columnNo, error) {
+        var d = document.createElement('div');
+        d.style.cssText =
+          'position:fixed;top:0;left:0;right:0;background:#b91c1c;color:#fff;z-index:9999;padding:16px;font-family:monospace;font-size:13px;white-space:pre-wrap;';
+        d.textContent = 'Error: ' + msg + ' at ' + url + ':' + lineNo + (error && error.stack ? '\n' + error.stack : '');
+        document.body.appendChild(d);
+        return false;
+      };
+    </script>
+    <script>
+      try {
+        if (!window.crypto) window.crypto = {};
+        if (typeof window.crypto.randomUUID !== 'function') {
+          window.crypto.randomUUID = function () {
+            var b = new Uint8Array(16);
+            if (typeof window.crypto.getRandomValues === 'function') {
+              window.crypto.getRandomValues(b);
+            } else {
+              for (var i = 0; i < 16; i++) b[i] = (Math.random() * 256) | 0;
+            }
+            b[6] = (b[6] & 0x0f) | 0x40;
+            b[8] = (b[8] & 0x3f) | 0x80;
+            var h = '';
+            for (var j = 0; j < 16; j++) h += b[j].toString(16).padStart(2, '0');
+            return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+          };
+        }
+      } catch (e) {}
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

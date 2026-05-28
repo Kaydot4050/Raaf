@@ -1,0 +1,46 @@
+{
+  "name": "raafortagro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "assets": "node scripts/ensure-public-assets.js",
+    "dev": "concurrently -n web,api -c blue,green \"npm run assets && vite\" \"npm run dev:server\"",
+    "dev:admin": "vite --config admin/vite.config.js",
+    "dev:full": "concurrently -n web,api,admin -c blue,green,orange \"npm run assets && vite\" \"npm run dev:server\" \"npm run dev:admin\"",
+    "dev:server": "node --watch server/index.js",
+    "dev:all": "npm run dev:full",
+    "db:seed": "node server/seed.js",
+    "make-admin": "node server/make-admin.js",
+    "build": "npm run assets && vite build",
+    "build:admin": "vite build --config admin/vite.config.js",
+    "preview:admin": "vite preview --config admin/vite.config.js",
+    "build:all": "npm run build && npm run build:admin",
+    "preview": "vite preview",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@react-oauth/google": "^0.13.5",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "framer-motion": "^12.40.0",
+    "google-auth-library": "^10.6.2",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.511.0",
+    "pg": "^8.21.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.2",
+    "twilio": "^6.0.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@vitejs/plugin-react": "^4.5.2",
+    "concurrently": "^9.1.2",
+    "tailwindcss": "^4.3.0",
+    "vite": "^6.3.5"
+  }
+}
