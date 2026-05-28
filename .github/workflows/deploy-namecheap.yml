@@ -41,7 +41,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
-          server-dir: ./
+          server-dir: ${{ secrets.FTP_CUSTOMER_DIR }}
 
       - name: Deploy Admin Dashboard
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -50,7 +50,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist-admin/
-          server-dir: ./
+          server-dir: ${{ secrets.FTP_ADMIN_DIR }}
 
       - name: Deploy Backend Server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -59,7 +59,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./deploy-server/
-          server-dir: ./
+          server-dir: ${{ secrets.FTP_API_DIR }}
           exclude: |
             **/node_modules/**
             **/.env
