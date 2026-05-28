@@ -40,8 +40,8 @@ function getCookie(name) {
 }
 
 function setAccessCookie() {
-  const sevenDays = 60 * 60 * 24 * 7;
-  document.cookie = `${ACCESS_COOKIE}=granted; max-age=${sevenDays}; path=/; SameSite=Lax`;
+  const fiveMinutes = 60 * 5;
+  document.cookie = `${ACCESS_COOKIE}=granted; max-age=${fiveMinutes}; path=/; SameSite=Lax`;
 }
 
 export default function App() {
