@@ -41,15 +41,21 @@ Until that works, use the admin build that calls **`https://raafortagro.com/api`
 
 ### `raafortagro.com/api/health` opens the homepage
 
-The shop `.htaccess` was sending **every** URL (including `/api/*`) to `index.html` (React). The repo now **skips** `/api` and **proxies** it to `https://api.raafortagro.com/api/...` when your host allows `mod_proxy`.
+The shop `.htaccess` was sending **every** URL (including `/api/*`) to `index.html` (React). The repo **skips** `/api` so it is not rewritten to `index.html`. The API does **not** run inside `public_html` — it runs only on the **Node app** host.
 
-**You still need a working Node app on `api.raafortagro.com` first** (no redirect to the shop). Then:
+**You must fix `api.raafortagro.com` first** (no redirect to the shop):
 
-1. Push / redeploy the **main site** so `public_html/.htaccess` is updated.
-2. Confirm **https://api.raafortagro.com/api/health** returns JSON.
-3. Test **https://raafortagro.com/api/health** — should return the same JSON (not the homepage).
+1. **Setup Node.js App** → URL `api.raafortagro.com`, root `api-server`, startup **`app.js`**, env vars set, **Run NPM Install**, **Restart**.
+2. **https://api.raafortagro.com/api/health** → JSON `{"ok":true,...}` (address bar stays on `api.`).
 
-If step 3 is **404** instead of the homepage, proxy is disabled on your plan — use **`https://api.raafortagro.com/api`** in admin only, or ask Namecheap to enable `mod_proxy`.
+**Main domain:** `https://raafortagro.com/api/health` will show **404** (not homepage) until you add a proxy in cPanel or use the api subdomain in admin. Admin builds use **`https://raafortagro.com/api`** — that only works after you proxy `/api` in cPanel **or** point admin at `https://api.raafortagro.com/api`.
+
+| Symptom | Cause |
+|---------|--------|
+| Homepage on `/api/health` | Old `.htaccess` — redeploy main site |
+| 500 / “error” on `/api/health` | Bad proxy to broken `api.` host — removed in latest `.htaccess` |
+| 503 HTML on `api.` | Node not running — cPanel logs / `node app.js` |
+| `api.` redirects to main | cPanel **Redirects** or wrong subdomain docroot |
 
 ## Test URLs
 

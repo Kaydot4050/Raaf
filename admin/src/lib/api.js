@@ -1,20 +1,14 @@
-// Dev: Vite proxy at /api. Production: infer from admin host; ignore api.* env on shared hosting.
-function siteApiBase(hostname, protocol) {
-  const siteHost = hostname.startsWith('admin.') ? hostname.slice('admin.'.length) : hostname;
-  return `${protocol}//${siteHost}/api`;
+// Dev: Vite proxy at /api. Production: Node on api.yourdomain.com (Namecheap).
+function siteRoot(hostname) {
+  return hostname.startsWith('admin.') ? hostname.slice('admin.'.length) : hostname;
 }
 
-/** Map api.example.com → https://example.com/api (Namecheap: Node on main domain). */
-function mainSiteApiFromEnvUrl(envUrl) {
-  try {
-    const u = new URL(envUrl);
-    if (u.hostname.startsWith('api.')) {
-      return `${u.protocol}//${u.hostname.slice(4)}${u.pathname || '/api'}`.replace(/\/$/, '');
-    }
-  } catch {
-    /* ignore */
-  }
-  return null;
+function dedicatedApiBase(hostname, protocol) {
+  return `${protocol}//api.${siteRoot(hostname)}/api`;
+}
+
+function siteApiBase(hostname, protocol) {
+  return `${protocol}//${siteRoot(hostname)}/api`;
 }
 
 function resolveBase() {
@@ -25,34 +19,27 @@ function resolveBase() {
     if (hostname === 'localhost' || hostname === '127.0.0.1') return '/api';
     if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) return `http://${hostname}:3001/api`;
 
-    const siteApi = siteApiBase(hostname, protocol);
-    if (hostname.startsWith('admin.')) return siteApi;
-
-    const mainFromEnv = fromEnv ? mainSiteApiFromEnvUrl(fromEnv) : null;
-    if (mainFromEnv) return mainFromEnv;
+    if (hostname.startsWith('admin.')) return dedicatedApiBase(hostname, protocol);
     if (fromEnv) return fromEnv;
-    return siteApi;
+    return siteApiBase(hostname, protocol);
   }
 
-  if (fromEnv) {
-    return mainSiteApiFromEnvUrl(fromEnv) || fromEnv;
-  }
-  return '/api';
+  return fromEnv || '/api';
 }
 
-/** Try main-site API first, then baked-in api.* URL if different. */
 function getApiBases() {
-  const primary = resolveBase();
-  const bases = [primary];
   const fromEnv = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
-
-  if (fromEnv && fromEnv !== primary) bases.push(fromEnv);
+  const bases = [];
 
   if (typeof window !== 'undefined') {
     const { hostname, protocol } = window.location;
-    const siteApi = siteApiBase(hostname, protocol);
-    if (!bases.includes(siteApi)) bases.unshift(siteApi);
+    if (hostname.startsWith('admin.')) {
+      bases.push(dedicatedApiBase(hostname, protocol), siteApiBase(hostname, protocol));
+    }
   }
+
+  if (fromEnv) bases.push(fromEnv);
+  bases.push(resolveBase());
 
   return [...new Set(bases)];
 }

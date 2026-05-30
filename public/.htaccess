@@ -2,12 +2,9 @@
   RewriteEngine On
   RewriteBase /
 
-  # API: do not send /api/* to the React app (index.html).
-  # When api.raafortagro.com Node is running, proxy /api to it (needs mod_proxy on host).
-  <IfModule mod_proxy.c>
-    RewriteCond %{REQUEST_URI} ^/api/ [NC]
-    RewriteRule ^api/(.*)$ https://api.raafortagro.com/api/$1 [P,L]
-  </IfModule>
+  # Do not send /api/* to the React app (index.html).
+  # Node must answer on api.raafortagro.com — see HOSTING.md (no proxy here; avoids 500 loops).
+  RewriteRule ^api/ - [L]
 
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_URI} !^/api/ [NC]
