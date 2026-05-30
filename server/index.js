@@ -77,8 +77,8 @@ app.use((err, _req, res, _next) => {
 });
 
 async function start() {
-  app.listen(port, () => {
-    console.log(`API listening on port ${port} (NODE_ENV=${process.env.NODE_ENV || 'development'})`);
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`API listening on 0.0.0.0:${port} (NODE_ENV=${process.env.NODE_ENV || 'development'})`);
   });
 
   if (!process.env.DATABASE_URL) {

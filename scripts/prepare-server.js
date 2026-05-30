@@ -37,16 +37,25 @@ for (const dep of backendDeps) {
   }
 }
 
-// 4. Create new package.json for deployment
+// 4. cPanel entry (startup file should be app.js in application root)
+fs.writeFileSync(
+  path.join(deployDir, 'app.js'),
+  `// cPanel / Namecheap: set "Application startup file" to app.js
+import './server/index.js';
+`,
+);
+
+// 5. Create new package.json for deployment
 const deployPkg = {
   name: pkg.name + '-api',
   version: pkg.version,
   type: 'module',
-  main: 'server/index.js',
+  main: 'app.js',
   scripts: {
-    start: 'node server/index.js'
+    start: 'node app.js',
   },
-  dependencies: newDeps
+  engines: { node: '>=18' },
+  dependencies: newDeps,
 };
 
 fs.writeFileSync(
@@ -54,7 +63,7 @@ fs.writeFileSync(
   JSON.stringify(deployPkg, null, 2)
 );
 
-// 5. Copy server files
+// 6. Copy server files
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
   const entries = fs.readdirSync(src, { withFileTypes: true });
@@ -75,10 +84,10 @@ function copyDir(src, dest) {
 
 copyDir(path.join(rootDir, 'server'), path.join(deployDir, 'server'));
 
-// 6. Create restart.txt
+// 7. Create restart.txt
 fs.writeFileSync(path.join(deployDir, 'tmp', 'restart.txt'), Date.now().toString());
 
-// 7. Env template for cPanel (do not commit real secrets)
+// 8. Env template for cPanel (do not commit real secrets)
 fs.writeFileSync(
   path.join(deployDir, '.env.example'),
   `NODE_ENV=production
