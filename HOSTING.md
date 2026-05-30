@@ -14,7 +14,7 @@
 2. **Application startup file** — **`app.js`** (not `server/index.js`). Must match `package.json` → `"main": "app.js"`.
 3. **Run NPM Install** after each deploy (installs `cloudinary`, `multer`, `pg`, etc.).
 4. **Stop** the app → **Run NPM Install** → **Start** (or Save).
-4. **Environment variables** (required):
+5. **Environment variables** (required):
 
 ```env
 NODE_ENV=production
@@ -24,7 +24,7 @@ CLIENT_ORIGIN=https://raafortagro.com,https://admin.raafortagro.com
 COOKIE_DOMAIN=.raafortagro.com
 ```
 
-5. **Restart** the Node app after changing env or uploading files (`tmp/restart.txt` is touched on deploy).
+6. **Restart** the Node app after changing env or uploading files (`tmp/restart.txt` is touched on deploy).
 
 ## `api.raafortagro.com` redirects to `raafortagro.com`
 
@@ -39,14 +39,17 @@ That means the **subdomain is not hitting your Node app**. Apache is serving the
 
 Until that works, use the admin build that calls **`https://raafortagro.com/api`** (only works if you also proxy `/api` on the main domain — see below).
 
-### API on the main domain (`raafortagro.com/api`)
+### `raafortagro.com/api/health` opens the homepage
 
-The shop is static files in `public_html`. For **`https://raafortagro.com/api/health`** to work you need either:
+The shop `.htaccess` was sending **every** URL (including `/api/*`) to `index.html` (React). The repo now **skips** `/api` and **proxies** it to `https://api.raafortagro.com/api/...` when your host allows `mod_proxy`.
 
-- A **second** Node.js app on `raafortagro.com` with a path prefix (if your host supports it), or  
-- An **`.htaccess` proxy** from `/api` to the working `api.` subdomain (after the subdomain is fixed).
+**You still need a working Node app on `api.raafortagro.com` first** (no redirect to the shop). Then:
 
-If `raafortagro.com/api/health` also opens the homepage, the API is **only** available on a correctly configured `api.` subdomain.
+1. Push / redeploy the **main site** so `public_html/.htaccess` is updated.
+2. Confirm **https://api.raafortagro.com/api/health** returns JSON.
+3. Test **https://raafortagro.com/api/health** — should return the same JSON (not the homepage).
+
+If step 3 is **404** instead of the homepage, proxy is disabled on your plan — use **`https://api.raafortagro.com/api`** in admin only, or ask Namecheap to enable `mod_proxy`.
 
 ## Test URLs
 
