@@ -188,7 +188,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
       >
         {statCards.map(({ label, value, icon: Icon, hint, trend, color, iconBg }, index) => (
           <motion.div
@@ -201,29 +201,29 @@ export default function Dashboard() {
               'relative overflow-hidden border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5',
               color
             )}>
-              <CardHeader className="flex flex-row items-start justify-between pb-2">
-                <div className="space-y-1">
-                  <CardDescription className="text-xs font-medium uppercase tracking-wider">
+              <CardHeader className="flex flex-row items-start justify-between pb-2 p-4 sm:p-6">
+                <div className="space-y-1 overflow-hidden">
+                  <CardDescription className="truncate text-[10px] font-medium uppercase tracking-wider sm:text-xs">
                     {label}
                   </CardDescription>
                   {loading ? (
-                    <Skeleton className="mt-2 h-8 w-28" />
+                    <Skeleton className="mt-2 h-8 w-20 sm:w-28" />
                   ) : (
-                    <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
+                    <p className="truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl">{value}</p>
                   )}
                 </div>
-                <Button variant="ghost" size="icon" className="size-8 rounded-lg text-muted-foreground">
+                <Button variant="ghost" size="icon" className="hidden size-8 shrink-0 rounded-lg text-muted-foreground sm:inline-flex">
                   <MoreHorizontal className="size-4" />
                 </Button>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-center gap-1.5 text-xs">
+              <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+                <div className="flex items-center gap-1.5 text-[10px] sm:text-xs">
                   {trend === 'up' ? (
-                    <ArrowUpRight className="size-3.5 text-emerald-400" />
+                    <ArrowUpRight className="size-3 text-emerald-400 sm:size-3.5" />
                   ) : (
-                    <ArrowDownRight className="size-3.5 text-amber-400" />
+                    <ArrowDownRight className="size-3 text-amber-400 sm:size-3.5" />
                   )}
-                  <span className={trend === 'up' ? 'text-emerald-400' : 'text-amber-400'}>
+                  <span className={cn('truncate', trend === 'up' ? 'text-emerald-400' : 'text-amber-400')}>
                     {hint}
                   </span>
                 </div>
@@ -243,7 +243,7 @@ export default function Dashboard() {
         className="grid gap-4 lg:grid-cols-5"
       >
         {/* Revenue Bar Chart */}
-        <Card className="border-border lg:col-span-3">
+        <Card className="border-border min-w-0 lg:col-span-3">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-base font-semibold">Revenue Performance</CardTitle>
@@ -280,7 +280,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Order Status Donut */}
-        <Card className="border-border lg:col-span-2">
+        <Card className="border-border min-w-0 lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Order Status</CardTitle>
             <CardDescription>Breakdown by status</CardDescription>
@@ -358,7 +358,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Recent Orders Table */}
-        <Card className="border-border lg:col-span-3">
+        <Card className="border-border min-w-0 lg:col-span-3">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <div>
               <CardTitle className="text-base font-semibold">Recent Orders</CardTitle>

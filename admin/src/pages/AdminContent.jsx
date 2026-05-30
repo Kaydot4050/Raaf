@@ -112,10 +112,7 @@ export default function AdminContent() {
   const updatedAt = pages[activePage]?.sections?.[activeSection]?.updatedAt;
 
   return (
-    <AdminPage
-      title="Website content"
-      description="Edit all site text and images: slider, footer, headers, home sections, legal pages, and more. Products and blog posts have their own admin pages."
-    >
+    <AdminPage>
       <motion.div 
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -128,7 +125,7 @@ export default function AdminContent() {
             <CardDescription>Select a page to edit</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            <ScrollArea className="h-[min(70vh,520px)]">
+            <ScrollArea className="h-48 lg:h-[min(70vh,520px)]">
               <div className="flex flex-col gap-1 p-3">
                 {pageKeys.map((p) => (
                   <Button
@@ -180,9 +177,9 @@ export default function AdminContent() {
                   size="sm"
                   variant="outline"
                   className={cn(
-                    "rounded-full transition-colors",
+                    "rounded-md transition-colors",
                     activeSection === s 
-                      ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground" 
+                      ? "bg-foreground text-background dark:bg-white dark:text-black hover:opacity-90" 
                       : "hover:bg-accent hover:text-foreground"
                   )}
                   onClick={() => setActiveSection(s)}
