@@ -12,6 +12,7 @@ import {
   PenLine,
   Plus,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/shadcn-button.jsx';
 import {
@@ -137,34 +138,45 @@ export default function Dashboard() {
       title="Dashboard"
       description="Overview of your store, website, and recent activity."
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {statCards.map(({ label, value, icon: Icon, hint, tone, border, surface }) => (
-          <Card
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ staggerChildren: 0.1, duration: 0.4 }}
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        {statCards.map(({ label, value, icon: Icon, hint, tone, border, surface }, index) => (
+          <motion.div
             key={label}
-            size="sm"
-            className={cn(
-              'border-t-2 ring-foreground/[0.06] transition-colors hover:ring-primary/20',
-              border,
-              surface,
-            )}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
           >
-            <CardHeader className="flex flex-row items-start justify-between pb-1">
-              <div className="space-y-1">
-                <CardDescription>{label}</CardDescription>
-                {loading ? (
-                  <Skeleton className="mt-2 h-8 w-28" />
-                ) : (
-                  <p className="text-2xl font-semibold tracking-tight">{value}</p>
-                )}
-                <p className="text-xs text-muted-foreground">{hint}</p>
-              </div>
-              <div className={cn('admin-stat-icon', tone)}>
-                <Icon className="size-5" />
-              </div>
-            </CardHeader>
-          </Card>
+            <Card
+              size="sm"
+              className={cn(
+                'border-t-2 ring-foreground/[0.06] transition-all duration-300 hover:ring-primary/20 hover:-translate-y-1',
+                border,
+                surface,
+              )}
+            >
+              <CardHeader className="flex flex-row items-start justify-between pb-1">
+                <div className="space-y-1">
+                  <CardDescription>{label}</CardDescription>
+                  {loading ? (
+                    <Skeleton className="mt-2 h-8 w-28" />
+                  ) : (
+                    <p className="text-2xl font-semibold tracking-tight">{value}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">{hint}</p>
+                </div>
+                <div className={cn('admin-stat-icon', tone)}>
+                  <Icon className="size-5" />
+                </div>
+              </CardHeader>
+            </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       <div className="grid gap-4 lg:grid-cols-5">
         <AdminSection

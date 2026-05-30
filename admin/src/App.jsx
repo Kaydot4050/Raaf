@@ -9,23 +9,26 @@ import AdminOrders from './pages/AdminOrders.jsx';
 import AdminBlog from './pages/AdminBlog.jsx';
 import AdminInquiries from './pages/AdminInquiries.jsx';
 import AdminUsers from './pages/AdminUsers.jsx';
+import { ThemeProvider } from './components/ThemeProvider.jsx';
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route element={<AdminRoute />}>
-        <Route element={<AdminLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="content" element={<AdminContent />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="blog" element={<AdminBlog />} />
-          <Route path="inquiries" element={<AdminInquiries />} />
-          <Route path="users" element={<AdminUsers />} />
+    <ThemeProvider defaultTheme="system" storageKey="raafort-admin-theme">
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="content" element={<AdminContent />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="blog" element={<AdminBlog />} />
+            <Route path="inquiries" element={<AdminInquiries />} />
+            <Route path="users" element={<AdminUsers />} />
+          </Route>
         </Route>
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ThemeProvider>
   );
 }

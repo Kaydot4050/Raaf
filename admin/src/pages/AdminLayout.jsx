@@ -22,6 +22,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet.jsx';
 import AdminLogo from '../components/AdminLogo.jsx';
+import { ThemeToggle } from '../components/ThemeToggle.jsx';
 import { adminSidebarIconTones } from '../lib/adminColors.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { SITE_URL } from '../lib/api.js';
@@ -151,13 +152,14 @@ export default function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
+            <ThemeToggle />
+            <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex rounded-full">
               <a href={SITE_URL} rel="noreferrer">
                 <ExternalLink data-icon="inline-start" />
                 View site
               </a>
             </Button>
-            <Button variant="ghost" size="sm" onClick={logout} className="lg:hidden">
+            <Button variant="ghost" size="sm" onClick={logout} className="lg:hidden rounded-full">
               <LogOut data-icon="inline-start" />
               Sign out
             </Button>
