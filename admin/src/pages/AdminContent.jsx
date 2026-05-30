@@ -14,6 +14,7 @@ import JsonContentEditor from '../components/JsonContentEditor.jsx';
 import { sectionGroupLabel } from '../lib/fieldLabels.js';
 import { adminApi } from '../lib/api.js';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const PAGE_LABELS = {
   global: 'Global (header & footer)',
