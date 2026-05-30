@@ -8,6 +8,15 @@
 | JSON: `{"ok":false,"error":"Database unavailable."}` | Node is up; fix **DATABASE_URL** / Neon. |
 | JSON: `{"ok":true,...}` on `/api/health` but DB fails on `/api/health/db` | Fix database only. |
 
+## Right now (verified from outside)
+
+| URL | Result | Meaning |
+|-----|--------|---------|
+| `https://api.raafortagro.com/api/health` | **503** | Node app **not running** — fix cPanel below |
+| `https://raafortagro.com/api/health` | **404** | Normal — API is not on the shop folder |
+
+Admin login will fail until **api.** returns JSON, not 503.
+
 ## Checklist (cPanel → Setup Node.js App)
 
 1. **Application root** — `api-server` (must contain `package.json`, `app.js`, and `server/index.js`).
@@ -69,9 +78,10 @@ If (1) is still Namecheap HTML:
 - In cPanel Node app, click **Terminal**, then:
   ```bash
   cd ~/api-server
-  source /home/YOURUSER/nodevenv/api-server/20/bin/activate
+  node verify.mjs
   node app.js
   ```
+  (Use the **Enter to the virtual environment** command shown on your Node.js app page if `node` is not found.)
   (Adjust the `source` path — cPanel shows the exact command on the Node.js app edit page.)
 - Common log lines: `Cannot find package 'multer'` → Run NPM Install; `ERR_MODULE_NOT_FOUND` → wrong deploy folder; `Missing DATABASE_URL` → add env vars in cPanel (not only a local `.env` file).
 

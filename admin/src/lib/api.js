@@ -95,12 +95,12 @@ export async function api(path, options = {}) {
   }
 
   if (!res) {
-    const siteHealth =
+    const apiHealth =
       typeof window !== 'undefined' && window.location.hostname.startsWith('admin.')
-        ? `${window.location.protocol}//${window.location.hostname.slice('admin.'.length)}/api/health`
+        ? `${window.location.protocol}//api.${siteRoot(window.location.hostname)}/api/health`
         : null;
-    const hint = siteHealth
-      ? ` Open ${siteHealth} in your browser — if that fails, fix Node in cPanel (see HOSTING.md).`
+    const hint = apiHealth
+      ? ` Fix cPanel Node on api.* (startup app.js, NPM Install, DATABASE_URL). Test: ${apiHealth}`
       : '';
     throw new Error(`Cannot reach API (tried ${bases.join(', ')}).${hint}`);
   }

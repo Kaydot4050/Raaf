@@ -87,7 +87,24 @@ copyDir(path.join(rootDir, 'server'), path.join(deployDir, 'server'));
 // 7. Create restart.txt
 fs.writeFileSync(path.join(deployDir, 'tmp', 'restart.txt'), Date.now().toString());
 
-// 8. Env template for cPanel (do not commit real secrets)
+// 8. Quick check script (run in cPanel Terminal: cd api-server && node verify.mjs)
+fs.writeFileSync(
+  path.join(deployDir, 'verify.mjs'),
+  `import 'dotenv/config';
+const required = ['DATABASE_URL', 'JWT_SECRET'];
+let ok = true;
+for (const key of required) {
+  const set = Boolean(process.env[key]);
+  console.log(set ? '✓' : '✗', key, set ? '' : '(missing — add in cPanel Node → Environment variables)');
+  if (!set) ok = false;
+}
+console.log('CLIENT_ORIGIN', process.env.CLIENT_ORIGIN || '(not set)');
+if (!ok) process.exit(1);
+console.log('Env OK. Next: node app.js');
+`,
+);
+
+// 9. Env template for cPanel (do not commit real secrets)
 fs.writeFileSync(
   path.join(deployDir, '.env.example'),
   `NODE_ENV=production
