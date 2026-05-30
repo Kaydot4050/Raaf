@@ -1,5 +1,5 @@
 import { query } from '../db.js';
-import { defaultSiteContent, defaultBlogPosts } from '../data/defaultSiteContent.js';
+import { defaultSiteContent, defaultBlogPosts } from './defaultSiteContent.js';
 
 export async function seedSiteContent() {
   let inserted = 0;
