@@ -1,28 +1,52 @@
-// Dev: Vite proxy at /api. Production: set VITE_API_URL at build time, or we infer from the admin host.
-function resolveBase() {
-  const fromEnv = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
-  if (fromEnv) return fromEnv;
-
-  if (typeof window !== 'undefined') {
-    const { hostname, protocol } = window.location;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return '/api';
-    }
-    // LAN dev without proxy
-    if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
-      return `http://${hostname}:3001/api`;
-    }
-    // admin.raafortagro.com → https://raafortagro.com/api (typical Namecheap: API on main domain)
-    const siteHost = hostname.startsWith('admin.') ? hostname.slice('admin.'.length) : hostname;
-    return `${protocol}//${siteHost}/api`;
-  }
-  return '/api';
+// Dev: Vite proxy at /api. Production: infer from admin host; ignore api.* env on shared hosting.
+function siteApiBase(hostname, protocol) {
+  const siteHost = hostname.startsWith('admin.') ? hostname.slice('admin.'.length) : hostname;
+  return `${protocol}//${siteHost}/api`;
 }
 
-const BASE = resolveBase();
+function resolveBase() {
+  if (typeof window !== 'undefined') {
+    const { hostname, protocol } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return '/api';
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) return `http://${hostname}:3001/api`;
+
+    const onAdminSubdomain = hostname.startsWith('admin.');
+    const siteApi = siteApiBase(hostname, protocol);
+    const fromEnv = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+
+    if (fromEnv) {
+      try {
+        const envHost = new URL(fromEnv).hostname;
+        // GitHub secret often points at api.* but Node runs on the main domain (Namecheap).
+        if (onAdminSubdomain && envHost.startsWith('api.')) return siteApi;
+      } catch {
+        /* use fromEnv */
+      }
+      return fromEnv;
+    }
+    return siteApi;
+  }
+
+  const fromEnv = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+  return fromEnv || '/api';
+}
+
+/** Primary URL, then fallback when api.* is unreachable. */
+function getApiBases() {
+  const primary = resolveBase();
+  const bases = [primary];
+  if (typeof window !== 'undefined') {
+    const { hostname, protocol } = window.location;
+    if (hostname.startsWith('admin.')) {
+      const siteApi = siteApiBase(hostname, protocol);
+      if (siteApi !== primary) bases.push(siteApi);
+    }
+  }
+  return [...new Set(bases)];
+}
 
 export function getApiBase() {
-  return BASE;
+  return getApiBases()[0];
 }
 const TOKEN_KEY = 'raafort_admin_token';
 
@@ -51,21 +75,35 @@ export async function api(path, options = {}) {
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
+  const bases = getApiBases();
   let res;
-  try {
-    res = await fetch(`${BASE}${path}`, {
-      ...options,
-      headers,
-      credentials: 'include',
-    });
-  } catch {
-    const hint =
-      typeof window !== 'undefined' && import.meta.env.VITE_API_URL
-        ? ' Check GitHub/hosting VITE_API_URL (try https://raafortagro.com/api if api.* subdomain is not set up).'
-        : typeof window !== 'undefined' && window.location.hostname.startsWith('admin.')
-          ? ` Try opening ${window.location.protocol}//${window.location.hostname.slice('admin.'.length)}/api/health in your browser.`
-          : '';
-    throw new Error(`Cannot reach API at ${BASE}.${hint}`);
+  let usedBase = bases[0];
+  let lastNetworkError;
+
+  for (const base of bases) {
+    try {
+      res = await fetch(`${base}${path}`, {
+        ...options,
+        headers,
+        credentials: 'include',
+      });
+      usedBase = base;
+      break;
+    } catch (err) {
+      lastNetworkError = err;
+      res = undefined;
+    }
+  }
+
+  if (!res) {
+    const siteHealth =
+      typeof window !== 'undefined' && window.location.hostname.startsWith('admin.')
+        ? `${window.location.protocol}//${window.location.hostname.slice('admin.'.length)}/api/health`
+        : null;
+    const hint = siteHealth
+      ? ` Open ${siteHealth} in your browser — if that fails, fix Node in cPanel (see HOSTING.md).`
+      : '';
+    throw new Error(`Cannot reach API (tried ${bases.join(', ')}).${hint}`);
   }
 
   const text = await res.text();
@@ -77,8 +115,8 @@ export async function api(path, options = {}) {
       const preview = text.slice(0, 160).replace(/\s+/g, ' ').trim();
       throw new Error(
         res.ok
-          ? `Invalid response from ${BASE}${path}`
-          : `Server error (${res.status}) from ${BASE}${path}: ${preview}`,
+          ? `Invalid response from ${usedBase}${path}`
+          : `Server error (${res.status}) from ${usedBase}${path}: ${preview}`,
       );
     }
   }
@@ -123,7 +161,7 @@ export async function uploadImage(file) {
   const token = getAuthToken();
   const formData = new FormData();
   formData.append('file', file);
-  const res = await fetch(`${BASE}/admin/upload`, {
+  const res = await fetch(`${getApiBase()}/admin/upload`, {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
