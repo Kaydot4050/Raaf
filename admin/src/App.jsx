@@ -13,7 +13,7 @@ import { ThemeProvider } from './components/ThemeProvider.jsx';
 
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="raafort-admin-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="raafort-admin-theme">
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route element={<AdminRoute />}>

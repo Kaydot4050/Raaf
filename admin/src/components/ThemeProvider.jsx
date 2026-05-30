@@ -1,11 +1,11 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
 const ThemeProviderContext = createContext({
-  theme: 'system',
+  theme: 'dark',
   setTheme: () => null,
 });
 
-export function ThemeProvider({ children, defaultTheme = 'system', storageKey = 'vite-ui-theme', ...props }) {
+export function ThemeProvider({ children, defaultTheme = 'dark', storageKey = 'raafort-admin-theme', ...props }) {
   const [theme, setTheme] = useState(
     () => localStorage.getItem(storageKey) || defaultTheme
   );

@@ -47,15 +47,16 @@ export default function Login() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      {/* Glow effects */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-40"
+        className="pointer-events-none absolute inset-0"
         aria-hidden
         style={{
           background:
-            'radial-gradient(ellipse 80% 60% at 50% -10%, rgb(45 74 50 / 18%), transparent), radial-gradient(ellipse 50% 40% at 100% 100%, rgb(196 165 116 / 15%), transparent)',
+            'radial-gradient(ellipse 60% 40% at 50% -5%, rgba(139,92,246,0.15), transparent), radial-gradient(ellipse 40% 30% at 80% 100%, rgba(139,92,246,0.08), transparent)',
         }}
       />
-      <Card className="relative w-full max-w-md border-forest/20 bg-forest/[0.04] ring-foreground/[0.06]">
+      <Card className="relative w-full max-w-md border-border bg-card/80 backdrop-blur-sm">
         <CardHeader className="items-center text-center">
           <AdminLogo className="mb-2 justify-center" imageClassName="size-14" showText={false} />
           <CardTitle className="font-display text-xl lowercase">raafortagro admin</CardTitle>
