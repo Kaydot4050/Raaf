@@ -1,26 +1,96 @@
-@import "tailwindcss";
+@import "../../src/tailwind.css";
 
-@theme {
-  --color-forest: #2d4a32;
-  --color-forest-light: #3d6344;
-  --color-beige-soft: #f0ebe3;
-  --color-charcoal: #1c1c1c;
-  --color-text: #5a5a5a;
-  --color-text-muted: #8a8580;
-  --color-border: #e8e2d8;
-  --font-family-sans: 'Inter', system-ui, sans-serif;
-  --font-family-display: 'Outfit', sans-serif;
-}
+@source "../../src/components/**/*.{js,jsx,ts,tsx}";
+@source "../../src/lib/**/*.{js,jsx,ts,tsx}";
+@source "./**/*.{js,jsx,ts,tsx}";
 
 @layer base {
-  body {
-    margin: 0;
+  html {
+    color-scheme: light;
+    --background: #f7f4ef;
+    --foreground: #1c1c1c;
+    --card: #ffffff;
+    --card-foreground: #1c1c1c;
+    --popover: #ffffff;
+    --popover-foreground: #1c1c1c;
+    --primary: #2d4a32;
+    --primary-foreground: #f7f4ef;
+    --secondary: #e3d9c8;
+    --secondary-foreground: #2d4a32;
+    --muted: #f0ebe3;
+    --muted-foreground: #8a8580;
+    --accent: #ebe6dc;
+    --accent-foreground: #1c1c1c;
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: #e8e2d8;
+    --input: #e8e2d8;
+    --ring: #2d4a32;
+    --sidebar: #2d4a32;
+    --sidebar-foreground: #f7f4ef;
+    --sidebar-primary: #c4a574;
+    --sidebar-primary-foreground: #1c1c1c;
+    --sidebar-accent: #3d6344;
+    --sidebar-accent-foreground: #f7f4ef;
+    --sidebar-border: #3d6344;
+    --sidebar-ring: #c4a574;
+    --chart-1: #2d4a32;
+    --chart-2: #3d6344;
+    --chart-3: #c4a574;
+    --chart-4: #a67c52;
+    --chart-5: #e8a317;
+    --radius: 0.75rem;
+  }
+
+  html body {
+    background: var(--background);
+    color: var(--foreground);
     font-family: var(--font-family-sans);
-    background: #f4f5f7;
-    color: var(--color-text);
+  }
+
+  html h1,
+  html h2,
+  html h3,
+  html h4 {
+    font-family: var(--font-family-display);
   }
 }
 
-@utility font-display {
-  font-family: var(--font-family-display);
+@utility admin-card {
+  @apply rounded-xl bg-card ring-1 ring-foreground/[0.06];
+}
+
+@utility admin-row-icon {
+  @apply flex size-12 shrink-0 items-center justify-center rounded-lg;
+}
+
+@utility admin-stat-icon {
+  @apply flex size-10 items-center justify-center rounded-lg;
+}
+
+@utility admin-row {
+  @apply flex items-center gap-4 rounded-xl border border-border/80 bg-card px-4 py-4 ring-1 ring-foreground/[0.04];
+}
+
+@utility admin-row-interactive {
+  @apply flex items-center gap-4 rounded-xl border border-border/80 bg-card px-4 py-4 ring-1 ring-foreground/[0.04] transition-colors hover:border-primary/25 hover:bg-beige-soft;
+}
+
+@utility admin-panel {
+  @apply flex flex-col gap-3 rounded-xl border border-border/80 bg-card p-4 ring-1 ring-foreground/[0.04];
+}
+
+@utility admin-panel-cream {
+  @apply flex flex-col gap-3 rounded-xl border border-beige/70 bg-beige-soft/90 p-4 ring-1 ring-beige/25;
+}
+
+@utility admin-panel-sage {
+  @apply flex flex-col gap-3 rounded-xl border border-forest/20 bg-forest/[0.06] p-4 ring-1 ring-forest/10;
+}
+
+@utility admin-panel-wheat {
+  @apply flex flex-col gap-3 rounded-xl border border-wheat/40 bg-wheat/15 p-4 ring-1 ring-wheat/20;
+}
+
+@utility admin-panel-gold {
+  @apply flex flex-col gap-3 rounded-xl border border-star/30 bg-star/[0.08] p-4 ring-1 ring-star/15;
 }

@@ -2,16 +2,20 @@ import { query } from '../db.js';
 import { defaultSiteContent, defaultBlogPosts } from '../data/defaultSiteContent.js';
 
 export async function seedSiteContent() {
-  const count = (await query('SELECT COUNT(*)::int AS c FROM site_content')).rows[0].c;
-  if (count > 0) return;
-
+  let inserted = 0;
   for (const row of defaultSiteContent) {
-    await query(
-      `INSERT INTO site_content (page, section, data) VALUES ($1, $2, $3)`,
+    const result = await query(
+      `INSERT INTO site_content (page, section, data)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (page, section) DO NOTHING
+       RETURNING page`,
       [row.page, row.section, row.data],
     );
+    if (result.rows[0]) inserted += 1;
   }
-  console.log(`Seeded ${defaultSiteContent.length} site content sections.`);
+  if (inserted > 0) {
+    console.log(`Seeded ${inserted} new site content section(s).`);
+  }
 }
 
 export async function seedBlogPosts() {

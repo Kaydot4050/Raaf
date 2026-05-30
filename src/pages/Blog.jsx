@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { posts as fallback } from '../data/blog.js';
 import { contentApi } from '../lib/api.js';
 import SectionTitle from '../components/SectionTitle.jsx';
+import WeatherWidget from '../components/WeatherWidget.jsx';
 
 export default function Blog() {
   const [posts, setPosts] = useState(fallback);
@@ -17,6 +18,7 @@ export default function Blog() {
   return (
     <div className="py-12 sm:py-16 md:py-20 min-h-[50vh]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <WeatherWidget />
         <SectionTitle subtitle="BLOG" title="Latest posts" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map((post, i) => (

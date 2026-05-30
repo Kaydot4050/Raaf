@@ -21,6 +21,8 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      # VITE_API_URL must match a live API (test …/api/health). Often https://raafortagro.com/api on Namecheap,
+      # not https://api.raafortagro.com/api unless that subdomain is configured. Omit secret to auto-use main domain.
       - name: Build Main Frontend
         run: npm run build
         env:

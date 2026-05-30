@@ -22,9 +22,23 @@ if (!connectionString) {
   console.warn('DATABASE_URL is not set — API will fail until .env is configured.');
 }
 
+function poolSsl(connectionString) {
+  if (!connectionString) return undefined;
+  if (connectionString.includes('neon.tech')) return { rejectUnauthorized: false };
+  try {
+    const sslmode = new URL(connectionString).searchParams.get('sslmode');
+    if (sslmode === 'require' || sslmode === 'verify-full' || sslmode === 'verify-ca') {
+      return { rejectUnauthorized: false };
+    }
+  } catch {
+    /* ignore */
+  }
+  return undefined;
+}
+
 export const pool = new Pool({
   connectionString,
-  ssl: connectionString?.includes('neon.tech') ? { rejectUnauthorized: false } : undefined,
+  ssl: poolSsl(connectionString),
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000,

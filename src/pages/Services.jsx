@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, useInView, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { usePageSection } from '../context/ContentContext.jsx';
 import {
   Egg, Beef, Wheat, TrendingUp, Stethoscope, Warehouse,
   GraduationCap, Coins, Package, ArrowRight, ArrowUpRight,
@@ -413,6 +414,12 @@ function FloatInput({ id, label, type = 'text', as = 'input' }) {
 
 /* ── Main Component ────────────────────────────────── */
 export default function Services() {
+  const { data: hero } = usePageSection('services', 'hero', {
+    title: 'Farm services built around your success.',
+    description:
+      'From day-old chicks and livestock to feed, logistics, and expert consultation — one partner for your entire agricultural operation.',
+    image: '/images/istock-hero.jpg',
+  });
   const [activeCategory, setActiveCategory] = useState('All');
 
   // Extract unique categories from core services
@@ -431,7 +438,7 @@ export default function Services() {
       {/* ── HERO ─────────────────────────────────────── */}
       <section className="relative min-h-0 lg:min-h-[85vh] flex items-start lg:items-center overflow-hidden pt-20">
         <div className="absolute inset-0">
-          <img src="/images/istock-hero.jpg" alt="Farm Services" className="w-full h-full object-cover" />
+          <img src={hero.image || '/images/istock-hero.jpg'} alt="Farm Services" className="w-full h-full object-cover" />
           {/* Light glass blur overlay */}
           <div className="absolute inset-0 bg-white/40 backdrop-blur-md" />
           {/* Subtle gradient from top/bottom to ensure the image blends nicely into the page */}
@@ -444,18 +451,14 @@ export default function Services() {
               variants={fadeUp} custom={1} initial="hidden" animate="show"
               className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.05] mb-6 text-charcoal"
             >
-              Farm services{' '}
-              <span className="text-forest">built</span>
-              {' '}around your{' '}
-              <span className="text-forest">success.</span>
+              {hero.title}
             </motion.h1>
 
             <motion.p
               variants={fadeUp} custom={2} initial="hidden" animate="show"
               className="text-text text-lg leading-relaxed max-w-lg mb-10 mx-auto lg:mx-0"
             >
-              From day-old chicks and livestock to feed, logistics, and expert consultation —
-              one partner for your entire agricultural operation.
+              {hero.description}
             </motion.p>
 
             <motion.div

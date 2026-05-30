@@ -1,84 +1,280 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  Package,
+  Users,
+  ShoppingCart,
+  TrendingUp,
+  ArrowRight,
+  Globe,
+  BookOpen,
+  Mail,
+  PenLine,
+  Plus,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/shadcn-button.jsx';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card.jsx';
+import { Badge } from '@/components/ui/badge.jsx';
+import { Skeleton } from '@/components/ui/skeleton.jsx';
+import AdminPage from '../components/AdminPage.jsx';
+import AdminSection from '../components/AdminSection.jsx';
 import { adminApi } from '../lib/api.js';
+import {
+  adminIconTones,
+  adminRowSurface,
+  adminRowTones,
+  adminStatTones,
+} from '../lib/adminColors.js';
+import { cn } from '@/lib/utils';
 
-function StatCard({ label, value, sub }) {
-  return (
-    <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</p>
-      <p className="mt-2 text-2xl font-bold text-charcoal">{value}</p>
-      {sub && <p className="mt-1 text-xs text-text-muted">{sub}</p>}
-    </div>
-  );
+const quickActions = [
+  {
+    label: 'Edit homepage',
+    description: 'Slider, banners, and text',
+    to: '/content',
+    icon: Globe,
+    tone: 'sage',
+  },
+  {
+    label: 'Add a product',
+    description: 'New item for the shop',
+    to: '/products',
+    icon: Plus,
+    tone: 'earth',
+  },
+  {
+    label: 'Write a blog post',
+    description: 'News and farm updates',
+    to: '/blog',
+    icon: PenLine,
+    tone: 'wheat',
+  },
+  {
+    label: 'Check messages',
+    description: 'Customer inquiries',
+    to: '/inquiries',
+    icon: Mail,
+    tone: 'gold',
+  },
+];
+
+const manageLinks = [
+  { label: 'Website content', to: '/content', icon: Globe, tone: 'sage' },
+  { label: 'Products', to: '/products', icon: Package, tone: 'earth' },
+  { label: 'Orders', to: '/orders', icon: ShoppingCart, tone: 'forest' },
+  { label: 'Blog', to: '/blog', icon: BookOpen, tone: 'wheat' },
+];
+
+function statusBadge(status) {
+  if (status === 'pending') return 'secondary';
+  if (status === 'completed') return 'default';
+  return 'outline';
 }
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [orders, setOrders] = useState([]);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([adminApi.stats(), adminApi.orders()])
       .then(([s, o]) => {
         setStats(s);
-        setOrders(o.orders?.slice(0, 8) || []);
+        setOrders(o.orders?.slice(0, 5) || []);
       })
-      .catch((e) => setError(e.message));
+      .catch((e) => toast.error(e.message))
+      .finally(() => setLoading(false));
   }, []);
 
+  const statCards = [
+    {
+      label: 'Total orders',
+      value: stats?.totalOrders ?? '—',
+      icon: ShoppingCart,
+      hint: 'All time',
+      tone: adminStatTones.orders,
+      border: 'border-t-forest',
+      surface: 'bg-forest/[0.05]',
+    },
+    {
+      label: 'Revenue',
+      value: stats ? `GH₵ ${Number(stats.revenue).toLocaleString()}` : '—',
+      icon: TrendingUp,
+      hint: 'Completed orders',
+      tone: adminStatTones.gold,
+      border: 'border-t-star',
+      surface: 'bg-star/[0.07]',
+    },
+    {
+      label: 'New customers',
+      value: stats?.newCustomers ?? '—',
+      icon: Users,
+      hint: 'Last 30 days',
+      tone: adminStatTones.customers,
+      border: 'border-t-forest-light',
+      surface: 'bg-forest-light/[0.09]',
+    },
+    {
+      label: 'Pending orders',
+      value: stats?.pendingOrders ?? '—',
+      icon: Package,
+      hint: 'Needs attention',
+      tone: stats?.pendingOrders > 0 ? adminStatTones.pending : adminIconTones.beige,
+      border: stats?.pendingOrders > 0 ? 'border-t-accent' : 'border-t-beige-dark',
+      surface: stats?.pendingOrders > 0 ? 'bg-wheat/12' : 'bg-beige-soft/80',
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-charcoal">Sales overview</h1>
-        <p className="text-sm text-text-muted mt-1">Manage your store from one place.</p>
+    <AdminPage
+      title="Dashboard"
+      description="Overview of your store, website, and recent activity."
+    >
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {statCards.map(({ label, value, icon: Icon, hint, tone, border, surface }) => (
+          <Card
+            key={label}
+            size="sm"
+            className={cn(
+              'border-t-2 ring-foreground/[0.06] transition-colors hover:ring-primary/20',
+              border,
+              surface,
+            )}
+          >
+            <CardHeader className="flex flex-row items-start justify-between pb-1">
+              <div className="space-y-1">
+                <CardDescription>{label}</CardDescription>
+                {loading ? (
+                  <Skeleton className="mt-2 h-8 w-28" />
+                ) : (
+                  <p className="text-2xl font-semibold tracking-tight">{value}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{hint}</p>
+              </div>
+              <div className={cn('admin-stat-icon', tone)}>
+                <Icon className="size-5" />
+              </div>
+            </CardHeader>
+          </Card>
+        ))}
       </div>
 
-      {error && <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">{error}</p>}
+      <div className="grid gap-4 lg:grid-cols-5">
+        <AdminSection
+          className="lg:col-span-2"
+          tone="wheat"
+          title="Quick actions"
+          description="Common tasks to manage your site and store"
+        >
+          <div className="flex flex-col gap-2.5">
+            {quickActions.map(({ label, description, to, icon: Icon, tone }) => (
+              <Link
+                key={to + label}
+                to={to}
+                className="group admin-row-interactive"
+              >
+                <div className={cn('admin-row-icon transition-colors', adminRowTones[tone])}>
+                  <Icon className="size-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">{label}</p>
+                  <p className="text-sm text-muted-foreground">{description}</p>
+                </div>
+                <ArrowRight className="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+              </Link>
+            ))}
+          </div>
+        </AdminSection>
 
-      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Total orders" value={stats?.totalOrders ?? '—'} />
-        <StatCard label="Revenue (completed)" value={stats ? `GH₵ ${Number(stats.revenue).toLocaleString()}` : '—'} />
-        <StatCard label="New customers (30d)" value={stats?.newCustomers ?? '—'} />
-        <StatCard label="Pending orders" value={stats?.pendingOrders ?? '—'} />
-      </div>
-
-      <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h2 className="font-semibold text-charcoal">Recent orders</h2>
-          <Link to="/orders" className="text-sm font-semibold text-forest hover:underline">
-            View all
-          </Link>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-beige-soft/50 text-left text-xs uppercase tracking-wide text-text-muted">
-              <tr>
-                <th className="px-5 py-3">Order</th>
-                <th className="px-5 py-3">Customer</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3 text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((o) => (
-                <tr key={o.id} className="border-t border-border">
-                  <td className="px-5 py-3 font-medium">{o.id}</td>
-                  <td className="px-5 py-3">{o.customer?.name}</td>
-                  <td className="px-5 py-3 capitalize">{o.status}</td>
-                  <td className="px-5 py-3 text-right">GH₵ {o.subtotal?.toLocaleString()}</td>
-                </tr>
+        <AdminSection
+          className="lg:col-span-3"
+          tone="sage"
+          title="Recent orders"
+          description="Latest customer purchases"
+          actions={
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/orders">
+                View all
+                <ArrowRight data-icon="inline-end" />
+              </Link>
+            </Button>
+          }
+        >
+          {loading ? (
+            <div className="flex flex-col gap-2.5">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-[4.5rem] w-full rounded-xl" />
               ))}
-              {!orders.length && (
-                <tr>
-                  <td colSpan={4} className="px-5 py-8 text-center text-text-muted">
-                    No orders yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          ) : orders.length ? (
+            <div className="flex flex-col gap-2.5">
+              {orders.map((o, i) => (
+                  <div
+                    key={o.id}
+                    className={cn('admin-row flex-wrap sm:flex-nowrap', adminRowSurface(i))}
+                  >
+                    <div className="admin-row-icon rounded-full text-xs font-semibold">
+                      #{o.id}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">
+                        {o.customer?.name || 'Guest customer'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {o.created_at
+                          ? new Date(o.created_at).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })
+                          : '—'}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold tabular-nums">
+                      GH₵ {Number(o.subtotal || 0).toLocaleString()}
+                    </p>
+                    <Badge variant={statusBadge(o.status)} className="capitalize">
+                      {o.status || 'unknown'}
+                    </Badge>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-10 text-center">
+              <ShoppingCart className="mb-2 size-8 text-muted-foreground/50" />
+              <p className="text-sm text-muted-foreground">No orders yet.</p>
+              <Button variant="link" size="sm" asChild className="mt-1">
+                <Link to="/products">Add products to get started</Link>
+              </Button>
+            </div>
+          )}
+        </AdminSection>
       </div>
-    </div>
+
+      <AdminSection tone="gold" title="Manage" description="Jump to a section">
+        <div className="flex flex-col gap-2.5 sm:grid sm:grid-cols-2 sm:gap-2.5 lg:grid-cols-4">
+          {manageLinks.map(({ label, to, icon: Icon, tone }) => (
+            <Link
+              key={to}
+              to={to}
+              className="group admin-row-interactive bg-card/70 hover:bg-beige-soft"
+            >
+              <div className={cn('admin-row-icon transition-colors', adminRowTones[tone])}>
+                <Icon className="size-5" />
+              </div>
+              <p className="min-w-0 flex-1 font-medium">{label}</p>
+              <ArrowRight className="size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+            </Link>
+          ))}
+        </div>
+      </AdminSection>
+    </AdminPage>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Truck, CheckCircle2, MapPin, Clock, HelpCircle } from 'lucide-react';
-import PageHero from '../components/ui/PageHero.jsx';
+import CmsPageHero from '../components/CmsPageHero.jsx';
 import Button from '../components/ui/Button.jsx';
 import { fadeUp } from '../lib/motion.js';
 
@@ -39,11 +39,14 @@ export default function TrackOrder() {
 
   return (
     <div>
-      <PageHero
-        eyebrow="Track order"
-        title="Know exactly where your order is"
-        description="Enter your order ID from your confirmation email for live status and estimated delivery."
-        image="/images/Raafortagro-2.png"
+      <CmsPageHero
+        page="track_order"
+        fallback={{
+          eyebrow: 'Track order',
+          title: 'Know exactly where your order is',
+          description: 'Enter your order ID from your confirmation email for live status and estimated delivery.',
+          image: '/images/Raafortagro-2.png',
+        }}
         align="center"
       />
 

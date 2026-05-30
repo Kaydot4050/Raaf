@@ -1,10 +1,23 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/shadcn-button.jsx';
+import { Input } from '@/components/ui/input.jsx';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card.jsx';
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from '@/components/ui/field.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import AdminLogo from '../components/AdminLogo.jsx';
 import { SITE_URL } from '../lib/api.js';
-
-const inputCls =
-  'mt-1.5 w-full px-4 py-3 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-forest/30';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -12,7 +25,6 @@ export default function Login() {
   const { login, isAuthenticated, isAdmin, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const from = location.state?.from?.pathname || '/';
@@ -24,47 +36,68 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setError('');
     const result = await login(email, password);
     setSubmitting(false);
     if (!result.ok) {
-      setError(result.error);
+      toast.error(result.error);
       return;
     }
     navigate(from, { replace: true });
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl border border-border p-8 shadow-sm">
-        <h1 className="font-display text-2xl font-bold text-charcoal">Raafort Admin</h1>
-        <p className="text-sm text-text-muted mt-1 mb-6">Sign in with your admin account.</p>
-        {error && (
-          <p className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">{error}</p>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <label className="block text-xs font-semibold uppercase text-charcoal">
-            Email
-            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
-          </label>
-          <label className="block text-xs font-semibold uppercase text-charcoal">
-            Password
-            <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />
-          </label>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-3 rounded-full bg-forest text-white text-sm font-semibold hover:bg-forest-light disabled:opacity-60"
-          >
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-        <p className="mt-6 text-center text-sm text-text-muted">
-          <a href={SITE_URL} className="text-forest font-semibold hover:underline">
-            ← Back to website
-          </a>
-        </p>
-      </div>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        aria-hidden
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 60% at 50% -10%, rgb(45 74 50 / 18%), transparent), radial-gradient(ellipse 50% 40% at 100% 100%, rgb(196 165 116 / 15%), transparent)',
+        }}
+      />
+      <Card className="relative w-full max-w-md border-forest/20 bg-forest/[0.04] ring-foreground/[0.06]">
+        <CardHeader className="items-center text-center">
+          <AdminLogo className="mb-2 justify-center" imageClassName="size-14" showText={false} />
+          <CardTitle className="font-display text-xl lowercase">raafortagro admin</CardTitle>
+          <CardDescription>Sign in to manage your website and store.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Field>
+            </FieldGroup>
+            <Button type="submit" className="mt-6 w-full" disabled={submitting}>
+              {submitting ? 'Signing in…' : 'Sign in'}
+            </Button>
+          </form>
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            <a href={SITE_URL} className="font-medium text-primary hover:underline">
+              ← Back to website
+            </a>
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

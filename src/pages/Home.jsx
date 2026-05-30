@@ -21,6 +21,13 @@ export default function Home() {
   const { data: featuredCopy } = usePageSection('home', 'featured', {
     title: 'Hand-picked for your farm',
     subtitle: 'Featured products',
+    description: 'Premium breeds selected by our agronomy team.',
+    buttonLabel: 'View all products',
+  });
+  const { data: blogTeaser } = usePageSection('home', 'blog_teaser', {
+    eyebrow: 'Journal',
+    title: 'Farm insights',
+    subtitle: 'Latest from our blog',
   });
   const [posts, setPosts] = useState(fallbackPosts);
 
@@ -44,7 +51,7 @@ export default function Home() {
           <SectionHeader
             eyebrow={featuredCopy.subtitle || 'Catalog'}
             title={featuredCopy.title || 'Hand-picked for your farm'}
-            description="Premium breeds selected by our agronomy team."
+            description={featuredCopy.description}
           />
           <RevealGrid className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {displayFeatured.map((p, i) => (
@@ -55,7 +62,7 @@ export default function Home() {
           </RevealGrid>
           <div className="text-center mt-10">
             <Button to="/shop" variant="forest" size="lg">
-              View all products
+              {featuredCopy.buttonLabel || 'View all products'}
               <ArrowRight className="w-4 h-4" />
             </Button>
           </div>
@@ -67,7 +74,11 @@ export default function Home() {
 
       <section className="py-10 sm:py-20 bg-white mx-4 sm:mx-6 lg:mx-8 mb-8 rounded-card border border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <SectionHeader eyebrow="Journal" title="Farm insights" className="!mb-5 sm:!mb-12" />
+          <SectionHeader
+            eyebrow={blogTeaser.eyebrow || blogTeaser.subtitle}
+            title={blogTeaser.title}
+            className="!mb-5 sm:!mb-12"
+          />
           <RevealGrid className="flex sm:grid gap-4 sm:gap-5 overflow-x-auto sm:overflow-visible snap-x snap-mandatory sm:snap-none pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none sm:grid-cols-2 lg:grid-cols-3">
             {posts.slice(0, 3).map((post, i) => (
               <RevealItem key={post.id} index={i} className="w-[min(82vw,320px)] sm:w-auto shrink-0 snap-center sm:shrink sm:snap-align-none">

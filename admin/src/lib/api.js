@@ -1,14 +1,29 @@
-// Default /api uses Vite proxy in dev (avoids CORS on :5174).
-// On network (non-localhost) access the Vite proxy doesn't apply in the browser,
-// so we point directly to the API server on port 3001 of the same host.
+// Dev: Vite proxy at /api. Production: set VITE_API_URL at build time, or we infer from the admin host.
 function resolveBase() {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return `http://${window.location.hostname}:3001/api`;
+  const fromEnv = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+  if (fromEnv) return fromEnv;
+
+  if (typeof window !== 'undefined') {
+    const { hostname, protocol } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return '/api';
+    }
+    // LAN dev without proxy
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+      return `http://${hostname}:3001/api`;
+    }
+    // admin.raafortagro.com → https://raafortagro.com/api (typical Namecheap: API on main domain)
+    const siteHost = hostname.startsWith('admin.') ? hostname.slice('admin.'.length) : hostname;
+    return `${protocol}//${siteHost}/api`;
   }
   return '/api';
 }
+
 const BASE = resolveBase();
+
+export function getApiBase() {
+  return BASE;
+}
 const TOKEN_KEY = 'raafort_admin_token';
 
 export function setAuthToken(token) {
@@ -44,7 +59,13 @@ export async function api(path, options = {}) {
       credentials: 'include',
     });
   } catch {
-    throw new Error(`Cannot reach API at ${BASE}. Is the server running?`);
+    const hint =
+      typeof window !== 'undefined' && import.meta.env.VITE_API_URL
+        ? ' Check GitHub/hosting VITE_API_URL (try https://raafortagro.com/api if api.* subdomain is not set up).'
+        : typeof window !== 'undefined' && window.location.hostname.startsWith('admin.')
+          ? ` Try opening ${window.location.protocol}//${window.location.hostname.slice('admin.'.length)}/api/health in your browser.`
+          : '';
+    throw new Error(`Cannot reach API at ${BASE}.${hint}`);
   }
 
   const text = await res.text();
@@ -64,6 +85,10 @@ export async function api(path, options = {}) {
 
   if (!res.ok) {
     let message = data.error || res.statusText || 'Request failed';
+    if (!data.error && (res.status === 500 || res.status === 502 || res.status === 503)) {
+      message =
+        'API server is not running. In the project root run: npm run dev:server (or npm run dev:full)';
+    }
     if (res.status === 404 && path.includes('admin-login')) {
       message =
         'API server is outdated. Stop all terminals running the API, then run: npm run dev:server';
@@ -94,8 +119,48 @@ export const authApi = {
   me: () => api('/auth/me'),
 };
 
+export async function uploadImage(file) {
+  const token = getAuthToken();
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${BASE}/admin/upload`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+    credentials: 'include',
+  });
+  const text = await res.text();
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`Upload failed (${res.status}).`);
+    }
+  }
+  if (!res.ok) throw new Error(data.error || 'Upload failed.');
+  return data;
+}
+
+export async function uploadImageFromUrl(url) {
+  return api('/admin/upload-from-url', {
+    method: 'POST',
+    body: JSON.stringify({ url: url.trim() }),
+  });
+}
+
+export function mediaUrl(path) {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const base = import.meta.env.VITE_SITE_URL || '';
+  return `${base.replace(/\/$/, '')}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
 export const adminApi = {
   stats: () => api('/admin/stats'),
+  uploadConfig: () => api('/admin/upload-config'),
+  uploadImage,
+  uploadImageFromUrl,
   content: () => api('/admin/content'),
   updateContent: (page, section, data) =>
     api(`/admin/content/${page}/${section}`, { method: 'PUT', body: JSON.stringify({ data }) }),

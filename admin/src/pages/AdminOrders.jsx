@@ -1,5 +1,18 @@
 import { useEffect, useState } from 'react';
+import { ShoppingCart } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.jsx';
+import AdminPage from '../components/AdminPage.jsx';
+import AdminSection from '../components/AdminSection.jsx';
 import { adminApi } from '../lib/api.js';
+import { adminRowSurface } from '../lib/adminColors.js';
+import { cn } from '@/lib/utils';
 
 const STATUSES = ['pending', 'processing', 'completed', 'cancelled'];
 
@@ -13,47 +26,55 @@ export default function AdminOrders() {
   }, []);
 
   const setStatus = async (id, status) => {
-    await adminApi.updateOrder(id, status);
-    load();
+    try {
+      await adminApi.updateOrder(id, status);
+      toast.success('Order status updated.');
+      load();
+    } catch (err) {
+      toast.error(err.message || 'Update failed.');
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold text-charcoal">Orders</h1>
-      <div className="bg-white rounded-2xl border border-border overflow-x-auto">
-        <table className="w-full text-sm min-w-[640px]">
-          <thead className="bg-beige-soft/50 text-left text-xs uppercase text-text-muted">
-            <tr>
-              <th className="px-4 py-3">ID</th>
-              <th className="px-4 py-3">Customer</th>
-              <th className="px-4 py-3">Phone</th>
-              <th className="px-4 py-3">Total</th>
-              <th className="px-4 py-3">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((o) => (
-              <tr key={o.id} className="border-t border-border">
-                <td className="px-4 py-3 font-medium">{o.id}</td>
-                <td className="px-4 py-3">{o.customer?.name}</td>
-                <td className="px-4 py-3">{o.customer?.phone}</td>
-                <td className="px-4 py-3">GH₵ {o.subtotal?.toLocaleString()}</td>
-                <td className="px-4 py-3">
-                  <select
-                    value={o.status}
-                    onChange={(e) => setStatus(o.id, e.target.value)}
-                    className="px-2 py-1 rounded-lg border border-border text-sm"
-                  >
-                    {STATUSES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <AdminPage title="Orders" description="Track and update customer order status.">
+      <AdminSection
+        tone="sage"
+        title="All orders"
+        description={`${orders.length} recent order${orders.length === 1 ? '' : 's'}`}
+      >
+        <div className="flex flex-col gap-2.5">
+          {orders.map((o, i) => (
+            <div key={o.id} className={cn('admin-row flex-wrap sm:flex-nowrap', adminRowSurface(i))}>
+              <div className="admin-row-icon">
+                <ShoppingCart className="size-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">
+                  #{o.id} · {o.customer?.name || 'Guest customer'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {o.customer?.phone || '—'} · GH₵ {o.subtotal?.toLocaleString()}
+                </p>
+              </div>
+              <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ))}
+          {!orders.length ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">No orders yet.</p>
+          ) : null}
+        </div>
+      </AdminSection>
+    </AdminPage>
   );
 }

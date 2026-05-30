@@ -43,14 +43,22 @@ COOKIE_DOMAIN=.raafortagro.com
 VITE_ADMIN_URL=https://admin.raafortagro.com
 ```
 
-**Admin app** (`admin/.env` or build-time):
+**Admin app** (GitHub secret or `admin/.env` at build time):
 
 ```env
-VITE_API_URL=https://api.raafortagro.com/api
+# Most Namecheap setups: Node API is reached on the MAIN domain (not api.* unless you created that subdomain)
+VITE_API_URL=https://raafortagro.com/api
 VITE_SITE_URL=https://raafortagro.com
 ```
 
-If the API is on the same host as the shop (`https://raafortagro.com/api`), set `VITE_API_URL` accordingly.
+Only use `https://api.raafortagro.com/api` if that subdomain exists in DNS **and** your Node app is assigned to it in cPanel.
+
+### “Cannot reach API at https://api.raafortagro.com/api”
+
+1. `https://api.raafortagro.com/api/health` → JSON `{"ok":true}` means Node is running.
+2. `https://api.raafortagro.com/api/health/db` → JSON `{"ok":true}` means the database is connected.
+3. Namecheap **HTML** 503 on `/api/health` → Node app is down; see [HOSTING.md](./HOSTING.md).
+4. Set `VITE_API_URL` only after (1) works; redeploy admin after changing the GitHub secret.
 
 ## Production deploy
 

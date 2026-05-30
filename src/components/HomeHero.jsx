@@ -5,8 +5,25 @@ import Button from './ui/Button.jsx';
 import AnimatedCounter from './ui/AnimatedCounter.jsx';
 import AnimatedProgressBar from './ui/AnimatedProgressBar.jsx';
 import HeroImageSlider from './HeroImageSlider.jsx';
+import { usePageSection } from '../context/ContentContext.jsx';
+
+const DEFAULT_CARDS = [
+  {
+    image: '/images/Raafortagro.png',
+    eyebrow: 'Expert support',
+    title: 'Need advice for your farm?',
+    buttonLabel: 'Contact Us',
+    buttonTo: '/contact',
+  },
+  { eyebrow: 'Raafort Agro', title: 'Farm supply hub', badge: 'Yield support +30%' },
+  { eyebrow: 'National Reach', statValue: '500+', statLabel: 'Farms served across Ghana', statProgress: 75 },
+];
 
 export default function HomeHero() {
+  const { data } = usePageSection('home', 'hero_cards', { cards: DEFAULT_CARDS });
+  const cards = data.cards?.length >= 3 ? data.cards : DEFAULT_CARDS;
+  const [card1, card2, card3] = cards;
+
   return (
     <section className="relative pt-4 sm:pt-6 pb-2 md:pb-12 bg-cream">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,8 +34,6 @@ export default function HomeHero() {
         >
           <ArrowUpRight className="w-5 h-5" />
         </Link>
-
-
       </div>
 
       <HeroImageSlider />
@@ -31,21 +46,23 @@ export default function HomeHero() {
           className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm border border-border/60 flex flex-col justify-between gap-4"
         >
           <div className="flex items-start gap-4">
-            <img
-              src="/images/Raafortagro.png"
-              alt=""
-              className="w-12 h-12 rounded-xl object-cover shrink-0"
-            />
+            {card1?.image ? (
+              <img src={card1.image} alt="" className="w-12 h-12 rounded-xl object-cover shrink-0" />
+            ) : null}
             <div>
-              <p className="text-xs text-text-muted mb-1 font-medium uppercase tracking-wider">Expert support</p>
+              <p className="text-xs text-text-muted mb-1 font-medium uppercase tracking-wider">
+                {card1?.eyebrow || 'Expert support'}
+              </p>
               <p className="font-display font-bold text-charcoal text-base sm:text-lg leading-snug">
-                Need advice for your farm?
+                {card1?.title}
               </p>
             </div>
           </div>
-          <Button to="/contact" size="sm" className="w-full justify-center mt-2">
-            Contact Us
-          </Button>
+          {card1?.buttonTo ? (
+            <Button to={card1.buttonTo} size="sm" className="w-full justify-center mt-2">
+              {card1.buttonLabel || 'Contact Us'}
+            </Button>
+          ) : null}
         </motion.div>
 
         <motion.div
@@ -55,13 +72,17 @@ export default function HomeHero() {
           className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm border border-border/50 flex flex-col justify-between"
         >
           <div>
-            <p className="text-xs text-text-muted mb-1 font-medium uppercase tracking-wider">Raafort Agro</p>
-            <p className="font-display font-bold text-charcoal text-xl leading-tight">Farm supply hub</p>
+            <p className="text-xs text-text-muted mb-1 font-medium uppercase tracking-wider">
+              {card2?.eyebrow}
+            </p>
+            <p className="font-display font-bold text-charcoal text-xl leading-tight">{card2?.title}</p>
           </div>
-          <div className="mt-4 flex items-center gap-2 text-forest text-sm font-semibold bg-forest/10 w-fit px-3 py-1.5 rounded-lg">
-            <TrendingUp className="w-4 h-4" />
-            Yield support +30%
-          </div>
+          {card2?.badge ? (
+            <div className="mt-4 flex items-center gap-2 text-forest text-sm font-semibold bg-forest/10 w-fit px-3 py-1.5 rounded-lg">
+              <TrendingUp className="w-4 h-4" />
+              {card2.badge}
+            </div>
+          ) : null}
         </motion.div>
 
         <motion.div
@@ -71,14 +92,21 @@ export default function HomeHero() {
           className="bg-beige/80 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm border border-beige-dark/30 flex flex-col justify-between"
         >
           <div>
-            <p className="text-xs font-semibold text-charcoal uppercase tracking-wider mb-1">National Reach</p>
-            <p className="font-display text-3xl font-bold text-charcoal">
-              <AnimatedCounter value={500} from={1} suffix="+" duration={2} />
+            <p className="text-xs font-semibold text-charcoal uppercase tracking-wider mb-1">
+              {card3?.eyebrow}
             </p>
-            <p className="text-sm text-charcoal/70 mt-1">Farms served across Ghana</p>
+            <p className="font-display text-3xl font-bold text-charcoal">
+              <AnimatedCounter
+                value={parseInt(String(card3?.statValue || '500').replace(/\D/g, ''), 10) || 500}
+                from={1}
+                suffix="+"
+                duration={2}
+              />
+            </p>
+            <p className="text-sm text-charcoal/70 mt-1">{card3?.statLabel}</p>
           </div>
           <AnimatedProgressBar
-            percent={75}
+            percent={card3?.statProgress ?? 75}
             duration={2}
             className="h-1.5 mt-4"
             trackClassName="bg-beige-dark/20"

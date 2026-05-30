@@ -1,89 +1,181 @@
-import { NavLink, Outlet, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
-  FileText,
+  Globe,
   Package,
   ShoppingCart,
-  MessageSquare,
   BookOpen,
+  Mail,
   Users,
   LogOut,
   ExternalLink,
+  MenuIcon,
+  ChevronRight,
 } from 'lucide-react';
+import { Button } from '@/components/ui/shadcn-button.jsx';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar.jsx';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTrigger,
+} from '@/components/ui/sheet.jsx';
+import AdminLogo from '../components/AdminLogo.jsx';
+import { adminSidebarIconTones } from '../lib/adminColors.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { SITE_URL } from '../lib/api.js';
+import { cn } from '@/lib/utils';
 
 const nav = [
-  { to: '/', end: true, label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/content', label: 'Page content', icon: FileText },
-  { to: '/products', label: 'Products', icon: Package },
-  { to: '/orders', label: 'Orders', icon: ShoppingCart },
-  { to: '/blog', label: 'Blog', icon: BookOpen },
-  { to: '/inquiries', label: 'Inquiries', icon: MessageSquare },
-  { to: '/users', label: 'Users', icon: Users },
+  { to: '/', end: true, label: 'Dashboard', icon: LayoutDashboard, tone: 'wheat' },
+  { to: '/content', label: 'Website content', icon: Globe, tone: 'sage' },
+  { to: '/products', label: 'Products', icon: Package, tone: 'earth' },
+  { to: '/orders', label: 'Orders', icon: ShoppingCart, tone: 'gold' },
+  { to: '/blog', label: 'Blog', icon: BookOpen, tone: 'cream' },
+  { to: '/inquiries', label: 'Inquiries', icon: Mail, tone: 'forest' },
+  { to: '/users', label: 'Users', icon: Users, tone: 'earth' },
 ];
+
+const PAGE_TITLES = {
+  '/': 'Dashboard',
+  '/content': 'Website content',
+  '/products': 'Products',
+  '/orders': 'Orders',
+  '/blog': 'Blog',
+  '/inquiries': 'Inquiries',
+  '/users': 'Users',
+};
+
+function NavItems({ onNavigate }) {
+  return (
+    <nav className="flex flex-col gap-0.5 px-3 py-2">
+      {nav.map(({ to, end, label, icon: Icon, tone }) => (
+        <NavLink
+          key={to}
+          to={to}
+          end={end}
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+              isActive
+                ? 'bg-sidebar-accent text-sidebar-primary shadow-[inset_3px_0_0_0_var(--sidebar-primary)]'
+                : 'text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground',
+            )
+          }
+        >
+          <span
+            className={cn(
+              'flex size-8 shrink-0 items-center justify-center rounded-lg',
+              adminSidebarIconTones[tone],
+            )}
+          >
+            <Icon className="size-4" />
+          </span>
+          {label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
+function SidebarBrand() {
+  return (
+    <div className="border-b border-sidebar-border px-5 py-5">
+      <AdminLogo subtitle="Store management" />
+    </div>
+  );
+}
 
 export default function AdminLayout() {
   const { user, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const initial = user?.email?.[0]?.toUpperCase() || 'A';
+  const pageTitle = PAGE_TITLES[location.pathname] || 'Admin';
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] flex">
-      <aside className="w-64 shrink-0 bg-white border-r border-border flex flex-col hidden lg:flex">
-        <div className="p-5 border-b border-border">
-          <Link to="/" className="font-display font-bold text-charcoal text-lg">
-            Raafort<span className="text-forest">Admin</span>
-          </Link>
+    <div className="flex min-h-screen bg-background">
+      <aside className="hidden w-[260px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
+        <SidebarBrand />
+        <div className="flex-1 overflow-y-auto">
+          <p className="px-6 pb-2 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/45">
+            Menu
+          </p>
+          <NavItems />
         </div>
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {nav.map(({ to, end, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive ? 'bg-forest text-white' : 'text-charcoal/70 hover:bg-beige-soft'
-                }`
-              }
+        <div className="border-t border-sidebar-border p-4">
+          <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent/50 p-3">
+            <Avatar className="size-9 ring-2 ring-sidebar-primary/40">
+              <AvatarFallback className="bg-sidebar-accent text-sidebar-primary">{initial}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-sidebar-foreground">{user?.email}</p>
+              <p className="text-xs text-sidebar-foreground/55">Administrator</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={logout}
+              aria-label="Sign out"
+              className="shrink-0 text-muted-foreground hover:text-foreground"
             >
-              <Icon className="w-4 h-4 shrink-0" />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="p-3 border-t border-border space-y-1">
-          <a
-            href={SITE_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-charcoal/70 hover:bg-beige-soft"
-          >
-            <ExternalLink className="w-4 h-4" />
-            View website
-          </a>
-          <button
-            type="button"
-            onClick={() => logout()}
-            className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-700 hover:bg-red-50"
-          >
-            <LogOut className="w-4 h-4" />
-            Log out
-          </button>
+              <LogOut />
+            </Button>
+          </div>
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 bg-white border-b border-border flex items-center justify-between px-4 sm:px-6 shrink-0">
-          <p className="text-sm font-medium text-charcoal lg:hidden">Raafort Admin</p>
-          <div className="flex items-center gap-3 ml-auto">
-            <span className="text-sm text-text-muted hidden sm:inline">{user?.email}</span>
-            <span className="text-xs font-semibold uppercase tracking-wide bg-forest/10 text-forest px-2 py-1 rounded-full">
-              Admin
-            </span>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur-md lg:px-8">
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="lg:hidden">
+                <MenuIcon />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 border-sidebar-border bg-sidebar p-0">
+              <SheetHeader className="border-b border-sidebar-border px-4 py-4 text-left">
+                <AdminLogo subtitle="Store management" />
+              </SheetHeader>
+              <NavItems onNavigate={() => setMobileOpen(false)} />
+            </SheetContent>
+          </Sheet>
+
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-muted-foreground">
+            <span>Home</span>
+            <ChevronRight className="size-3.5 shrink-0 opacity-50" />
+            <span className="truncate font-medium text-foreground">{pageTitle}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
+              <a href={SITE_URL} rel="noreferrer">
+                <ExternalLink data-icon="inline-start" />
+                View site
+              </a>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={logout} className="lg:hidden">
+              <LogOut data-icon="inline-start" />
+              Sign out
+            </Button>
           </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
-          <Outlet />
+
+        <main className="relative flex-1 overflow-y-auto bg-background p-4 lg:p-8">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-30"
+            aria-hidden
+            style={{
+              background:
+                'radial-gradient(ellipse 70% 50% at 0% 0%, rgb(45 74 50 / 8%), transparent), radial-gradient(ellipse 50% 40% at 100% 100%, rgb(196 165 116 / 12%), transparent)',
+            }}
+          />
+          <div className="relative mx-auto max-w-7xl">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

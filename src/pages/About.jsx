@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, useInView, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { usePageSection } from '../context/ContentContext.jsx';
 import {
   Heart, Users, ArrowRight, ChevronDown,
   TrendingUp, Leaf, Shield, Mail, Phone,
@@ -120,6 +121,29 @@ function ValueItem({ v, isOpen, onClick, index }) {
 /* ── Main ───────────────────────────────────────────── */
 export default function About() {
   const [openValue, setOpenValue] = useState(0);
+  const { data: hero } = usePageSection('about', 'hero', {
+    eyebrow: 'Our Story',
+    title: 'THE FOUNDATION OF OUR MISSION',
+    card1Title: 'Since 2015',
+    card1Subtitle: 'Trusted by farmers',
+    card2Title: 'Raafort Agro',
+    card3Title: '500+ Farms',
+    card3Subtitle: 'Nationwide',
+  });
+  const { data: intro } = usePageSection('about', 'intro', {
+    quote: 'We exist to strengthen Ghanaian agriculture — one farm, one flock, one harvest at a time.',
+    body: 'Raafort Agro connects farmers with quality genetics, feeds, and advisory services across Ghana.',
+  });
+  const { data: valuesCms } = usePageSection('about', 'values', { items: values });
+  const { data: statsCms } = usePageSection('about', 'stats', { items: stats });
+  const { data: teamCms } = usePageSection('about', 'team', { items: team });
+  const valueItems = (valuesCms.items?.length ? valuesCms.items : values).map((v, i) => ({
+    ...values[i],
+    ...v,
+    icon: values[i]?.icon || values[0]?.icon,
+  }));
+  const statItems = statsCms.items?.length ? statsCms.items : stats;
+  const teamItems = teamCms.items?.length ? teamCms.items : team;
 
   return (
     <div className="bg-cream min-h-screen text-charcoal overflow-x-hidden">
@@ -135,19 +159,36 @@ export default function About() {
             variants={fadeUp} custom={0} initial="hidden" animate="show"
             className="text-forest text-xs font-bold uppercase tracking-[0.25em] mb-6"
           >
-            Our Story
+            {hero.eyebrow}
           </motion.p>
           <motion.h1
             variants={fadeUp} custom={1} initial="hidden" animate="show"
             className="font-display font-bold text-white leading-[1.0] mb-0"
             style={{ fontSize: 'clamp(2.8rem, 8vw, 6.5rem)' }}
           >
-            THE FOUNDATION<br />
-            <span className="text-transparent bg-clip-text"
-              style={{ backgroundImage: 'linear-gradient(90deg, #4e785a, #8fd4a2)' }}
-            >
-              OF OUR MISSION
-            </span>
+            {hero.title?.includes('\n') ? (
+              hero.title.split('\n').map((line, i) => (
+                <span key={i}>
+                  {line}
+                  {i < hero.title.split('\n').length - 1 ? <br /> : null}
+                </span>
+              ))
+            ) : (
+              <>
+                {hero.title}
+                {hero.titleAccent ? (
+                  <>
+                    <br />
+                    <span
+                      className="text-transparent bg-clip-text"
+                      style={{ backgroundImage: 'linear-gradient(90deg, #4e785a, #8fd4a2)' }}
+                    >
+                      {hero.titleAccent}
+                    </span>
+                  </>
+                ) : null}
+              </>
+            )}
           </motion.h1>
         </div>
 
@@ -173,7 +214,9 @@ export default function About() {
               className="relative rounded-none overflow-hidden h-64 md:h-80 shadow-2xl border-2 border-forest/40 bg-cream flex flex-col justify-end p-5"
             >
               <div className="bg-charcoal p-3 border border-charcoal">
-                <p className="text-white font-display font-bold text-sm leading-tight">Raafort<br />Agro</p>
+                <p className="text-white font-display font-bold text-sm leading-tight whitespace-pre-line">
+                  {hero.card2Title}
+                </p>
               </div>
             </motion.div>
 
@@ -184,8 +227,8 @@ export default function About() {
               className="relative rounded-none overflow-hidden h-72 md:h-96 shadow-2xl bg-charcoal-light"
             >
               <div className="absolute bottom-4 left-4">
-                <p className="text-white font-display font-bold text-sm">500+ Farms</p>
-                <p className="text-white/60 text-xs">Nationwide</p>
+                <p className="text-white font-display font-bold text-sm">{hero.card3Title}</p>
+                <p className="text-white/60 text-xs">{hero.card3Subtitle}</p>
               </div>
             </motion.div>
           </div>
@@ -199,18 +242,13 @@ export default function About() {
             variants={fadeUp} custom={0} initial="hidden" whileInView="show" viewport={{ once: true }}
             className="font-display text-2xl md:text-4xl font-bold text-charcoal leading-snug mb-8"
           >
-            We help Ghanaian farmers reach the{' '}
-            <span className="text-forest italic">right resources</span>, build profitable farms,
-            and grow with{' '}
-            <span className="text-forest italic">confidence.</span>
+            {intro.quote}
           </motion.p>
           <motion.p
             variants={fadeUp} custom={1} initial="hidden" whileInView="show" viewport={{ once: true }}
             className="text-text text-base leading-relaxed max-w-2xl mx-auto mb-10"
           >
-            Raafort Agro began with a simple promise: give every farmer access to the same quality genetics,
-            veterinary expertise, and supply chains that large commercial units enjoy. Today we serve over 500
-            farms across Ghana — and we're just getting started.
+            {intro.body}
           </motion.p>
           <motion.div
             variants={fadeUp} custom={2} initial="hidden" whileInView="show" viewport={{ once: true }}
@@ -256,7 +294,7 @@ export default function About() {
 
             {/* Right — Accordion */}
             <div className="bg-cream rounded-3xl border border-border overflow-hidden shadow-sm">
-              {values.map((v, i) => (
+              {valueItems.map((v, i) => (
                 <ValueItem
                   key={v.title}
                   v={v}
@@ -494,7 +532,7 @@ export default function About() {
 
           {/* Team cards grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {team.map((m, i) => (
+            {teamItems.map((m, i) => (
               <motion.div
                 key={m.name}
                 variants={fadeUp} custom={i} initial="hidden" whileInView="show" viewport={{ once: true }}

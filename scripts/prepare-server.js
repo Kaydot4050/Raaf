@@ -18,14 +18,16 @@ const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8
 // 3. Filter dependencies (only backend ones)
 const backendDeps = [
   'bcryptjs',
+  'cloudinary',
   'cookie-parser',
   'cors',
   'dotenv',
   'express',
   'google-auth-library',
   'jsonwebtoken',
+  'multer',
   'pg',
-  'twilio'
+  'twilio',
 ];
 
 const newDeps = {};
@@ -75,5 +77,17 @@ copyDir(path.join(rootDir, 'server'), path.join(deployDir, 'server'));
 
 // 6. Create restart.txt
 fs.writeFileSync(path.join(deployDir, 'tmp', 'restart.txt'), Date.now().toString());
+
+// 7. Env template for cPanel (do not commit real secrets)
+fs.writeFileSync(
+  path.join(deployDir, '.env.example'),
+  `NODE_ENV=production
+PORT=
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/DB?sslmode=require
+JWT_SECRET=
+CLIENT_ORIGIN=https://raafortagro.com,https://admin.raafortagro.com
+COOKIE_DOMAIN=.raafortagro.com
+`,
+);
 
 console.log('Backend prepared in deploy-server/');

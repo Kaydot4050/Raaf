@@ -1,14 +1,21 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 const adminRoot = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(adminRoot, '..');
 
 export default defineConfig({
   root: adminRoot,
+  publicDir: path.resolve(projectRoot, 'public'),
   plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      '@': path.resolve(projectRoot, 'src'),
+    },
+  },
   server: {
     host: true,
     port: 5174,
@@ -18,6 +25,14 @@ export default defineConfig({
         changeOrigin: true,
         cookieDomainRewrite: 'localhost',
         cookiePathRewrite: '/',
+      },
+      '/uploads': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+      '/images': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
       },
     },
   },

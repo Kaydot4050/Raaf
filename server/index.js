@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import cors from 'cors';
 import { corsOptions } from './lib/cors.js';
@@ -14,16 +16,34 @@ import { seedSiteContent, seedBlogPosts } from './lib/seedContent.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
+const projectRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 app.use(cors(corsOptions()));
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
+app.use('/uploads', express.static(path.join(projectRoot, 'public', 'uploads')));
+app.use(express.static(path.join(projectRoot, 'public')));
 
-app.get('/api/health', async (_req, res) => {
+/** Liveness: Node is up (Namecheap 503 HTML usually means this never runs). */
+app.get('/api/health', (_req, res) => {
+  res.json({
+    ok: true,
+    service: 'raafortagro-api',
+    databaseConfigured: Boolean(process.env.DATABASE_URL),
+    uptime: Math.floor(process.uptime()),
+  });
+});
+
+/** Readiness: can reach PostgreSQL. */
+app.get('/api/health/db', async (_req, res) => {
+  if (!process.env.DATABASE_URL) {
+    return res.status(503).json({ ok: false, error: 'DATABASE_URL is not set on the server.' });
+  }
   try {
     await query('SELECT 1');
-    res.json({ ok: true, service: 'raafortagro-api', database: 'postgresql' });
+    res.json({ ok: true, database: 'postgresql' });
   } catch (e) {
+    console.error('[health/db]', e.message);
     res.status(503).json({ ok: false, error: 'Database unavailable.' });
   }
 });
@@ -37,6 +57,15 @@ app.use('/api/admin', adminRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error('[API Error]', err);
+  if (err?.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ error: 'Image must be 5 MB or smaller.' });
+  }
+  if (err?.message === 'Only image files are allowed.') {
+    return res.status(400).json({ error: err.message });
+  }
+  if (err?.http_code) {
+    return res.status(400).json({ error: err.message || 'Cloudinary upload failed.' });
+  }
   if (err?.code === '23505') {
     return res.status(409).json({ error: 'This record already exists.' });
   }
@@ -48,17 +77,23 @@ app.use((err, _req, res, _next) => {
 });
 
 async function start() {
-  if (!process.env.DATABASE_URL) {
-    console.error('Missing DATABASE_URL in .env');
-    process.exit(1);
-  }
-  await initDb();
-  await seedSiteContent();
-  await seedBlogPosts();
-  console.log('PostgreSQL schema ready.');
   app.listen(port, () => {
-    console.log(`API running at http://localhost:${port}`);
+    console.log(`API listening on port ${port} (NODE_ENV=${process.env.NODE_ENV || 'development'})`);
   });
+
+  if (!process.env.DATABASE_URL) {
+    console.error('[startup] Missing DATABASE_URL — set it in cPanel Node.js environment variables.');
+    return;
+  }
+
+  try {
+    await initDb();
+    await seedSiteContent();
+    await seedBlogPosts();
+    console.log('PostgreSQL schema ready.');
+  } catch (err) {
+    console.error('[startup] Database init failed:', err.message);
+  }
 }
 
 start().catch((err) => {

@@ -1,130 +1,198 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/shadcn-button.jsx';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card.jsx';
+import { ScrollArea } from '@/components/ui/scroll-area.jsx';
+import AdminPage from '../components/AdminPage.jsx';
+import JsonContentEditor from '../components/JsonContentEditor.jsx';
+import { sectionGroupLabel } from '../lib/fieldLabels.js';
 import { adminApi } from '../lib/api.js';
 
 const PAGE_LABELS = {
-  global: 'Global (footer & header)',
-  home: 'Home',
-  about: 'About',
-  contact: 'Contact',
-  shop: 'Shop',
-  faq: 'FAQ',
-  wholesale: 'Wholesale',
+  global: 'Global (header & footer)',
+  home: 'Home page',
+  about: 'About page',
+  services: 'Services page',
+  contact: 'Contact page',
+  shop: 'Shop page',
+  faq: 'FAQ page',
+  wholesale: 'Wholesale page',
+  track_order: 'Track order page',
+  privacy: 'Privacy policy',
+  terms: 'Terms of service',
+  shipping: 'Shipping policy',
+  returns: 'Returns policy',
 };
 
-const inputCls =
-  'w-full px-3 py-2 rounded-lg border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-forest/30';
+const PAGE_ORDER = [
+  'global',
+  'home',
+  'about',
+  'services',
+  'shop',
+  'contact',
+  'wholesale',
+  'faq',
+  'blog',
+  'track_order',
+  'privacy',
+  'terms',
+  'shipping',
+  'returns',
+];
+
+function pageLabel(key) {
+  return PAGE_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export default function AdminContent() {
   const [pages, setPages] = useState({});
   const [activePage, setActivePage] = useState('home');
   const [activeSection, setActiveSection] = useState('');
-  const [draft, setDraft] = useState('');
-  const [msg, setMsg] = useState('');
-  const [err, setErr] = useState('');
+  const [visualData, setVisualData] = useState({});
+  const [saving, setSaving] = useState(false);
 
-  const load = () => {
-    adminApi.content().then((r) => setPages(r.pages || {}));
-  };
+  const load = () => adminApi.content().then((r) => setPages(r.pages || {}));
 
   useEffect(() => {
     load();
   }, []);
 
-  const sections = pages[activePage]?.sections ? Object.keys(pages[activePage].sections) : [];
+  const pageKeys = useMemo(() => {
+    const keys = new Set([...PAGE_ORDER, ...Object.keys(pages), ...Object.keys(PAGE_LABELS)]);
+    return [...keys].sort((a, b) => {
+      const ai = PAGE_ORDER.indexOf(a);
+      const bi = PAGE_ORDER.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+  }, [pages]);
+
+  const sections = useMemo(
+    () => (pages[activePage]?.sections ? Object.keys(pages[activePage].sections) : []),
+    [pages, activePage],
+  );
 
   useEffect(() => {
-    if (sections.length && !activeSection) setActiveSection(sections[0]);
+    if (sections.length && !sections.includes(activeSection)) {
+      setActiveSection(sections[0]);
+    }
   }, [activePage, sections, activeSection]);
 
   useEffect(() => {
     if (!activePage || !activeSection) return;
-    const data = pages[activePage]?.sections?.[activeSection]?.data;
-    setDraft(JSON.stringify(data ?? {}, null, 2));
+    const data = pages[activePage]?.sections?.[activeSection]?.data ?? {};
+    setVisualData(structuredClone(data));
   }, [activePage, activeSection, pages]);
 
   const save = async () => {
-    setErr('');
-    setMsg('');
+    if (saving) return;
+    setSaving(true);
     try {
-      const data = JSON.parse(draft);
-      await adminApi.updateContent(activePage, activeSection, data);
-      setMsg('Saved. Refresh the public website to see changes.');
+      await adminApi.updateContent(activePage, activeSection, visualData);
+      toast.success('Saved. Refresh the public site to see changes.');
       load();
     } catch (e) {
-      setErr(e.message || 'Invalid JSON or save failed.');
+      toast.error(e.message || 'Save failed.');
+    } finally {
+      setSaving(false);
     }
   };
 
+  const updatedAt = pages[activePage]?.sections?.[activeSection]?.updatedAt;
+
   return (
-    <div className="space-y-6 max-w-6xl">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-charcoal">Page content</h1>
-        <p className="text-sm text-text-muted mt-1">
-          Edit text and image URLs for each section. Use paths like <code className="text-charcoal">/images/photo.png</code>.
-        </p>
+    <AdminPage
+      title="Website content"
+      description="Edit all site text and images: slider, footer, headers, home sections, legal pages, and more. Products and blog posts have their own admin pages."
+    >
+      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+        <Card className="border-forest/15 bg-forest/[0.04] ring-foreground/[0.06]">
+          <CardHeader>
+            <CardTitle className="text-base">Pages</CardTitle>
+            <CardDescription>Select a page to edit</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ScrollArea className="h-[min(70vh,520px)]">
+              <div className="flex flex-col gap-1 p-3">
+                {pageKeys.map((p) => (
+                  <Button
+                    key={p}
+                    type="button"
+                    variant={activePage === p ? 'default' : 'ghost'}
+                    className="justify-start"
+                    onClick={() => {
+                      setActivePage(p);
+                      setActiveSection('');
+                    }}
+                  >
+                    {pageLabel(p)}
+                  </Button>
+                ))}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+
+        <Card className="border-wheat/35 bg-wheat/10 ring-foreground/[0.06]">
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <CardTitle className="text-base">{pageLabel(activePage)}</CardTitle>
+                {updatedAt ? (
+                  <CardDescription>Last saved {new Date(updatedAt).toLocaleString()}</CardDescription>
+                ) : sections.length ? (
+                  <CardDescription>{sections.length} editable section(s)</CardDescription>
+                ) : (
+                  <CardDescription>
+                    No sections yet — restart the API to sync defaults, or save from another environment.
+                  </CardDescription>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-wrap gap-2">
+              {sections.map((s) => (
+                <Button
+                  key={s}
+                  type="button"
+                  size="sm"
+                  variant={activeSection === s ? 'default' : 'outline'}
+                  onClick={() => setActiveSection(s)}
+                >
+                  {sectionGroupLabel(s)}
+                </Button>
+              ))}
+            </div>
+
+            {activeSection ? (
+              <div className="flex flex-col gap-4">
+                <JsonContentEditor
+                  data={visualData}
+                  onChange={setVisualData}
+                  onSave={save}
+                  saving={saving}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {sections.length
+                  ? 'Select a section above.'
+                  : 'This page has no content sections in the database yet.'}
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
-
-      <div className="grid lg:grid-cols-[220px_1fr] gap-4">
-        <div className="bg-white rounded-2xl border border-border p-3 space-y-1 h-fit">
-          {Object.keys(PAGE_LABELS).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => {
-                setActivePage(p);
-                setActiveSection('');
-              }}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium ${
-                activePage === p ? 'bg-forest text-white' : 'hover:bg-beige-soft text-charcoal'
-              }`}
-            >
-              {PAGE_LABELS[p] || p}
-            </button>
-          ))}
-        </div>
-
-        <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {sections.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setActiveSection(s)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
-                  activeSection === s
-                    ? 'bg-forest text-white border-forest'
-                    : 'border-border text-charcoal hover:bg-beige-soft'
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-
-          {activeSection ? (
-            <>
-              <label className="block text-xs font-semibold uppercase text-text-muted">Section JSON</label>
-              <textarea
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                rows={18}
-                className={`${inputCls} font-mono text-xs`}
-              />
-              {msg && <p className="text-sm text-forest">{msg}</p>}
-              {err && <p className="text-sm text-red-700">{err}</p>}
-              <button
-                type="button"
-                onClick={save}
-                className="px-5 py-2.5 rounded-full bg-forest text-white text-sm font-semibold hover:bg-forest-light"
-              >
-                Save section
-              </button>
-            </>
-          ) : (
-            <p className="text-sm text-text-muted">Select a page with content sections.</p>
-          )}
-        </div>
-      </div>
-    </div>
+    </AdminPage>
   );
 }

@@ -44,9 +44,9 @@ export default function Testimonials() {
     <section className="py-12 sm:py-20 md:py-28 bg-cream-dark/50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10 sm:mb-12">
         <SectionHeader
-          eyebrow="Testimonials"
-          title="Voices from the field"
-          description="Farmers across Ghana trust Raafort for genetics, delivery, and honest support."
+          eyebrow={data.eyebrow || 'Testimonials'}
+          title={data.title || 'Voices from the field'}
+          description={data.description || 'Farmers across Ghana trust Raafort for genetics, delivery, and honest support.'}
         />
       </div>
 

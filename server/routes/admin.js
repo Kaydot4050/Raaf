@@ -1,10 +1,112 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { Router } from 'express';
 import { query, rowToProduct, rowToOrder, rowToBlogPost, productFromBody } from '../db.js';
 import { requireAdmin } from '../middleware/admin.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { uploadsDir } from '../lib/upload.js';
+import { memoryImageUpload } from '../lib/uploadMemory.js';
+import {
+  isCloudinaryEnabled,
+  isCloudinaryUrl,
+  uploadBuffer,
+  uploadRemoteUrl,
+  getCloudinaryPublicConfig,
+} from '../lib/cloudinary.js';
 
 const router = Router();
 router.use(requireAdmin);
+
+router.get(
+  '/upload-config',
+  asyncHandler(async (_req, res) => {
+    res.json(getCloudinaryPublicConfig());
+  }),
+);
+
+router.post(
+  '/upload',
+  memoryImageUpload.single('file'),
+  asyncHandler(async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+    if (isCloudinaryEnabled()) {
+      const result = await uploadBuffer(req.file.buffer);
+      return res.status(201).json({ url: result.secure_url, provider: 'cloudinary' });
+    }
+
+    const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${ext}`;
+    await fs.writeFile(path.join(uploadsDir, filename), req.file.buffer);
+    res.status(201).json({ url: `/uploads/${filename}`, provider: 'local' });
+  }),
+);
+
+const IMAGE_EXT = {
+  'image/jpeg': '.jpg',
+  'image/jpg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+};
+
+router.post(
+  '/upload-from-url',
+  asyncHandler(async (req, res) => {
+    const raw = req.body?.url;
+    if (!raw || typeof raw !== 'string') {
+      return res.status(400).json({ error: 'Image URL is required.' });
+    }
+    const url = raw.trim();
+
+    if (url.startsWith('/')) {
+      return res.json({ url, provider: 'local' });
+    }
+
+    if (isCloudinaryUrl(url)) {
+      return res.json({ url, provider: 'cloudinary' });
+    }
+
+    let parsed;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return res.status(400).json({ error: 'Invalid URL.' });
+    }
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return res.status(400).json({ error: 'URL must start with http:// or https://' });
+    }
+
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'RaafortAgro-Admin/1.0' },
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!response.ok) {
+      return res.status(400).json({ error: 'Could not download image from that link.' });
+    }
+
+    const contentType = (response.headers.get('content-type') || '').split(';')[0].toLowerCase();
+    if (!contentType.startsWith('image/')) {
+      return res.status(400).json({ error: 'That link does not point to an image.' });
+    }
+
+    if (isCloudinaryEnabled()) {
+      const result = await uploadRemoteUrl(url);
+      return res.status(201).json({ url: result.secure_url, provider: 'cloudinary' });
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (buffer.length > 5 * 1024 * 1024) {
+      return res.status(400).json({ error: 'Image must be 5 MB or smaller.' });
+    }
+
+    const ext =
+      IMAGE_EXT[contentType] || path.extname(parsed.pathname).toLowerCase() || '.jpg';
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${ext}`;
+    await fs.writeFile(path.join(uploadsDir, filename), buffer);
+    res.status(201).json({ url: `/uploads/${filename}`, provider: 'local' });
+  }),
+);
 
 async function getOrderItems(orderId) {
   const result = await query(

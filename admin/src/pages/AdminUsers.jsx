@@ -1,5 +1,22 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select.jsx';
+import AdminPage from '../components/AdminPage.jsx';
+import AdminSection from '../components/AdminSection.jsx';
 import { adminApi } from '../lib/api.js';
+import { adminRowSurface } from '../lib/adminColors.js';
+import { cn } from '@/lib/utils';
+
+function userInitial(name, email) {
+  const source = (name || email || '?').trim();
+  return source.charAt(0).toUpperCase();
+}
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -11,45 +28,56 @@ export default function AdminUsers() {
   }, []);
 
   const setRole = async (id, role) => {
-    await adminApi.setUserRole(id, role);
-    load();
+    try {
+      await adminApi.setUserRole(id, role);
+      toast.success('Role updated.');
+      load();
+    } catch (err) {
+      toast.error(err.message || 'Update failed.');
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-display text-2xl font-bold text-charcoal">Users</h1>
-      <p className="text-sm text-text-muted">
-        First registered user becomes admin. Or set <code>ADMIN_EMAIL</code> in API .env before signup.
-      </p>
-      <div className="bg-white rounded-2xl border border-border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-beige-soft/50 text-left text-xs uppercase text-text-muted">
-            <tr>
-              <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Email</th>
-              <th className="px-4 py-3">Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="border-t border-border">
-                <td className="px-4 py-3">{u.name}</td>
-                <td className="px-4 py-3">{u.email}</td>
-                <td className="px-4 py-3">
-                  <select
-                    value={u.role || 'user'}
-                    onChange={(e) => setRole(u.id, e.target.value)}
-                    className="px-2 py-1 rounded-lg border border-border"
-                  >
-                    <option value="user">user</option>
-                    <option value="admin">admin</option>
-                  </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <AdminPage
+      title="Users"
+      description="Manage customer accounts and admin access."
+    >
+      <AdminSection
+        tone="cream"
+        title="Registered users"
+        description={
+          <>
+            Set <code className="text-xs">ADMIN_EMAIL</code> in API .env before first signup, or
+            promote users here.
+          </>
+        }
+      >
+        <div className="flex flex-col gap-2.5">
+          {users.map((u, i) => (
+            <div key={u.id} className={cn('admin-row', adminRowSurface(i))}>
+              <div className="admin-row-icon text-sm font-semibold">
+                {userInitial(u.name, u.email)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">{u.name || 'Unnamed user'}</p>
+                <p className="text-sm text-muted-foreground">{u.email}</p>
+              </div>
+              <Select value={u.role || 'user'} onValueChange={(role) => setRole(u.id, role)}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">user</SelectItem>
+                  <SelectItem value="admin">admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          ))}
+          {!users.length ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">No users yet.</p>
+          ) : null}
+        </div>
+      </AdminSection>
+    </AdminPage>
   );
 }

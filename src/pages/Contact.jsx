@@ -5,20 +5,29 @@ import Button from '../components/ui/Button.jsx';
 import { SectionHeader, RevealItem } from '../components/ui/SectionReveal.jsx';
 import { fadeUp } from '../lib/motion.js';
 import { inquiriesApi } from '../lib/api.js';
+import { usePageSection } from '../context/ContentContext.jsx';
 
-const supportCards = [
-  { icon: Phone, title: 'Call us', detail: '+233 00 000 0000', href: 'tel:+233000000000' },
-  { icon: Mail, title: 'Email', detail: 'info@raafortagro.farm', href: 'mailto:info@raafortagro.farm' },
-  { icon: Clock, title: 'Hours', detail: 'Mon–Sat · 7am – 6pm', href: null },
-];
-
-const faqs = [
-  { q: 'How do I place a bulk order?', a: 'Contact us with your farm size and breed preferences. We will prepare a quote and delivery schedule.' },
-  { q: 'Do you deliver live birds nationwide?', a: 'Yes — we coordinate climate-aware transport across Ghana with scheduled delivery windows.' },
-  { q: 'What payment methods do you accept?', a: 'Mobile money, bank transfer, and approved credit terms for registered farm accounts.' },
-];
+const CARD_ICONS = { Phone, Mail, Clock, MapPin };
 
 export default function Contact() {
+  const { data: cms } = usePageSection('contact', 'main', {
+    eyebrow: 'Contact',
+    title: 'We are here for your farm',
+    description:
+      'Questions about orders, breeds, or delivery? Our team responds quickly — usually within one business day.',
+    supportCards: [
+      { icon: 'Phone', title: 'Call us', detail: '+233 00 000 0000', href: 'tel:+233000000000' },
+      { icon: 'Mail', title: 'Email', detail: 'hello@raafortagro.com', href: 'mailto:hello@raafortagro.com' },
+      { icon: 'Clock', title: 'Hours', detail: 'Mon–Sat · 7am – 6pm', href: '' },
+    ],
+    faqs: [],
+  });
+  const supportCards = (cms.supportCards || []).map((c) => ({
+    ...c,
+    icon: CARD_ICONS[c.icon] || Phone,
+    href: c.href || null,
+  }));
+  const faqs = cms.faqs?.length ? cms.faqs : [];
   const [sent, setSent] = useState(false);
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
@@ -40,14 +49,12 @@ export default function Contact() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#8fd4a2]/10 blur-[80px] rounded-full pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 blur-[60px] rounded-full pointer-events-none" />
             <div className="relative z-10 max-w-lg">
-              <p className="text-[#8fd4a2] text-xs font-bold tracking-[0.25em] uppercase mb-2 sm:mb-4">Contact</p>
+              <p className="text-[#8fd4a2] text-xs font-bold tracking-[0.25em] uppercase mb-2 sm:mb-4">{cms.eyebrow}</p>
               <h1 className="font-display text-2xl sm:text-4xl lg:text-[2.75rem] font-bold text-white leading-[1.1]">
-                We are here for your farm
+                {cms.title}
               </h1>
               <div className="mt-3 sm:mt-5 h-1 w-12 bg-[#8fd4a2] rounded-full" />
-              <p className="mt-3 sm:mt-5 text-sm sm:text-base text-white/80 leading-relaxed">
-                Questions about orders, breeds, or delivery? Our team responds quickly — usually within one business day.
-              </p>
+              <p className="mt-3 sm:mt-5 text-sm sm:text-base text-white/80 leading-relaxed">{cms.description}</p>
             </div>
           </motion.div>
 

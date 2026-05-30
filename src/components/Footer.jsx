@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { usePageSection } from '../context/ContentContext.jsx';
 
-const columns = [
+const DEFAULT_COLUMNS = [
   {
     title: 'Explore',
     links: [
@@ -17,26 +17,7 @@ const columns = [
     links: [
       { to: '/track-order', label: 'Track Order' },
       { to: '/faq', label: 'FAQ' },
-      { to: '/shipping', label: 'Shipping' },
-      { to: '/returns', label: 'Returns' },
-      { to: '/wholesale', label: 'Wholesale' },
       { to: '/contact', label: 'Contact' },
-      { to: '/blog', label: 'Blog' },
-    ],
-  },
-  {
-    title: 'Legal',
-    links: [
-      { to: '/privacy', label: 'Privacy' },
-      { to: '/terms', label: 'Terms' },
-    ],
-  },
-  {
-    title: 'Account',
-    links: [
-      { to: '/account', label: 'Dashboard' },
-      { to: '/account?tab=orders', label: 'Orders' },
-      { to: '/account?tab=wishlist', label: 'Wishlist' },
     ],
   },
 ];
@@ -49,7 +30,10 @@ export default function Footer() {
     address: 'Greater Accra, Ghana',
     logo: '/images/cropped-cropped-gooo-1-1.png',
     copyright: '© Raafortagro. All rights reserved.',
+    columns: DEFAULT_COLUMNS,
   });
+
+  const columns = footer.columns?.length ? footer.columns : DEFAULT_COLUMNS;
 
   return (
     <footer className="mt-auto bg-charcoal text-white/75 rounded-t-[2rem] sm:rounded-t-[2.5rem]">
@@ -57,18 +41,22 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-10 pb-12 border-b border-white/10">
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="inline-flex items-center gap-2 mb-4">
-              <img src={footer.logo} alt="" className="w-10 h-10 rounded-xl" />
+              <img src={footer.logo} alt="" className="w-10 h-10 rounded-xl object-cover" />
               <span className="font-display font-bold text-white text-lg lowercase">raafortagro</span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs mb-5">{footer.tagline}</p>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-beige shrink-0" />
-                <a href={`tel:${footer.phone?.replace(/\s/g, '')}`} className="hover:text-white">{footer.phone}</a>
+                <a href={`tel:${footer.phone?.replace(/\s/g, '')}`} className="hover:text-white">
+                  {footer.phone}
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-beige shrink-0" />
-                <a href={`mailto:${footer.email}`} className="hover:text-white">{footer.email}</a>
+                <a href={`mailto:${footer.email}`} className="hover:text-white">
+                  {footer.email}
+                </a>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-beige shrink-0 mt-0.5" />
@@ -80,8 +68,8 @@ export default function Footer() {
             <div key={col.title}>
               <h6 className="text-white font-semibold text-sm mb-4">{col.title}</h6>
               <ul className="space-y-2.5">
-                {col.links.map(({ to, label }) => (
-                  <li key={to}>
+                {col.links?.map(({ to, label }) => (
+                  <li key={`${col.title}-${to}`}>
                     <Link to={to} className="text-sm hover:text-white transition-colors">
                       {label}
                     </Link>
@@ -91,7 +79,9 @@ export default function Footer() {
             </div>
           ))}
         </div>
-        <p className="text-center text-xs text-white/40 pt-8">{footer.copyright || `© ${new Date().getFullYear()} Raafortagro`}</p>
+        <p className="text-center text-xs text-white/40 pt-8">
+          {footer.copyright || `© ${new Date().getFullYear()} Raafortagro`}
+        </p>
       </div>
     </footer>
   );

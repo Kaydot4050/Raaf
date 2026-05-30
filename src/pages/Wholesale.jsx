@@ -1,21 +1,26 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Package, Truck, Users } from 'lucide-react';
-import PageHero from '../components/ui/PageHero.jsx';
+import CmsPageHero from '../components/CmsPageHero.jsx';
 import Button from '../components/ui/Button.jsx';
 import { inquiriesApi } from '../lib/api.js';
+import { usePageSection } from '../context/ContentContext.jsx';
 
-const perks = [
-  { icon: Package, title: 'Volume pricing', desc: 'Competitive rates on chicks, feed, and inputs for commercial farms.' },
-  { icon: Truck, title: 'Scheduled logistics', desc: 'Recurring delivery windows aligned with your production cycles.' },
-  { icon: Users, title: 'Dedicated support', desc: 'A named advisor for orders, health plans, and account terms.' },
-];
+const PERK_ICONS = [Package, Truck, Users];
 
 const inputCls =
   'mt-1.5 w-full px-4 py-3 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-forest/30';
 const labelCls = 'block text-xs font-semibold text-charcoal uppercase tracking-wide';
 
 export default function Wholesale() {
+  const { data: main } = usePageSection('wholesale', 'main', {
+    perks: [
+      { title: 'Volume pricing', desc: 'Competitive rates on chicks, feed, and inputs for commercial farms.' },
+      { title: 'Scheduled logistics', desc: 'Recurring delivery windows aligned with your production cycles.' },
+      { title: 'Dedicated support', desc: 'A named advisor for orders, health plans, and account terms.' },
+    ],
+  });
+  const perks = (main.perks || []).map((p, i) => ({ ...p, icon: PERK_ICONS[i % PERK_ICONS.length] }));
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,10 +35,14 @@ export default function Wholesale() {
 
   return (
     <div>
-      <PageHero
-        eyebrow="Wholesale"
-        title="Bulk & farm account orders"
-        description="Commercial farms, integrators, and distributors — get tailored quotes and credit terms."
+      <CmsPageHero
+        page="wholesale"
+        fallback={{
+          eyebrow: 'Wholesale',
+          title: 'Bulk & farm account orders',
+          description: 'Commercial farms, integrators, and distributors — get tailored quotes and credit terms.',
+          image: '/images/Raafortagro.png',
+        }}
         align="left"
         tall
       />

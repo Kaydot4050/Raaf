@@ -6,11 +6,12 @@ import { Menu, X, ShoppingBag, Search } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { useSearch } from '../context/SearchContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { usePageSection } from '../context/ContentContext.jsx';
 import Button from './ui/Button.jsx';
 import AuthButtons from './auth/AuthButtons.jsx';
 import UserMenu from './auth/UserMenu.jsx';
 
-const nav = [
+const DEFAULT_NAV = [
   { to: '/', label: 'Home', end: true },
   { to: '/shop', label: 'Shop' },
   { to: '/services', label: 'Services' },
@@ -47,6 +48,13 @@ export default function Header() {
   const { count } = useCart();
   const { openSearch } = useSearch();
   const { isAuthenticated, loading } = useAuth();
+  const { data: header } = usePageSection('global', 'header', {
+    logo: '/images/cropped-cropped-gooo-1-1.png',
+    brandName: 'raafortagro',
+    searchPlaceholder: 'Search products…',
+    nav: DEFAULT_NAV,
+  });
+  const nav = header.nav?.length ? header.nav : DEFAULT_NAV;
   const [open, setOpen] = useState(false);
   const location = useLocation();
 
@@ -69,6 +77,7 @@ export default function Header() {
   }, [open]);
 
   const closeMenu = () => setOpen(false);
+  const searchLabel = header.searchPlaceholder || 'Search products…';
 
   const openSearchFromMenu = () => {
     setOpen(false);
@@ -81,18 +90,13 @@ export default function Header() {
       onClick={openSearch}
       className="relative flex items-center gap-2 w-full md:w-[168px] lg:w-[200px] pl-5 pr-3 py-2.5 rounded-full bg-white border border-border text-sm text-text-muted/90 hover:border-forest/30 transition-colors text-left"
     >
-      <span className="flex-1 truncate">Searching…</span>
+      <span className="flex-1 truncate">{searchLabel}</span>
       <Search className="w-[18px] h-[18px] text-charcoal/55 shrink-0" strokeWidth={1.75} />
     </button>
   );
 
   const authDesktop = loading ? <AuthSpinner /> : isAuthenticated ? <UserMenu /> : <AuthButtons />;
-
-  const authMobile = loading ? (
-    <AuthSpinner />
-  ) : isAuthenticated ? (
-    <UserMenu compact />
-  ) : null;
+  const authMobile = loading ? <AuthSpinner /> : isAuthenticated ? <UserMenu compact /> : null;
 
   const mobileMenu =
     typeof document !== 'undefined' &&
@@ -129,7 +133,7 @@ export default function Header() {
                   onClick={openSearchFromMenu}
                   className="relative flex items-center gap-2 w-full pl-5 pr-3 py-2.5 rounded-full bg-white border border-border text-sm text-text-muted/90 text-left"
                 >
-                  <span className="flex-1 truncate">Searching…</span>
+                  <span className="flex-1 truncate">{searchLabel}</span>
                   <Search className="w-[18px] h-[18px] text-charcoal/55 shrink-0" strokeWidth={1.75} />
                 </button>
               </div>
@@ -174,9 +178,7 @@ export default function Header() {
                 )}
               </ul>
               <div className="p-4 border-t border-border safe-bottom space-y-3">
-                {!isAuthenticated && !loading && (
-                  <AuthButtons stacked onNavigate={closeMenu} />
-                )}
+                {!isAuthenticated && !loading && <AuthButtons stacked onNavigate={closeMenu} />}
                 {isAuthenticated && !loading && (
                   <Button to="/shop" variant="forest" className="w-full justify-center" onClick={closeMenu}>
                     Browse Shop
@@ -202,10 +204,10 @@ export default function Header() {
           <div className="flex lg:hidden items-center justify-between h-14 gap-2">
             <Link to="/" className="flex items-center gap-2 min-w-0 shrink-0">
               <span className="w-9 h-9 rounded-full bg-beige-soft border border-border/60 flex shrink-0 overflow-hidden">
-                <img src="/images/cropped-cropped-gooo-1-1.png" alt="Raafortagro" className="w-full h-full object-cover" />
+                <img src={header.logo} alt={header.brandName} className="w-full h-full object-cover" />
               </span>
               <span className="font-display font-semibold text-base text-charcoal lowercase tracking-tight truncate">
-                raafortagro
+                {header.brandName}
               </span>
             </Link>
 
@@ -245,10 +247,10 @@ export default function Header() {
           <div className="hidden lg:grid lg:grid-cols-[auto_1fr_auto] items-center gap-6 xl:gap-10 py-3">
             <Link to="/" className="flex items-center gap-3 shrink-0">
               <span className="w-11 h-11 rounded-full bg-beige-soft border border-border/70 flex overflow-hidden shrink-0">
-                <img src="/images/cropped-cropped-gooo-1-1.png" alt="Raafortagro" className="w-full h-full object-cover" />
+                <img src={header.logo} alt={header.brandName} className="w-full h-full object-cover" />
               </span>
               <span className="font-display font-semibold text-[1.05rem] text-charcoal lowercase tracking-tight">
-                raafortagro
+                {header.brandName}
               </span>
             </Link>
 
