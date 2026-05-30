@@ -26,10 +26,33 @@ COOKIE_DOMAIN=.raafortagro.com
 
 5. **Restart** the Node app after changing env or uploading files (`tmp/restart.txt` is touched on deploy).
 
+## `api.raafortagro.com` redirects to `raafortagro.com`
+
+That means the **subdomain is not hitting your Node app**. Apache is serving the shop site (or a cPanel redirect) instead.
+
+**Fix (cPanel):**
+
+1. **Domains → Redirects** — delete any redirect from `api.raafortagro.com` → `raafortagro.com`.
+2. **Domains → Subdomains** — `api` should **not** use `public_html` as its document root if that’s the same as the main site. The **Setup Node.js App** entry for `api.raafortagro.com` should own that host (app root `api-server`).
+3. **Setup Node.js App** — app URL = `api.raafortagro.com`, startup file = **`app.js`**, then **Run NPM Install** → **Restart**.
+4. Open **https://api.raafortagro.com/api/health** again — the address bar must **stay** on `api.raafortagro.com` and show JSON (not the shop homepage).
+
+Until that works, use the admin build that calls **`https://raafortagro.com/api`** (only works if you also proxy `/api` on the main domain — see below).
+
+### API on the main domain (`raafortagro.com/api`)
+
+The shop is static files in `public_html`. For **`https://raafortagro.com/api/health`** to work you need either:
+
+- A **second** Node.js app on `raafortagro.com` with a path prefix (if your host supports it), or  
+- An **`.htaccess` proxy** from `/api` to the working `api.` subdomain (after the subdomain is fixed).
+
+If `raafortagro.com/api/health` also opens the homepage, the API is **only** available on a correctly configured `api.` subdomain.
+
 ## Test URLs
 
-1. `https://api.raafortagro.com/api/health` → should return JSON with `"ok":true` (even before DB works).
-2. `https://api.raafortagro.com/api/health/db` → should return `"ok":true` when Neon is reachable.
+1. `https://api.raafortagro.com/api/health` → JSON, **no redirect** in the browser.
+2. `https://api.raafortagro.com/api/health/db` → `"ok":true` when Neon is reachable.
+3. `https://raafortagro.com/api/health` → only if step 1 works **or** `/api` is proxied on the main domain.
 
 If (1) is still Namecheap HTML:
 
