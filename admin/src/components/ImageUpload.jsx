@@ -191,7 +191,7 @@ export default function ImageUpload({ value = '', onChange, label, className }) 
             ) : null}
           </div>
 
-          <div className="admin-panel-sage gap-2">
+          <div className="flex flex-col gap-2 rounded-xl border border-border bg-accent/20 p-4">
             <p className="text-xs font-medium text-muted-foreground">Use a photo from the web</p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input

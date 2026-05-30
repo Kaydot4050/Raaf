@@ -13,6 +13,7 @@ import AdminPage from '../components/AdminPage.jsx';
 import JsonContentEditor from '../components/JsonContentEditor.jsx';
 import { sectionGroupLabel } from '../lib/fieldLabels.js';
 import { adminApi } from '../lib/api.js';
+import { motion } from 'framer-motion';
 
 const PAGE_LABELS = {
   global: 'Global (header & footer)',
@@ -114,8 +115,13 @@ export default function AdminContent() {
       title="Website content"
       description="Edit all site text and images: slider, footer, headers, home sections, legal pages, and more. Products and blog posts have their own admin pages."
     >
-      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-        <Card className="border-forest/15 bg-forest/[0.04] ring-foreground/[0.06]">
+      <motion.div 
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="grid gap-6 lg:grid-cols-[260px_1fr]"
+      >
+        <Card className="border-border bg-card">
           <CardHeader>
             <CardTitle className="text-base">Pages</CardTitle>
             <CardDescription>Select a page to edit</CardDescription>
@@ -127,8 +133,13 @@ export default function AdminContent() {
                   <Button
                     key={p}
                     type="button"
-                    variant={activePage === p ? 'default' : 'ghost'}
-                    className="justify-start"
+                    variant="ghost"
+                    className={cn(
+                      "justify-start",
+                      activePage === p 
+                        ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary" 
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    )}
                     onClick={() => {
                       setActivePage(p);
                       setActiveSection('');
@@ -142,7 +153,7 @@ export default function AdminContent() {
           </CardContent>
         </Card>
 
-        <Card className="border-wheat/35 bg-wheat/10 ring-foreground/[0.06]">
+        <Card className="border-border bg-card">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
@@ -166,7 +177,13 @@ export default function AdminContent() {
                   key={s}
                   type="button"
                   size="sm"
-                  variant={activeSection === s ? 'default' : 'outline'}
+                  variant="outline"
+                  className={cn(
+                    "rounded-full transition-colors",
+                    activeSection === s 
+                      ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground" 
+                      : "hover:bg-accent hover:text-foreground"
+                  )}
                   onClick={() => setActiveSection(s)}
                 >
                   {sectionGroupLabel(s)}
@@ -192,7 +209,7 @@ export default function AdminContent() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     </AdminPage>
   );
 }

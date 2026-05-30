@@ -86,7 +86,7 @@ function FieldEditor({ fieldKey, value, onChange, parentKey, onSave, saving }) {
       <div className="flex flex-col gap-3">
         <p className="text-sm font-semibold text-foreground">{listTitle}</p>
         {value.map((item, index) => (
-          <Card key={index} size="sm" className="ring-foreground/[0.06]">
+          <Card key={index} size="sm" className="border-border bg-card shadow-none">
             <CardHeader className="flex flex-row items-center justify-between gap-2">
               <CardTitle className="text-sm font-medium">
                 {listItemName(parentKey || fieldKey, index)}
@@ -133,8 +133,8 @@ function FieldEditor({ fieldKey, value, onChange, parentKey, onSave, saving }) {
 
   if (value !== null && typeof value === 'object') {
     return (
-      <div className="admin-panel-cream">
-        <p className="text-sm font-semibold text-foreground">{label}</p>
+      <div className="rounded-xl border border-border bg-accent/20 p-4">
+        <p className="mb-3 text-sm font-semibold text-foreground">{label}</p>
         <FieldGroup>
           {Object.entries(value).map(([k, v]) => (
             <FieldEditor
@@ -242,7 +242,7 @@ export default function JsonContentEditor({ data, onChange, onSave, saving = fal
 
         if (isScalar) {
           return (
-            <Card key={key} size="sm" className="ring-foreground/[0.06]">
+            <Card key={key} size="sm" className="border-border bg-card shadow-none">
               <CardContent className="flex flex-col gap-4 pt-4">
                 <FieldEditor
                   fieldKey={key}
@@ -259,7 +259,7 @@ export default function JsonContentEditor({ data, onChange, onSave, saving = fal
 
         if (Array.isArray(val)) {
           return (
-            <Card key={key} size="sm" className="ring-foreground/[0.06]">
+            <Card key={key} size="sm" className="border-border bg-card shadow-none">
               <CardHeader>
                 <CardTitle className="text-sm font-medium">{blockLabel}</CardTitle>
               </CardHeader>
@@ -277,7 +277,7 @@ export default function JsonContentEditor({ data, onChange, onSave, saving = fal
         }
 
         return (
-          <Card key={key} size="sm" className="ring-foreground/[0.06]">
+          <Card key={key} size="sm" className="border-border bg-card shadow-none">
             <CardHeader>
               <CardTitle className="text-sm font-medium">{blockLabel}</CardTitle>
             </CardHeader>
