@@ -17,6 +17,8 @@ const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8
 
 // 3. Filter dependencies (only backend ones)
 const backendDeps = [
+  '@neondatabase/serverless',
+  'ws',
   'bcryptjs',
   'cloudinary',
   'cookie-parser',

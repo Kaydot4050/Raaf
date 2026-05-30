@@ -1,6 +1,7 @@
-import pg from 'pg';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
 
-const { Pool } = pg;
+neonConfig.webSocketConstructor = ws;
 
 function sanitizeDatabaseUrl(url) {
   if (!url) return url;
