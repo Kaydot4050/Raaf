@@ -24,7 +24,20 @@ export function ContentProvider({ children }) {
 
   const getSection = useCallback(
     (page, section, fallback = {}) => {
-      return content[page]?.[section] ?? fallback;
+      const cmsData = content[page]?.[section];
+      if (!cmsData) return fallback;
+      
+      // If data is an array or string, don't try to merge objects
+      if (typeof cmsData !== 'object' || Array.isArray(cmsData)) {
+        return cmsData;
+      }
+
+      // Keep CMS fields that are not empty, null, or undefined
+      const cleanCmsData = Object.fromEntries(
+        Object.entries(cmsData).filter(([, v]) => v !== '' && v !== null && v !== undefined)
+      );
+
+      return { ...fallback, ...cleanCmsData };
     },
     [content],
   );
