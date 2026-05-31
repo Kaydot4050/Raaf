@@ -36,7 +36,14 @@ const item = {
 
 export default function HomeMission() {
   const { data: m } = usePageSection('home', 'mission', DEFAULT);
-  const benefits = m.benefits?.length ? m.benefits : DEFAULT.benefits;
+  const rawBenefits = m.benefits?.length ? m.benefits : DEFAULT.benefits;
+  const benefits = DEFAULT.benefits.map((def, i) => {
+    const cms = rawBenefits[i] || {};
+    return {
+      ...def,
+      ...Object.fromEntries(Object.entries(cms).filter(([, v]) => v !== '' && v !== null && v !== undefined)),
+    };
+  });
 
   return (
     <section
