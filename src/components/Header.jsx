@@ -54,7 +54,10 @@ export default function Header() {
     searchPlaceholder: 'Search products…',
     nav: DEFAULT_NAV,
   });
-  const nav = header.nav?.length ? header.nav : DEFAULT_NAV;
+  const nav = (() => {
+    const items = header.nav?.filter?.((n) => n?.label?.trim());
+    return items?.length ? items : DEFAULT_NAV;
+  })();
   const [open, setOpen] = useState(false);
   const location = useLocation();
 

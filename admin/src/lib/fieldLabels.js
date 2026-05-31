@@ -25,7 +25,8 @@ const LABELS = {
   // Images & media
   image: 'Photo',
   logo: 'Logo image',
-  src: 'Photo',
+  src: 'Desktop photo',
+  mobileSrc: 'Mobile photo (optional)',
   alt: 'Photo description (for accessibility)',
   backgroundImage: 'Background photo',
   sideImage: 'Side photo',
@@ -107,7 +108,8 @@ const HINTS = {
   statProgress: '100 means full bar, 75 means three-quarters full.',
   alt: 'Describe what is in the photo. Helps visitors using screen readers.',
   id: 'Changing this can break existing links. Only edit when creating new content.',
-  src: 'Upload a photo or paste an image web address.',
+  src: 'Shown on desktop and tablets. Upload a photo or paste an image web address.',
+  mobileSrc: 'Optional. Shown on phones instead of the desktop photo. Leave blank to use the desktop photo everywhere.',
 };
 
 const LIST_NAMES = {

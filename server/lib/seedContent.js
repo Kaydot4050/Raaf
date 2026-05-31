@@ -1,6 +1,34 @@
 import { query } from '../db.js';
 import { defaultSiteContent, defaultBlogPosts } from './defaultSiteContent.js';
 
+async function migrateHeroSlidesMobileSrc() {
+  const result = await query(
+    `SELECT data FROM site_content WHERE page = $1 AND section = $2`,
+    ['home', 'hero_slides'],
+  );
+  if (!result.rows[0]) return;
+
+  const data = result.rows[0].data;
+  if (!Array.isArray(data.slides)) return;
+
+  let changed = false;
+  const slides = data.slides.map((slide) => {
+    if (!Object.prototype.hasOwnProperty.call(slide, 'mobileSrc')) {
+      changed = true;
+      return { ...slide, mobileSrc: '' };
+    }
+    return slide;
+  });
+
+  if (!changed) return;
+
+  await query(
+    `UPDATE site_content SET data = $1, updated_at = NOW() WHERE page = $2 AND section = $3`,
+    [{ ...data, slides }, 'home', 'hero_slides'],
+  );
+  console.log('Added mobile photo field to homepage slider.');
+}
+
 export async function seedSiteContent() {
   let inserted = 0;
   for (const row of defaultSiteContent) {
@@ -16,6 +44,7 @@ export async function seedSiteContent() {
   if (inserted > 0) {
     console.log(`Seeded ${inserted} new site content section(s).`);
   }
+  await migrateHeroSlidesMobileSrc();
 }
 
 export async function seedBlogPosts() {

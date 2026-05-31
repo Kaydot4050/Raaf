@@ -3,11 +3,27 @@ import { motion } from 'framer-motion';
 import { usePageSection } from '../context/ContentContext.jsx';
 
 const FALLBACK_SLIDES = [
-  { src: '/images/logo.png', alt: 'Poultry & Livestock', title: 'LIVESTOCK' },
-  { src: '/images/Raafortagro-3.png', alt: 'Agro Chemicals', title: 'CHEMICALS' },
-  { src: '/images/Raafortagro.png', alt: 'Farm Equipment', title: 'EQUIPMENT' },
-  { src: '/images/a.jpg', alt: 'Sustainable agriculture', title: 'FARMING' },
+  { src: '/images/logo.png', mobileSrc: '', alt: 'Poultry & Livestock', title: 'LIVESTOCK' },
+  { src: '/images/Raafortagro-3.png', mobileSrc: '', alt: 'Agro Chemicals', title: 'CHEMICALS' },
+  { src: '/images/Raafortagro.png', mobileSrc: '', alt: 'Farm Equipment', title: 'EQUIPMENT' },
+  { src: '/images/a.jpg', mobileSrc: '', alt: 'Sustainable agriculture', title: 'FARMING' },
 ];
+
+function SlideImage({ slide }) {
+  return (
+    <picture>
+      {slide.mobileSrc ? (
+        <source media="(max-width: 1023px)" srcSet={slide.mobileSrc} />
+      ) : null}
+      <img
+        src={slide.src}
+        alt={slide.alt}
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ objectPosition: 'center' }}
+      />
+    </picture>
+  );
+}
 
 export default function HeroImageSlider({ className = '' }) {
   const { data } = usePageSection('home', 'hero_slides', { slides: FALLBACK_SLIDES });
@@ -56,12 +72,7 @@ export default function HeroImageSlider({ className = '' }) {
               onMouseEnter={() => setActiveIndex(i)}
               onClick={() => setActiveIndex(i)}
             >
-              <img
-                src={slide.src}
-                alt={slide.alt}
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ objectPosition: 'center' }}
-              />
+              <SlideImage slide={slide} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               
               <motion.div 

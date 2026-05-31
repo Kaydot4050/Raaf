@@ -21,7 +21,15 @@ const DEFAULT_CARDS = [
 
 export default function HomeHero() {
   const { data } = usePageSection('home', 'hero_cards', { cards: DEFAULT_CARDS });
-  const cards = data.cards?.length >= 3 ? data.cards : DEFAULT_CARDS;
+  // Merge each CMS card with the corresponding default so empty/missing fields fall back gracefully
+  const rawCards = data.cards?.length >= 3 ? data.cards : DEFAULT_CARDS;
+  const cards = DEFAULT_CARDS.map((def, i) => {
+    const cms = rawCards[i] || {};
+    return {
+      ...def,
+      ...Object.fromEntries(Object.entries(cms).filter(([, v]) => v !== '' && v !== null && v !== undefined)),
+    };
+  });
   const [card1, card2, card3] = cards;
 
   return (

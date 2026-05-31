@@ -26,7 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 
 function isImageField(key) {
-  return /(^image|logo|src|photo|banner|avatar|thumb)/i.test(key || '');
+  return /(^image|logo|src|mobileSrc|photo|banner|avatar|thumb)/i.test(key || '');
 }
 
 function isLongTextField(key, str) {
