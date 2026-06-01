@@ -25,6 +25,7 @@ export const products = [
     originalPriceMin: 35,
     originalPriceMax: 40,
     inStock: true,
+    images: ['/images/GB-300x300.png', '/images/GB-150x150.png', '/images/GB-100x100.png', '/images/GB-50x50.png'],
   },
   {
     id: 'brahma-chickens',
@@ -329,4 +330,10 @@ export function formatPrice(min, max) {
 
 export function getProduct(id) {
   return products.find((p) => p.id === id);
+}
+
+export function getRelatedProducts(product, limit = 4) {
+  return products
+    .filter((p) => p.id !== product.id && p.category === product.category)
+    .slice(0, limit);
 }
