@@ -65,8 +65,8 @@ export default function UserMenu({ compact = false }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-2 rounded-full border border-border bg-white hover:border-forest/35 hover:shadow-md transition-all duration-200 ${
-          compact ? 'p-1 pr-2' : 'pl-1 pr-3 py-1'
+        className={`flex items-center gap-2 rounded-full border border-border bg-white hover:border-forest/35 hover:shadow-md transition-all duration-200 h-11 ${
+          compact ? 'px-1' : 'pl-1 pr-3'
         }`}
         aria-expanded={open}
         aria-haspopup="menu"

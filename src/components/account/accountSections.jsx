@@ -13,7 +13,7 @@ import {
   User,
 } from 'lucide-react';
 import { useAccount } from '../../context/AccountContext.jsx';
-import { sampleOrders } from '../../data/orders.js';
+import { useUserOrders } from '../../hooks/useUserOrders.js';
 import { products, getProduct, formatPrice } from '../../data/products.js';
 import { useCart } from '../../context/CartContext.jsx';
 import Button from '../ui/Button.jsx';
@@ -56,6 +56,7 @@ const statusColors = {
 
 export function DashboardSection() {
   const { profile, wishlist, addresses } = useAccount();
+  const { orders, loading: ordersLoading } = useUserOrders();
   const name = profile.firstName || 'Farmer';
 
   return (
@@ -63,7 +64,7 @@ export function DashboardSection() {
       <Card title={`Welcome back, ${name}`} description="Manage your farm orders and account details in one place.">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Orders', value: sampleOrders.length },
+            { label: 'Orders', value: ordersLoading ? '…' : orders.length },
             { label: 'Wishlist', value: wishlist.length },
             { label: 'Addresses', value: addresses.length },
             { label: 'Member', value: 'Active' },
@@ -83,30 +84,53 @@ export function DashboardSection() {
       </Card>
 
       <Card title="Recent orders" action={<Link to="/account?tab=orders" className="text-sm font-semibold text-forest">View all</Link>}>
-        <ul className="space-y-3">
-          {sampleOrders.slice(0, 2).map((o) => (
-            <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 py-3 border-b border-border/60 last:border-0">
-              <div>
-                <p className="font-semibold text-sm text-charcoal">{o.id}</p>
-                <p className="text-xs text-text-muted">{o.date}</p>
-              </div>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${statusColors[o.status] || 'bg-beige-soft text-charcoal'}`}>
-                {o.status}
-              </span>
-            </li>
-          ))}
-        </ul>
+        {ordersLoading ? (
+          <p className="text-sm text-text-muted py-4">Loading orders…</p>
+        ) : orders.length === 0 ? (
+          <div className="py-6 text-center">
+            <p className="text-sm text-text-muted mb-4">You have not placed any orders yet.</p>
+            <Button to="/shop" size="sm">
+              Start shopping
+            </Button>
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {orders.slice(0, 2).map((o) => (
+              <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 py-3 border-b border-border/60 last:border-0">
+                <div>
+                  <p className="font-semibold text-sm text-charcoal">{o.id}</p>
+                  <p className="text-xs text-text-muted">{o.date}</p>
+                </div>
+                <span
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-lg ${statusColors[o.statusLabel] || 'bg-beige-soft text-charcoal'}`}
+                >
+                  {o.statusLabel}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
     </div>
   );
 }
 
 export function ProfileSection() {
-  const { profile, setProfile } = useAccount();
+  const { profile, setProfile, saveProfile } = useAccount();
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
+    setSaveError('');
+    const result = await saveProfile();
+    setSaving(false);
+    if (!result.ok) {
+      setSaveError(result.error);
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -114,6 +138,11 @@ export function ProfileSection() {
   return (
     <Card title="Profile details" description="Update your contact information for orders and delivery.">
       <SaveBanner show={saved} />
+      {saveError && (
+        <p className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">
+          {saveError}
+        </p>
+      )}
       <form className="space-y-4 max-w-xl" onSubmit={handleSubmit}>
         <div className="grid sm:grid-cols-2 gap-4">
           <label>
@@ -137,43 +166,60 @@ export function ProfileSection() {
           <span className={labelCls}>Farm / business name</span>
           <input className={inputCls} value={profile.farmName} onChange={(e) => setProfile({ farmName: e.target.value })} />
         </label>
-        <Button type="submit">Save profile</Button>
+        <Button type="submit" disabled={saving}>
+          {saving ? 'Saving…' : 'Save profile'}
+        </Button>
       </form>
     </Card>
   );
 }
 
 export function OrdersSection() {
+  const { orders, loading, error } = useUserOrders();
+
   return (
     <Card title="Order history" description="View past orders and track current deliveries.">
-      <ul className="space-y-4">
-        {sampleOrders.map((o) => (
-          <li key={o.id} className="rounded-xl border border-border p-4 sm:p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-              <div>
-                <p className="font-semibold text-charcoal">{o.id}</p>
-                <p className="text-xs text-text-muted mt-0.5">Placed {o.date}</p>
+      {loading ? (
+        <p className="text-sm text-text-muted py-4">Loading orders…</p>
+      ) : error ? (
+        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</p>
+      ) : orders.length === 0 ? (
+        <div className="py-8 text-center">
+          <p className="text-sm text-text-muted mb-4">No orders on this account yet.</p>
+          <Button to="/shop">Browse shop</Button>
+        </div>
+      ) : (
+        <ul className="space-y-4">
+          {orders.map((o) => (
+            <li key={o.id} className="rounded-xl border border-border p-4 sm:p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                <div>
+                  <p className="font-semibold text-charcoal">{o.id}</p>
+                  <p className="text-xs text-text-muted mt-0.5">Placed {o.date}</p>
+                </div>
+                <div className="text-right">
+                  <span
+                    className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-lg mb-1 ${statusColors[o.statusLabel] || 'bg-beige-soft text-charcoal'}`}
+                  >
+                    {o.statusLabel}
+                  </span>
+                  <p className="text-sm font-bold text-charcoal">{formatPrice(o.total, o.total)}</p>
+                </div>
               </div>
-              <div className="text-right">
-                <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-lg mb-1 ${statusColors[o.status]}`}>
-                  {o.status}
-                </span>
-                <p className="text-sm font-bold text-charcoal">{formatPrice(o.total, o.total)}</p>
-              </div>
-            </div>
-            <ul className="text-sm text-text-muted space-y-1 mb-4">
-              {o.items.map((item, i) => (
-                <li key={i}>
-                  {item.qty}× {item.name}
-                </li>
-              ))}
-            </ul>
-            <Button to={`/track-order?order=${o.id}`} variant="ghost" size="sm">
-              Track this order
-            </Button>
-          </li>
-        ))}
-      </ul>
+              <ul className="text-sm text-text-muted space-y-1 mb-4">
+                {o.items?.map((item, i) => (
+                  <li key={i}>
+                    {item.qty}× {item.name}
+                  </li>
+                ))}
+              </ul>
+              <Button to={`/track-order?order=${encodeURIComponent(o.id)}`} variant="ghost" size="sm">
+                Track this order
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
     </Card>
   );
 }
@@ -190,10 +236,19 @@ const emptyAddress = {
 export function AddressesSection() {
   const { addresses, addAddress, removeAddress, setDefaultAddress } = useAccount();
   const [form, setForm] = useState(null);
+  const [formError, setFormError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const submitAddress = (e) => {
+  const submitAddress = async (e) => {
     e.preventDefault();
-    addAddress(form);
+    setSaving(true);
+    setFormError('');
+    const result = await addAddress(form);
+    setSaving(false);
+    if (!result.ok) {
+      setFormError(result.error);
+      return;
+    }
     setForm(null);
   };
 
@@ -214,6 +269,9 @@ export function AddressesSection() {
           )
         }
       >
+        {formError && (
+          <p className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">{formError}</p>
+        )}
         {form && (
           <form className="mb-6 p-4 rounded-xl bg-beige-soft/60 border border-beige-dark/25 space-y-3" onSubmit={submitAddress}>
             <div className="grid sm:grid-cols-2 gap-3">
@@ -243,8 +301,8 @@ export function AddressesSection() {
               Set as default
             </label>
             <div className="flex gap-2">
-              <Button type="submit" size="sm">
-                Save address
+              <Button type="submit" size="sm" disabled={saving}>
+                {saving ? 'Saving…' : 'Save address'}
               </Button>
               <Button type="button" variant="ghost" size="sm" onClick={() => setForm(null)}>
                 Cancel
@@ -273,12 +331,21 @@ export function AddressesSection() {
                 <p className="text-sm text-text-muted mt-1">{a.name} · {a.phone}</p>
                 <p className="text-sm text-text-muted">{a.address}, {a.region}</p>
                 {!a.isDefault && (
-                  <button type="button" onClick={() => setDefaultAddress(a.id)} className="text-xs font-semibold text-forest mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setDefaultAddress(a.id)}
+                    className="text-xs font-semibold text-forest mt-2"
+                  >
                     Set as default
                   </button>
                 )}
               </div>
-              <button type="button" onClick={() => removeAddress(a.id)} className="text-text-muted hover:text-red-600 p-1" aria-label="Remove">
+              <button
+                type="button"
+                onClick={() => removeAddress(a.id)}
+                className="text-text-muted hover:text-red-600 p-1"
+                aria-label="Remove"
+              >
                 <Trash2 className="w-4 h-4" />
               </button>
             </li>
@@ -314,16 +381,31 @@ export function WishlistSection() {
 }
 
 export function FarmSection() {
-  const { farm, setFarm } = useAccount();
+  const { farm, setFarm, saveFarm } = useAccount();
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   return (
     <Card title="Farm details" description="Help us recommend the right breeds, feed, and delivery options.">
       <SaveBanner show={saved} />
+      {saveError && (
+        <p className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">
+          {saveError}
+        </p>
+      )}
       <form
         className="space-y-4 max-w-xl"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+          setSaving(true);
+          setSaveError('');
+          const result = await saveFarm();
+          setSaving(false);
+          if (!result.ok) {
+            setSaveError(result.error);
+            return;
+          }
           setSaved(true);
           setTimeout(() => setSaved(false), 3000);
         }}
@@ -350,46 +432,109 @@ export function FarmSection() {
           <span className={labelCls}>Notes for our team</span>
           <textarea className={`${inputCls} resize-y`} rows={3} value={farm.notes} onChange={(e) => setFarm({ notes: e.target.value })} />
         </label>
-        <Button type="submit">Save farm details</Button>
+        <Button type="submit" disabled={saving}>
+          {saving ? 'Saving…' : 'Save farm details'}
+        </Button>
       </form>
     </Card>
   );
 }
 
 export function SecuritySection() {
+  const { hasPassword, changePassword } = useAccount();
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   return (
     <Card title="Password & security" description="Keep your account secure.">
-      <SaveBanner show={saved} message="Password updated (demo)." />
+      <SaveBanner show={saved} message="Password updated." />
+      {!hasPassword && (
+        <p className="mb-4 text-sm text-text-muted bg-beige-soft/80 border border-border rounded-xl px-4 py-3">
+          You signed in with Google. Set a password below to also sign in with email.
+        </p>
+      )}
+      {saveError && (
+        <p className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">
+          {saveError}
+        </p>
+      )}
       <form
         className="space-y-4 max-w-md"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
+          if (newPassword !== confirmPassword) {
+            setSaveError('New passwords do not match.');
+            return;
+          }
+          setSaving(true);
+          setSaveError('');
+          const result = await changePassword({
+            currentPassword: hasPassword ? currentPassword : undefined,
+            newPassword,
+          });
+          setSaving(false);
+          if (!result.ok) {
+            setSaveError(result.error);
+            return;
+          }
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
           setSaved(true);
           setTimeout(() => setSaved(false), 3000);
         }}
       >
-        <label>
-          <span className={labelCls}>Current password</span>
-          <input type="password" className={inputCls} autoComplete="current-password" />
-        </label>
+        {hasPassword && (
+          <label>
+            <span className={labelCls}>Current password</span>
+            <input
+              type="password"
+              className={inputCls}
+              autoComplete="current-password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+            />
+          </label>
+        )}
         <label>
           <span className={labelCls}>New password</span>
-          <input type="password" className={inputCls} autoComplete="new-password" />
+          <input
+            type="password"
+            className={inputCls}
+            autoComplete="new-password"
+            minLength={6}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+          />
         </label>
         <label>
           <span className={labelCls}>Confirm new password</span>
-          <input type="password" className={inputCls} autoComplete="new-password" />
+          <input
+            type="password"
+            className={inputCls}
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
         </label>
-        <Button type="submit">Update password</Button>
+        <Button type="submit" disabled={saving}>
+          {saving ? 'Updating…' : hasPassword ? 'Update password' : 'Set password'}
+        </Button>
       </form>
     </Card>
   );
 }
 
 export function NotificationsSection() {
-  const { settings, setSettings } = useAccount();
+  const { settings, setSettings, saveSettings } = useAccount();
+  const [savingKey, setSavingKey] = useState(null);
 
   const toggles = [
     { key: 'orderUpdates', label: 'Order updates', desc: 'Shipping and delivery notifications' },
@@ -411,7 +556,15 @@ export function NotificationsSection() {
               type="button"
               role="switch"
               aria-checked={settings[key]}
-              onClick={() => setSettings({ [key]: !settings[key] })}
+              disabled={savingKey === key}
+              onClick={async () => {
+                const next = !settings[key];
+                setSettings({ [key]: next });
+                setSavingKey(key);
+                const result = await saveSettings({ [key]: next });
+                setSavingKey(null);
+                if (!result.ok) setSettings({ [key]: !next });
+              }}
               className={`relative w-11 h-6 rounded-full shrink-0 transition-colors ${settings[key] ? 'bg-forest' : 'bg-border'}`}
             >
               <span

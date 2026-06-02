@@ -78,6 +78,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="under-development" element={<UnderDevelopment />} />
+      <Route path="login" element={<GuestRoute><Login /></GuestRoute>} />
+      <Route path="register" element={<GuestRoute><Register /></GuestRoute>} />
       <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="shop" element={<Shop />} />
@@ -90,8 +92,6 @@ export default function App() {
         <Route path="cart" element={<Cart />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="order-confirmation" element={<OrderConfirmation />} />
-        <Route path="login" element={<GuestRoute><Login /></GuestRoute>} />
-        <Route path="register" element={<GuestRoute><Register /></GuestRoute>} />
         <Route path="privacy" element={<Privacy />} />
         <Route path="terms" element={<Terms />} />
         <Route path="shipping" element={<Shipping />} />

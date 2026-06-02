@@ -16,6 +16,7 @@ import {
   Settings,
   ChevronLeft,
   HelpCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/shadcn-button.jsx';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar.jsx';
@@ -37,6 +38,7 @@ const mainNav = [
   { to: '/content', label: 'Website Content', icon: Globe },
   { to: '/products', label: 'Products', icon: Package },
   { to: '/orders', label: 'Orders', icon: ShoppingCart },
+  { to: '/reviews', label: 'Reviews', icon: MessageSquare },
   { to: '/blog', label: 'Blog', icon: BookOpen },
   { to: '/inquiries', label: 'Inquiries', icon: Mail },
   { to: '/users', label: 'User Management', icon: Users },
@@ -52,6 +54,7 @@ const PAGE_TITLES = {
   '/content': 'Website Content',
   '/products': 'Products',
   '/orders': 'Orders',
+  '/reviews': 'Reviews',
   '/blog': 'Blog',
   '/inquiries': 'Inquiries',
   '/users': 'User Management',
@@ -253,7 +256,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Main Content */}
-        <main className="relative flex-1 overflow-x-hidden overflow-y-auto p-4 lg:p-6">
+        <main data-admin-scroll className="relative flex-1 overflow-x-hidden overflow-y-auto p-4 lg:p-6">
           <div className="mx-auto max-w-7xl">
             <Outlet />
           </div>

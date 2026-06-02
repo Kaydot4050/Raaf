@@ -63,6 +63,19 @@ export const authApi = {
   me: () => api('/auth/me'),
 };
 
+export const accountApi = {
+  get: () => api('/account'),
+  updateProfile: (body) => api('/account/profile', { method: 'PATCH', body: JSON.stringify(body) }),
+  updateFarm: (body) => api('/account/farm', { method: 'PATCH', body: JSON.stringify(body) }),
+  updateNotifications: (body) =>
+    api('/account/notifications', { method: 'PATCH', body: JSON.stringify(body) }),
+  addAddress: (body) => api('/account/addresses', { method: 'POST', body: JSON.stringify(body) }),
+  removeAddress: (id) => api(`/account/addresses/${id}`, { method: 'DELETE' }),
+  setDefaultAddress: (id) => api(`/account/addresses/${id}/default`, { method: 'POST' }),
+  toggleWishlist: (productId) => api(`/account/wishlist/${encodeURIComponent(productId)}`, { method: 'POST' }),
+  changePassword: (body) => api('/account/password', { method: 'PATCH', body: JSON.stringify(body) }),
+};
+
 export const ordersApi = {
   create: (body) => api('/orders', { method: 'POST', body: JSON.stringify(body) }),
   get: (id) => api(`/orders/${id}`),
@@ -87,4 +100,6 @@ export const productsApi = {
     return api(`/products${q ? `?${q}` : ''}`);
   },
   get: (id) => api(`/products/${id}`),
+  getReviews: (id) => api(`/products/${id}/reviews`),
+  addReview: (id, body) => api(`/products/${id}/reviews`, { method: 'POST', body: JSON.stringify(body) }),
 };

@@ -9,6 +9,7 @@ import AdminOrders from './pages/AdminOrders.jsx';
 import AdminBlog from './pages/AdminBlog.jsx';
 import AdminInquiries from './pages/AdminInquiries.jsx';
 import AdminUsers from './pages/AdminUsers.jsx';
+import AdminReviews from './pages/AdminReviews.jsx';
 import { ThemeProvider } from './components/ThemeProvider.jsx';
 
 export default function App() {
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="content" element={<AdminContent />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="reviews" element={<AdminReviews />} />
             <Route path="blog" element={<AdminBlog />} />
             <Route path="inquiries" element={<AdminInquiries />} />
             <Route path="users" element={<AdminUsers />} />

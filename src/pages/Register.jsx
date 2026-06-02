@@ -3,11 +3,12 @@ import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import Button from '../components/ui/Button.jsx';
-import AuthPageShell from '../components/auth/AuthPageShell.jsx';
+import GoogleSignIn from '../components/auth/GoogleSignIn.jsx';
+import { isGoogleAuthEnabled } from '../components/auth/GoogleAuthProvider.jsx';
+import AuthPageShell, { authInputCls, authLabelCls } from '../components/auth/AuthPageShell.jsx';
+import AuthPasswordField from '../components/auth/AuthPasswordField.jsx';
 
-const inputCls =
-  'mt-1.5 w-full px-4 py-3 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-forest/30';
-const labelCls = 'block text-xs font-semibold text-charcoal uppercase tracking-wide';
+const hasGoogle = isGoogleAuthEnabled();
 
 export default function Register() {
   const navigate = useNavigate();
@@ -17,10 +18,15 @@ export default function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const onGoogleSuccess = () => {
+    showToast('Account created with Google');
+    navigate('/account', { replace: true });
+  };
+
   if (authLoading) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center bg-cream">
-        <div className="w-10 h-10 rounded-full border-2 border-forest/20 border-t-forest animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0f1412]">
+        <div className="w-10 h-10 rounded-full border-2 border-forest/30 border-t-forest animate-spin" />
       </div>
     );
   }
@@ -52,40 +58,78 @@ export default function Register() {
   return (
     <AuthPageShell
       title="Create account"
-      subtitle="Register your farm for faster orders and order history."
+      subtitle="Register your farm for faster checkout and order history."
+      heroTitle="Join farms across Ghana."
+      heroSubtitle="Create your account in minutes — shop feed, livestock, and supplies with delivery tracking built in."
       footer={
-        <p className="mt-6 text-sm text-center text-text-muted">
+        <p className="mt-8 text-sm text-center text-white/50">
           Already have an account?{' '}
-          <Link to="/login" className="text-forest font-semibold hover:underline">
+          <Link to="/login" className="text-beige font-semibold hover:text-white transition-colors">
             Sign in
           </Link>
         </p>
       }
     >
       {error && (
-        <p className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">{error}</p>
+        <p className="mb-4 text-sm text-red-200 bg-red-500/15 border border-red-400/30 rounded-xl px-4 py-2">
+          {error}
+        </p>
       )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block">
-          <span className={labelCls}>Full name</span>
-          <input type="text" required value={form.name} onChange={set('name')} className={inputCls} />
+          <span className={authLabelCls}>Full name</span>
+          <input type="text" required value={form.name} onChange={set('name')} className={authInputCls} />
         </label>
         <label className="block">
-          <span className={labelCls}>Email</span>
-          <input type="email" required value={form.email} onChange={set('email')} className={inputCls} />
+          <span className={authLabelCls}>Email address</span>
+          <input
+            type="email"
+            required
+            placeholder="you@example.com"
+            value={form.email}
+            onChange={set('email')}
+            className={authInputCls}
+          />
         </label>
-        <label className="block">
-          <span className={labelCls}>Password</span>
-          <input type="password" required minLength={6} value={form.password} onChange={set('password')} className={inputCls} />
-        </label>
-        <label className="block">
-          <span className={labelCls}>Confirm password</span>
-          <input type="password" required value={form.confirm} onChange={set('confirm')} className={inputCls} />
-        </label>
-        <Button type="submit" variant="forest" className="w-full justify-center" disabled={loading}>
+        <AuthPasswordField
+          label="Password"
+          autoComplete="new-password"
+          placeholder="At least 6 characters"
+          minLength={6}
+          value={form.password}
+          onChange={set('password')}
+        />
+        <AuthPasswordField
+          label="Confirm password"
+          autoComplete="new-password"
+          placeholder="Re-enter your password"
+          value={form.confirm}
+          onChange={set('confirm')}
+        />
+        <Button type="submit" variant="cream" className="w-full justify-center mt-2 !rounded-xl" disabled={loading}>
           {loading ? 'Creating account…' : 'Create account'}
         </Button>
       </form>
+
+      {hasGoogle && (
+        <>
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase tracking-widest">
+              <span className="bg-[#0f1412] px-3 text-white/40">or</span>
+            </div>
+          </div>
+          <GoogleSignIn
+            label="signup_with"
+            disabled={loading}
+            onSuccess={onGoogleSuccess}
+            onError={(msg) => msg && setError(msg)}
+          />
+        </>
+      )}
     </AuthPageShell>
   );
 }

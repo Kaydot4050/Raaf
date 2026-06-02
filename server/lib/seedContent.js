@@ -1,6 +1,41 @@
 import { query } from '../db.js';
 import { defaultSiteContent, defaultBlogPosts } from './defaultSiteContent.js';
 
+const FOOTER_SOCIAL_DEFAULTS = {
+  facebookUrl: 'https://facebook.com',
+  instagramUrl: 'https://instagram.com',
+  twitterUrl: '',
+  youtubeUrl: '',
+  whatsappUrl: '',
+};
+
+async function migrateFooterSocial() {
+  const result = await query(
+    `SELECT data FROM site_content WHERE page = $1 AND section = $2`,
+    ['global', 'footer'],
+  );
+  if (!result.rows[0]) return;
+
+  const data = result.rows[0].data;
+  let changed = false;
+  const next = { ...data };
+
+  for (const [key, value] of Object.entries(FOOTER_SOCIAL_DEFAULTS)) {
+    if (!Object.prototype.hasOwnProperty.call(next, key)) {
+      next[key] = value;
+      changed = true;
+    }
+  }
+
+  if (!changed) return;
+
+  await query(
+    `UPDATE site_content SET data = $1, updated_at = NOW() WHERE page = $2 AND section = $3`,
+    [next, 'global', 'footer'],
+  );
+  console.log('Added social links to site footer.');
+}
+
 async function migrateHeroSlidesMobileSrc() {
   const result = await query(
     `SELECT data FROM site_content WHERE page = $1 AND section = $2`,
@@ -45,6 +80,7 @@ export async function seedSiteContent() {
     console.log(`Seeded ${inserted} new site content section(s).`);
   }
   await migrateHeroSlidesMobileSrc();
+  await migrateFooterSocial();
 }
 
 export async function seedBlogPosts() {

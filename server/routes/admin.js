@@ -350,4 +350,28 @@ router.patch(
   }),
 );
 
+router.get(
+  '/reviews',
+  asyncHandler(async (_req, res) => {
+    const result = await query('SELECT * FROM product_reviews ORDER BY created_at DESC');
+    res.json({ reviews: result.rows });
+  }),
+);
+
+router.patch(
+  '/reviews/:id',
+  asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'invalid status' });
+    }
+    const result = await query(
+      'UPDATE product_reviews SET status = $1 WHERE id = $2 RETURNING *',
+      [status, req.params.id]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Review not found.' });
+    res.json({ review: result.rows[0] });
+  }),
+);
+
 export default router;

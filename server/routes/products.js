@@ -33,4 +33,32 @@ router.get(
   }),
 );
 
+router.get(
+  '/:id/reviews',
+  asyncHandler(async (req, res) => {
+    const result = await query(
+      "SELECT id, user_name, rating, comment, created_at FROM product_reviews WHERE product_id = $1 AND status = 'approved' ORDER BY created_at DESC",
+      [req.params.id]
+    );
+    res.json({ reviews: result.rows });
+  }),
+);
+
+router.post(
+  '/:id/reviews',
+  asyncHandler(async (req, res) => {
+    const { userName, rating, comment } = req.body;
+    if (!userName || !rating) {
+      return res.status(400).json({ error: 'Name and rating are required.' });
+    }
+    const result = await query(
+      `INSERT INTO product_reviews (product_id, user_name, rating, comment)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, user_name, rating, comment, status, created_at`,
+      [req.params.id, userName, rating, comment]
+    );
+    res.status(201).json({ review: result.rows[0] });
+  }),
+);
+
 export default router;

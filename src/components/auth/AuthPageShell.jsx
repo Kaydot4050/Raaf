@@ -1,42 +1,90 @@
 import { Link } from 'react-router-dom';
+import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function AuthPageShell({ title, subtitle, children, footer }) {
-  return (
-    <div className="min-h-[calc(100vh-56px)] lg:min-h-[calc(100vh-92px)] bg-[#0f1117] p-3 sm:p-6 flex items-center justify-center">
-      <motion.div
-        initial={{ opacity: 0, y: 14, scale: 0.985 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="w-full max-w-6xl rounded-3xl overflow-hidden border border-white/10 shadow-[0_18px_60px_rgba(0,0,0,0.45)] bg-[#111827]"
-      >
-        <div className="grid lg:grid-cols-[1.05fr_1fr] min-h-[min(680px,calc(100vh-120px))]">
-          <div className="bg-[#f8fafc] p-6 sm:p-10 lg:p-12 flex items-center justify-center">
-            <div className="w-full max-w-[420px]">
-              <Link to="/" className="inline-flex items-center gap-2 mb-8">
-                <span className="w-9 h-9 rounded-full bg-beige-soft border border-border/60 overflow-hidden shrink-0">
-                  <img src="/images/cropped-cropped-gooo-1-1.png" alt="" className="w-full h-full object-cover" />
-                </span>
-                <span className="font-display font-semibold text-charcoal lowercase tracking-tight">raafortagro</span>
-              </Link>
-              <h1 className="font-display text-2xl sm:text-3xl font-bold text-charcoal">{title}</h1>
-              {subtitle && <p className="mt-1 text-sm text-text-muted mb-6">{subtitle}</p>}
-              {children}
-              {footer}
-            </div>
-          </div>
+const HERO_IMAGES = [
+  '/images/Raafortagro-2.png',
+  '/images/Raafortagro-3.png',
+  '/images/Raafortagro.png',
+  '/images/a.jpg',
+  '/images/istock-hero.jpg',
+  '/images/Raafortagro-2.png',
+];
 
-          <div className="hidden lg:flex relative items-end justify-center p-8 bg-[radial-gradient(110%_90%_at_70%_20%,#2d4a32_0%,#1a3320_38%,#0a140c_100%)]">
-            <div className="absolute inset-0 opacity-65 bg-[linear-gradient(140deg,rgba(77,122,88,0.45)_0%,rgba(26,51,32,0.08)_42%,rgba(5,12,7,0.75)_100%)]" />
-            <div className="absolute top-12 right-12 w-60 h-60 rounded-full bg-forest/25 blur-3xl" />
-            <div className="absolute top-36 right-32 w-32 h-32 rounded-full bg-beige/20 blur-2xl" />
-            <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl px-6 py-5 text-center">
-              <p className="text-white/95 text-sm font-medium">Fresh from Ghana&apos;s farms</p>
-              <p className="text-white/70 text-xs mt-1">Orders, tracking, and your farm account in one place.</p>
-            </div>
+export const authInputCls =
+  'mt-1.5 w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.06] text-white text-sm placeholder:text-white/35 focus:outline-none focus:ring-2 focus:ring-forest/50 focus:border-forest/40';
+export const authLabelCls = 'block text-sm font-medium text-white/85';
+
+export default function AuthPageShell({
+  title,
+  subtitle,
+  heroTitle = 'Grow smarter. Farm better.',
+  heroSubtitle = 'Your farm supply hub — orders, tracking, and account tools synced in one place.',
+  children,
+  footer,
+}) {
+  return (
+    <div className="relative min-h-screen min-h-[100dvh] grid grid-cols-1 lg:grid-cols-2 bg-[#0a0e0c]">
+      <Link
+        to="/"
+        className="fixed top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-[#0f1412]/80 text-white/80 backdrop-blur-sm transition-colors hover:border-white/40 hover:bg-white/10 hover:text-white"
+        aria-label="Close"
+      >
+        <X className="h-5 w-5" strokeWidth={2} />
+      </Link>
+      {/* Left — branding (half screen on desktop) */}
+      <div className="relative flex min-h-[42vh] lg:min-h-screen flex-col justify-between overflow-hidden px-6 py-8 sm:px-10 sm:py-10">
+        <div className="absolute inset-0">
+          <div className="grid h-full w-full grid-cols-3 grid-rows-3 gap-1 sm:gap-1.5 opacity-40">
+            {HERO_IMAGES.map((src, i) => (
+              <div key={`${src}-${i}`} className="overflow-hidden rounded-sm">
+                <img src={src} alt="" className="h-full w-full object-cover scale-105" loading="lazy" />
+              </div>
+            ))}
           </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a140c]/95 via-[#0f1f14]/88 to-[#050807]/98" />
+          {/* Fade into form panel */}
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 z-[1] hidden w-[28%] min-w-[7rem] max-w-[12rem] bg-gradient-to-l from-[#0f1412] via-[#0f1412]/80 to-transparent lg:block"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-28 bg-gradient-to-t from-[#0f1412] via-[#0f1412]/70 to-transparent lg:hidden"
+            aria-hidden
+          />
         </div>
-      </motion.div>
+
+        <Link to="/" className="relative z-10 inline-flex items-center gap-2.5 w-fit">
+          <img
+            src="/images/cropped-cropped-gooo-1-1.png"
+            alt=""
+            className="w-10 h-10 rounded-xl object-cover ring-1 ring-white/20"
+          />
+          <span className="font-display font-bold text-white text-lg lowercase tracking-tight">raafortagro</span>
+        </Link>
+
+        <div className="relative z-10 mt-10 lg:mt-auto lg:pt-16 max-w-md">
+          <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-white leading-tight">
+            {heroTitle}
+          </h2>
+          <p className="mt-3 text-sm sm:text-base text-white/65 leading-relaxed">{heroSubtitle}</p>
+        </div>
+      </div>
+
+      {/* Right — form (half screen on desktop) */}
+      <div className="flex min-h-[58vh] lg:min-h-screen flex-col items-center justify-center px-6 py-10 sm:px-12 lg:px-12 xl:px-16 bg-[#0f1412] border-t border-white/5 lg:border-t-0">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="w-full max-w-md mx-auto"
+        >
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-white">{title}</h1>
+          {subtitle && <p className="mt-2 text-sm text-white/55 mb-8">{subtitle}</p>}
+          {children}
+          {footer}
+        </motion.div>
+      </div>
     </div>
   );
 }

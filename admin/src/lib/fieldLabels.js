@@ -93,6 +93,9 @@ const LABELS = {
   // Social
   facebookUrl: 'Facebook page link',
   instagramUrl: 'Instagram page link',
+  twitterUrl: 'X (Twitter) page link',
+  youtubeUrl: 'YouTube channel link',
+  whatsappUrl: 'WhatsApp chat link (optional)',
 
   // Wholesale / forms copy
   farmName: 'Farm name field label',
@@ -110,6 +113,7 @@ const HINTS = {
   id: 'Changing this can break existing links. Only edit when creating new content.',
   src: 'Shown on desktop and tablets. Upload a photo or paste an image web address.',
   mobileSrc: 'Optional. Shown on phones instead of the desktop photo. Leave blank to use the desktop photo everywhere.',
+  whatsappUrl: 'Leave blank to use the footer phone number for WhatsApp.',
 };
 
 const LIST_NAMES = {

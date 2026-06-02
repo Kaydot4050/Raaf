@@ -56,7 +56,7 @@ export default function Account() {
   const tab = searchParams.get('tab') || 'dashboard';
   const ActiveSection = SECTION_MAP[tab] || SECTION_MAP.dashboard;
   const activeNav = ACCOUNT_NAV.find((item) => item.id === tab) ?? ACCOUNT_NAV[0];
-  const { profile } = useAccount();
+  const { profile, loading: accountLoading, error: accountError } = useAccount();
   const { user } = useAuth();
   const isDesktop = useIsDesktop();
   const [mobileDetail, setMobileDetail] = useState(() => tab !== 'dashboard');
@@ -163,7 +163,17 @@ export default function Account() {
                   <h1 className="font-display text-xl font-bold text-charcoal">{activeNav.label}</h1>
                 </div>
               )}
-              <ActiveSection />
+              {accountLoading ? (
+                <div className="flex justify-center py-16">
+                  <div className="w-10 h-10 rounded-full border-2 border-forest/20 border-t-forest animate-spin" />
+                </div>
+              ) : accountError ? (
+                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  {accountError}
+                </p>
+              ) : (
+                <ActiveSection />
+              )}
             </div>
           )}
         </div>

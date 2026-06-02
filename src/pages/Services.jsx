@@ -45,7 +45,7 @@ const services = [
     isCore: true, icon: Egg, tag: 'Poultry', title: 'Day-Old Chicks',
     short: 'Vaccinated, high-yield chicks delivered safely nationwide.',
     desc: 'Sourced from elite parent stock. Every chick is vaccinated, health-certified, and transported with live-animal care protocols.',
-    image: '/images/Raafortagro-2.png', size: 'large', darkText: false,
+    image: '/images/Raafortagro-2.png', size: 'large', darkText: false, imageOnly: true,
   },
   { isCore: false, icon: Egg, tag: 'Poultry', title: 'Point-of-Lay Pullets', short: 'Ready-to-lay hens for immediate egg production.', desc: 'Skip the brooding phase. Our 16-week old pullets are fully vaccinated and primed for maximum yield.', darkText: true },
   { isCore: false, icon: Beef, tag: 'Poultry', title: 'Broiler Processing', short: 'Hygienic processing and packaging services.', desc: 'Commercial-grade processing facilities ensuring your meat meets all health and safety standards.', darkText: true },
@@ -57,7 +57,7 @@ const services = [
     isCore: true, icon: TrendingUp, tag: 'Advisory', title: 'Farm Consultancy',
     short: 'Expert analysis to unlock your farm\'s full potential.',
     desc: 'Our specialists assess your operation and deliver actionable recommendations.',
-    image: '/images/Raafortagro-3.png', size: 'tall', darkText: false,
+    image: '/images/Raafortagro-3.png', size: 'tall', darkText: false, imageOnly: true,
   },
   { isCore: false, icon: FileText, tag: 'Advisory', title: 'Business Planning', short: 'Strategic roadmaps for farm profitability.', desc: 'Comprehensive business plans tailored for agricultural startups and expanding operations.', darkText: true },
   { isCore: false, icon: Shield, tag: 'Advisory', title: 'Risk Management', short: 'Mitigate agricultural and financial risks.', desc: 'Identify and neutralize threats before they impact your farm\'s bottom line.', darkText: false },
@@ -93,7 +93,7 @@ const services = [
     isCore: true, icon: Warehouse, tag: 'Infrastructure', title: 'Farm Setup',
     short: 'End-to-end farm design and installation.',
     desc: 'Housing, equipment, ventilation — we build your farm from ground up.',
-    image: '/images/Raafortagro-2.png', size: 'wide', darkText: false,
+    image: '/images/Raafortagro-2.png', size: 'wide', darkText: false, imageOnly: true,
   },
   { isCore: false, icon: Droplets, tag: 'Infrastructure', title: 'Irrigation Systems', short: 'Smart water management.', desc: 'Design and installation of drip and sprinkler irrigation for crop integration.', darkText: true },
   { isCore: false, icon: Settings, tag: 'Infrastructure', title: 'Automated Feeding', short: 'Reduce labor, increase efficiency.', desc: 'Silo and auger systems for automated, scheduled feeding of poultry and livestock.', darkText: true },
@@ -129,7 +129,7 @@ const services = [
     isCore: true, icon: Package, tag: 'Supply', title: 'Farm Input Supply',
     short: 'All your inputs from one trusted source.',
     desc: 'Feeds, vaccines, drugs, feeders, drinkers and equipment — sourced and delivered.',
-    image: '/images/Raafortagro-3.png', size: 'tall', darkText: false,
+    image: '/images/Raafortagro-3.png', size: 'tall', darkText: false, imageOnly: true,
   },
   { isCore: false, icon: Stethoscope, tag: 'Supply', title: 'Veterinary Drugs', short: 'Authentic medications and vaccines.', desc: 'Cold-chain guaranteed supply of essential veterinary pharmaceuticals.', darkText: true },
   { isCore: false, icon: Droplets, tag: 'Supply', title: 'Wholesale Disinfectants', short: 'Chemicals for biosecurity.', desc: 'Bulk supply of industrial-grade farm sanitizers and boot-dip chemicals.', darkText: true },
@@ -266,8 +266,12 @@ function ServiceCard({ s, index, isFiltered, activeCategory }) {
       {hasImage ? (
         <>
           <img src={s.image} alt={s.title} className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-charcoal/30 to-charcoal/10" />
-          <motion.div className="absolute inset-0 bg-forest/20" animate={{ opacity: hovered ? 1 : 0 }} transition={{ duration: 0.3 }} />
+          {!s.imageOnly && (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-charcoal/30 to-charcoal/10" />
+              <motion.div className="absolute inset-0 bg-forest/20" animate={{ opacity: hovered ? 1 : 0 }} transition={{ duration: 0.3 }} />
+            </>
+          )}
         </>
       ) : (
         <div className="absolute inset-0 bg-white border border-border">
@@ -280,95 +284,98 @@ function ServiceCard({ s, index, isFiltered, activeCategory }) {
       )}
 
       {/* ── Internal Layouts ── */}
-
-      {/* WIDE CARD LAYOUT */}
-      {isWide && (
-        <div className="relative z-10 h-full flex flex-col md:flex-row md:items-center justify-between gap-6 p-5 sm:p-6">
-          <div className="flex flex-col items-start gap-4 flex-1">
-            <div className="flex items-center gap-3">
-              <Tag label={s.tag} darkText={s.darkText} />
-              <div className={`p-1.5 rounded-md ${s.darkText ? 'bg-forest/10' : 'bg-white/10'}`}>
-                <Icon className={`w-4 h-4 ${s.darkText ? 'text-forest' : 'text-white'}`} strokeWidth={2} />
+      {!s.imageOnly && (
+        <>
+          {/* WIDE CARD LAYOUT */}
+          {isWide && (
+            <div className="relative z-10 h-full flex flex-col md:flex-row md:items-center justify-between gap-6 p-5 sm:p-6">
+              <div className="flex flex-col items-start gap-4 flex-1">
+                <div className="flex items-center gap-3">
+                  <Tag label={s.tag} darkText={s.darkText} />
+                  <div className={`p-1.5 rounded-md ${s.darkText ? 'bg-forest/10' : 'bg-white/10'}`}>
+                    <Icon className={`w-4 h-4 ${s.darkText ? 'text-forest' : 'text-white'}`} strokeWidth={2} />
+                  </div>
+                </div>
+                <h3 className={`font-display font-bold text-xl md:text-2xl ${tColor}`}>{s.title}</h3>
+              </div>
+              <div className="flex flex-col md:items-end gap-4 flex-1">
+                <div className="hidden md:block"><ArrowIcon /></div>
+                <motion.p className={`text-sm md:text-right leading-relaxed ${tMuted}`}>{s.desc}</motion.p>
+                <div className="md:hidden self-start"><ArrowIcon /></div>
               </div>
             </div>
-            <h3 className={`font-display font-bold text-xl md:text-2xl ${tColor}`}>{s.title}</h3>
-          </div>
-          <div className="flex flex-col md:items-end gap-4 flex-1">
-            <div className="hidden md:block"><ArrowIcon /></div>
-            <motion.p className={`text-sm md:text-right leading-relaxed ${tMuted}`}>{s.desc}</motion.p>
-            <div className="md:hidden self-start"><ArrowIcon /></div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* TALL CARD LAYOUT */}
-      {isTall && (
-        <div className="relative z-10 h-full flex flex-col items-center text-center justify-between p-5 sm:p-8">
-          <div className="w-full flex justify-between items-start">
-            <Tag label={s.tag} darkText={s.darkText} />
-            <ArrowIcon />
-          </div>
-          <div className="flex flex-col items-center gap-4 my-8">
-            <div className={`p-5 rounded-full ${s.darkText ? 'bg-forest/10' : 'bg-white/10 backdrop-blur-md'}`}>
-              <Icon className={`w-8 h-8 ${s.darkText ? 'text-forest' : 'text-white'}`} strokeWidth={1.5} />
-            </div>
-            <h3 className={`font-display font-bold text-2xl ${tColor}`}>{s.title}</h3>
-            <motion.p className={`text-sm leading-relaxed ${tMuted}`}>{s.desc}</motion.p>
-          </div>
-          <div className="h-4" /> {/* Spacer */}
-        </div>
-      )}
-
-      {/* HUGE/LARGE CARD LAYOUT */}
-      {isHuge && (
-        <div className="relative z-10 h-full p-6 sm:p-8 flex flex-col justify-between">
-          <div className="flex items-start justify-between">
-            <Tag label={s.tag} darkText={s.darkText} />
-            <ArrowIcon />
-          </div>
-          
-          <div className={`mt-auto ${hasImage ? 'backdrop-blur-md bg-charcoal/40 border border-white/10 p-6 rounded-2xl' : ''}`}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`p-2 rounded-lg ${hasImage ? 'bg-white/10' : (s.darkText ? 'bg-forest/10' : 'bg-white/10')}`}>
-                <Icon className={`w-5 h-5 ${hasImage ? 'text-white' : (s.darkText ? 'text-forest' : 'text-white')}`} />
+          {/* TALL CARD LAYOUT */}
+          {isTall && (
+            <div className="relative z-10 h-full flex flex-col items-center text-center justify-between p-5 sm:p-8">
+              <div className="w-full flex justify-between items-start">
+                <Tag label={s.tag} darkText={s.darkText} />
+                <ArrowIcon />
               </div>
-              <h3 className={`font-display font-bold text-2xl sm:text-3xl ${hasImage ? 'text-white' : tColor}`}>{s.title}</h3>
+              <div className="flex flex-col items-center gap-4 my-8">
+                <div className={`p-5 rounded-full ${s.darkText ? 'bg-forest/10' : 'bg-white/10 backdrop-blur-md'}`}>
+                  <Icon className={`w-8 h-8 ${s.darkText ? 'text-forest' : 'text-white'}`} strokeWidth={1.5} />
+                </div>
+                <h3 className={`font-display font-bold text-2xl ${tColor}`}>{s.title}</h3>
+                <motion.p className={`text-sm leading-relaxed ${tMuted}`}>{s.desc}</motion.p>
+              </div>
+              <div className="h-4" /> {/* Spacer */}
             </div>
-            <motion.p className={`leading-relaxed text-sm sm:text-base ${hasImage ? 'text-white/80' : tMuted}`}>
-              {s.desc}
-            </motion.p>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* SMALL CARD LAYOUT */}
-      {isSmall && (
-        <div className="relative z-10 h-full flex flex-col justify-between p-5 overflow-hidden">
-          {/* Large faded decorative icon in background */}
-          <Icon className={`absolute -right-4 -bottom-4 w-32 h-32 opacity-[0.03] ${s.darkText ? 'text-charcoal' : 'text-white'} pointer-events-none`} />
-          
-          <div className="flex items-start justify-between relative z-10">
-            <Tag label={s.tag} darkText={s.darkText} />
-            <ArrowIcon />
-          </div>
-          
-          <div className="relative z-10 mt-6">
-            <Icon className={`w-5 h-5 mb-3 ${s.darkText ? 'text-forest' : 'text-[#8fd4a2]'}`} />
-            <h3 className={`font-display font-bold text-lg mb-1.5 ${tColor}`}>{s.title}</h3>
-            <motion.p className={`text-xs leading-relaxed ${tMuted}`} animate={{ opacity: hovered ? 1 : 0.7 }}>
-              {s.short}
-            </motion.p>
-            
-            {/* Expand text on hover */}
-            <motion.p
-              className={`text-[11px] mt-2 leading-relaxed overflow-hidden ${s.darkText ? 'text-text' : 'text-white/80'}`}
-              animate={{ maxHeight: hovered ? '80px' : '0px', opacity: hovered ? 1 : 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {s.desc}
-            </motion.p>
-          </div>
-        </div>
+          {/* HUGE/LARGE CARD LAYOUT */}
+          {isHuge && (
+            <div className="relative z-10 h-full p-6 sm:p-8 flex flex-col justify-between">
+              <div className="flex items-start justify-between">
+                <Tag label={s.tag} darkText={s.darkText} />
+                <ArrowIcon />
+              </div>
+              
+              <div className={`mt-auto ${hasImage ? 'backdrop-blur-md bg-charcoal/40 border border-white/10 p-6 rounded-2xl' : ''}`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`p-2 rounded-lg ${hasImage ? 'bg-white/10' : (s.darkText ? 'bg-forest/10' : 'bg-white/10')}`}>
+                    <Icon className={`w-5 h-5 ${hasImage ? 'text-white' : (s.darkText ? 'text-forest' : 'text-white')}`} />
+                  </div>
+                  <h3 className={`font-display font-bold text-2xl sm:text-3xl ${hasImage ? 'text-white' : tColor}`}>{s.title}</h3>
+                </div>
+                <motion.p className={`leading-relaxed text-sm sm:text-base ${hasImage ? 'text-white/80' : tMuted}`}>
+                  {s.desc}
+                </motion.p>
+              </div>
+            </div>
+          )}
+
+          {/* SMALL CARD LAYOUT */}
+          {isSmall && (
+            <div className="relative z-10 h-full flex flex-col justify-between p-5 overflow-hidden">
+              {/* Large faded decorative icon in background */}
+              <Icon className={`absolute -right-4 -bottom-4 w-32 h-32 opacity-[0.03] ${s.darkText ? 'text-charcoal' : 'text-white'} pointer-events-none`} />
+              
+              <div className="flex items-start justify-between relative z-10">
+                <Tag label={s.tag} darkText={s.darkText} />
+                <ArrowIcon />
+              </div>
+              
+              <div className="relative z-10 mt-6">
+                <Icon className={`w-5 h-5 mb-3 ${s.darkText ? 'text-forest' : 'text-[#8fd4a2]'}`} />
+                <h3 className={`font-display font-bold text-lg mb-1.5 ${tColor}`}>{s.title}</h3>
+                <motion.p className={`text-xs leading-relaxed ${tMuted}`} animate={{ opacity: hovered ? 1 : 0.7 }}>
+                  {s.short}
+                </motion.p>
+                
+                {/* Expand text on hover */}
+                <motion.p
+                  className={`text-[11px] mt-2 leading-relaxed overflow-hidden ${s.darkText ? 'text-text' : 'text-white/80'}`}
+                  animate={{ maxHeight: hovered ? '80px' : '0px', opacity: hovered ? 1 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {s.desc}
+                </motion.p>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </motion.div>
   );

@@ -5,6 +5,8 @@ const variants = {
     'bg-beige text-charcoal shadow-md shadow-charcoal/5 hover:bg-beige-dark hover:-translate-y-0.5 border border-beige-dark/40',
   forest:
     'bg-forest text-white shadow-lg shadow-forest/20 hover:bg-forest-light hover:-translate-y-0.5',
+  cream:
+    'bg-cream text-charcoal shadow-md shadow-charcoal/5 hover:bg-cream-dark hover:-translate-y-0.5 border border-beige-dark/50',
   secondary:
     'bg-white text-charcoal border border-border hover:bg-cream-dark hover:-translate-y-0.5',
   outline:
@@ -14,9 +16,9 @@ const variants = {
 };
 
 const sizes = {
-  sm: 'px-5 py-2 text-xs',
-  md: 'px-7 py-3 text-sm',
-  lg: 'px-8 py-3.5 text-sm',
+  sm: 'px-5 h-9 text-xs',
+  md: 'px-7 h-11 text-sm',
+  lg: 'px-8 h-12 text-sm',
 };
 
 export default function Button({
@@ -31,7 +33,7 @@ export default function Button({
   ...rest
 }) {
   const base =
-    'inline-flex items-center justify-center gap-2 font-semibold rounded-full tracking-wide transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-forest/30 min-h-[44px] active:scale-[0.98]';
+    'inline-flex items-center justify-center gap-2 font-semibold rounded-full tracking-wide transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-forest/30 active:scale-[0.98]';
   const cls = `${base} ${variants[variant]} ${sizes[size]} ${className}`;
 
   if (to) {

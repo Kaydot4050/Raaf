@@ -145,6 +145,39 @@ const MIGRATIONS = [
   `ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone ON users(phone) WHERE phone IS NOT NULL`,
   `ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user'`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS farm_type TEXT`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS farm_region TEXT`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS flock_size TEXT`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS farm_notes TEXT`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_settings JSONB NOT NULL DEFAULT '{"orderUpdates":true,"promotions":true,"farmTips":false,"smsAlerts":false}'::jsonb`,
+  `CREATE TABLE IF NOT EXISTS user_addresses (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    label TEXT NOT NULL DEFAULT 'Farm',
+    contact_name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    region TEXT NOT NULL,
+    address TEXT NOT NULL,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_user_addresses_user ON user_addresses(user_id)`,
+  `CREATE TABLE IF NOT EXISTS user_wishlist (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    product_id TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (user_id, product_id)
+  )`,
+  `CREATE TABLE IF NOT EXISTS product_reviews (
+    id SERIAL PRIMARY KEY,
+    product_id TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_product_reviews_product ON product_reviews(product_id)`,
 ];
 
 export async function initDb() {

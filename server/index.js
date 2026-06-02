@@ -12,6 +12,7 @@ import orderRoutes from './routes/orders.js';
 import inquiryRoutes from './routes/inquiries.js';
 import contentRoutes from './routes/content.js';
 import adminRoutes from './routes/admin.js';
+import accountRoutes from './routes/account.js';
 import { seedSiteContent, seedBlogPosts } from './lib/seedContent.js';
 
 const app = express();
@@ -51,6 +52,7 @@ app.get('/api/health/db', async (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/account', accountRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/admin', adminRoutes);

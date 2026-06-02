@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Star, Heart, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, X } from 'lucide-react';
+import { Star, Heart, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, ChevronDown } from 'lucide-react';
 import { getProduct, getRelatedProducts, formatPrice } from '../data/products.js';
 import { useCart } from '../context/CartContext.jsx';
+import { productsApi } from '../lib/api.js';
+import { useToast } from '../context/ToastContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useAccount } from '../context/AccountContext.jsx';
 import Button from '../components/ui/Button.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 
@@ -11,10 +15,47 @@ export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { showToast } = useToast();
+  const { user, isAuthenticated } = useAuth();
+  const { toggleWishlist, isInWishlist } = useAccount();
   const product = getProduct(id);
   const relatedProducts = product ? getRelatedProducts(product, 4) : [];
   const [activeTab, setActiveTab] = useState('description');
   const [quantity, setQuantity] = useState(1);
+  
+  const [reviews, setReviews] = useState([]);
+  const [reviewForm, setReviewForm] = useState({ userName: '', rating: 5, comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      productsApi.getReviews(id).then(data => {
+        if (data.reviews) setReviews(data.reviews);
+      }).catch(err => console.error("Failed to load reviews:", err));
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (user?.name) {
+      setReviewForm(prev => ({ ...prev, userName: user.name }));
+    }
+  }, [user]);
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!reviewForm.userName.trim()) return showToast('Please enter your name.', 'error');
+    setSubmittingReview(true);
+    try {
+      await productsApi.addReview(id, reviewForm);
+      showToast('Review submitted successfully! It will appear once approved by an admin.', 'success');
+      setReviewForm({ userName: '', rating: 5, comment: '' });
+    } catch (err) {
+      showToast(err.message || 'Failed to submit review.', 'error');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   if (!product) {
     return (
@@ -31,7 +72,9 @@ export default function ProductDetail() {
     { id: 'review', label: 'Review' },
   ];
 
-  const productImages = product.images?.length > 0 ? product.images : [product.image];
+  const productImages = Array(4).fill(null).map((_, i) => 
+    (product.images && product.images[i]) ? product.images[i] : product.image
+  );
   const [selectedImage, setSelectedImage] = useState(0);
 
   const prevImage = () => setSelectedImage((prev) => (prev === 0 ? productImages.length - 1 : prev - 1));
@@ -42,34 +85,34 @@ export default function ProductDetail() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-16">
           {/* Left Column: Image Gallery */}
-          <div className="flex flex-col gap-4">
-            <div className="relative aspect-[4/5] sm:aspect-square bg-[#f9f9f9] flex items-center justify-center overflow-hidden">
-              <img src={productImages[selectedImage]} alt={product.name} className="max-w-full max-h-full object-contain" />
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="relative aspect-square sm:aspect-square bg-[#f9f9f9] flex items-center justify-center overflow-hidden rounded-xl">
+              <img src={productImages[selectedImage]} alt={product.name} className="max-w-[80%] max-h-[80%] object-contain" />
               
               {productImages.length > 1 && (
                 <>
-                  <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#f5b041] bg-opacity-90 flex items-center justify-center text-white hover:bg-opacity-100 shadow-sm transition-all">
-                    <ChevronLeft className="w-6 h-6" />
+                  <button onClick={prevImage} className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-[#f5b041] bg-opacity-90 flex items-center justify-center text-white hover:bg-opacity-100 shadow-sm transition-all rounded-full">
+                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
-                  <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white bg-opacity-90 flex items-center justify-center text-gray-800 hover:bg-opacity-100 shadow-sm transition-all">
-                    <ChevronRight className="w-6 h-6" />
+                  <button onClick={nextImage} className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 bg-white bg-opacity-90 flex items-center justify-center text-gray-800 hover:bg-opacity-100 shadow-sm transition-all rounded-full">
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
                 </>
               )}
             </div>
             
             {productImages.length > 1 && (
-              <div className="flex gap-4 overflow-x-auto scrollbar-none">
+              <div className="flex gap-2 sm:gap-4 overflow-x-auto scrollbar-none">
                 {productImages.slice(0, 4).map((img, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImage(idx)}
-                    className={`aspect-square w-[calc(25%-0.75rem)] shrink-0 border transition-all bg-[#f9f9f9] flex items-center justify-center ${
+                    className={`aspect-square w-16 sm:w-[calc(25%-0.75rem)] shrink-0 border transition-all bg-[#f9f9f9] flex items-center justify-center rounded-lg ${
                       selectedImage === idx ? 'border-gray-800' : 'border-gray-200 hover:border-gray-400'
                     }`}
                   >
-                    <img src={img} alt={`${product.name} thumbnail ${idx + 1}`} className="max-w-full max-h-full object-contain" />
+                    <img src={img} alt={`${product.name} thumbnail ${idx + 1}`} className="max-w-[70%] max-h-[70%] object-contain" />
                   </button>
                 ))}
               </div>
@@ -77,63 +120,147 @@ export default function ProductDetail() {
           </div>
 
           {/* Right Column: Product Info */}
-          <div className="flex flex-col pt-2 text-[#555]">
-            <span className="text-gray-400 mb-1 text-sm capitalize">{product.category}</span>
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#333] mb-2">{product.name}</h1>
-            
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex text-[#f5b041]">
-                <Star className="w-3.5 h-3.5 fill-current" />
-                <Star className="w-3.5 h-3.5 fill-current" />
-                <Star className="w-3.5 h-3.5 fill-current" />
-                <Star className="w-3.5 h-3.5 fill-current" />
-                <Star className="w-3.5 h-3.5 fill-current" />
+          <div className="flex flex-col pt-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-forest mb-2 capitalize">
+              {product.category}
+            </span>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-charcoal mb-3 leading-tight">
+              {product.name}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <div className="flex items-center gap-1.5">
+                <div className="flex text-star">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${i < Math.round(product.rating) ? 'fill-star text-star' : 'text-border'}`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm font-semibold text-charcoal">{product.rating.toFixed(1)}</span>
               </div>
-              <span className="text-sm font-semibold text-gray-500">{product.rating} (245 Review)</span>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                  product.inStock
+                    ? 'bg-forest/10 text-forest border border-forest/25'
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                }`}
+              >
+                {product.inStock ? 'In stock' : 'Out of stock'}
+              </span>
             </div>
 
-            <div className="mb-4 flex items-baseline gap-2">
-              <span className="text-xl font-bold text-[#333]">{formatPrice(product.priceMin, product.priceMax)}</span>
-              {product.onSale && (
-                <span className="text-sm text-gray-400 line-through">{formatPrice(product.originalPriceMin, product.originalPriceMax)}</span>
+            <div className="mb-5 flex flex-wrap items-baseline gap-2">
+              <span className="text-2xl font-bold text-charcoal">
+                {formatPrice(product.priceMin, product.priceMax)}
+              </span>
+              {product.onSale && product.originalPriceMin && (
+                <span className="text-sm text-text-muted line-through">
+                  {formatPrice(product.originalPriceMin, product.originalPriceMax)}
+                </span>
               )}
             </div>
-            
-            <p className="text-sm leading-relaxed mb-6">{product.description}</p>
 
-            <div className="flex items-center gap-2 mb-6">
-               <span className="text-sm font-semibold underline cursor-pointer mr-2">Clear</span>
-               <X className="w-4 h-4 text-gray-400 cursor-pointer" />
-               <span className="text-[#2ecc71] border border-[#2ecc71] bg-[#eafaf1] px-2 py-0.5 text-xs ml-2">In Stock</span>
-            </div>
+            <p className="text-sm text-text leading-relaxed mb-6">{product.description}</p>
 
-            <div className="flex flex-wrap items-center gap-3 mb-8">
-              <div className="flex items-center border border-gray-200 bg-white">
-                <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">−</button>
-                <span className="w-10 text-center font-semibold text-sm">{quantity}</span>
-                <button type="button" onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">+</button>
+            <div className="rounded-2xl border border-border bg-cream/50 p-4 sm:p-5 mb-6 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-semibold text-charcoal">Quantity</span>
+                <div className="flex items-center rounded-full border border-border bg-white overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-10 h-10 flex items-center justify-center text-charcoal/70 hover:bg-beige-soft transition-colors"
+                    aria-label="Decrease quantity"
+                  >
+                    −
+                  </button>
+                  <span className="w-12 text-center font-semibold text-sm text-charcoal tabular-nums">{quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-10 h-10 flex items-center justify-center text-charcoal/70 hover:bg-beige-soft transition-colors"
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
-              <button className="h-10 px-6 sm:px-8 bg-[#4a3525] text-white font-semibold text-sm hover:bg-[#3a2515] transition-colors" onClick={() => { addItem(product, quantity); navigate('/cart'); }}>
-                Add To Cart
-              </button>
-              <button className="h-10 px-6 sm:px-8 bg-[#f5b041] text-white font-semibold text-sm hover:bg-[#e6a23c] transition-colors" onClick={() => { addItem(product, quantity); navigate('/cart'); }}>
-                Buy Now
-              </button>
-              <button className="w-10 h-10 flex items-center justify-center border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-500 transition-colors bg-white">
-                 <Heart className="w-4 h-4" />
-              </button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2.5">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  className="w-full justify-center"
+                  disabled={!product.inStock}
+                  onClick={() => {
+                    addItem(product, quantity);
+                    showToast('Added to cart');
+                  }}
+                >
+                  Add to cart
+                </Button>
+                <Button
+                  type="button"
+                  variant="forest"
+                  size="md"
+                  className="w-full justify-center"
+                  disabled={!product.inStock}
+                  onClick={() => {
+                    addItem(product, quantity);
+                    navigate('/cart');
+                  }}
+                >
+                  Buy now
+                </Button>
+                <button
+                  type="button"
+                  className={`h-11 w-full sm:w-11 shrink-0 rounded-full border flex items-center justify-center transition-colors ${
+                    isInWishlist(product.id)
+                      ? 'border-red-200 bg-red-50 text-red-500'
+                      : 'border-border bg-white text-charcoal hover:border-forest/40 hover:text-forest'
+                  }`}
+                  title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      navigate('/login');
+                      return;
+                    }
+                    toggleWishlist(product.id);
+                  }}
+                >
+                  <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-2.5 text-sm">
-              <p><strong className="text-[#333] font-semibold">SKU : </strong> {product.id.toUpperCase()}</p>
-              <p><strong className="text-[#333] font-semibold">Tags : </strong> <span className="capitalize">{product.type}, {product.category}</span></p>
+            <div className="pt-4 border-t border-border space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-border text-xs text-text-muted">
+                  <span className="font-semibold text-charcoal">SKU</span>
+                  {product.id.toUpperCase()}
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-border text-xs text-text-muted capitalize">
+                  <span className="font-semibold text-charcoal">Tags</span>
+                  {product.type}, {product.category}
+                </span>
+              </div>
               <div className="flex items-center gap-3">
-                 <strong className="text-[#333] font-semibold">Share : </strong>
-                 <div className="flex items-center gap-2 text-gray-700">
-                   <Facebook className="w-4 h-4 cursor-pointer hover:text-[#333]" />
-                   <Twitter className="w-4 h-4 cursor-pointer hover:text-[#333]" />
-                   <Linkedin className="w-4 h-4 cursor-pointer hover:text-[#333]" />
-                 </div>
+                <span className="text-xs font-semibold text-charcoal uppercase tracking-wide">Share</span>
+                <div className="flex items-center gap-2">
+                  {[Facebook, Twitter, Linkedin].map((Icon, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className="w-9 h-9 rounded-full border border-border bg-white flex items-center justify-center text-charcoal/70 hover:text-forest hover:border-forest/30 transition-colors"
+                      aria-label="Share"
+                    >
+                      <Icon className="w-4 h-4" />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -196,7 +323,106 @@ export default function ProductDetail() {
             
             {activeTab === 'review' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <p>There are no reviews yet.</p>
+                <div className="mb-8">
+                  <h3 className="font-bold text-lg text-charcoal mb-4">Customer Reviews</h3>
+                  {reviews.length === 0 ? (
+                    <p>There are no reviews yet.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {reviews.map(review => (
+                        <div key={review.id} className="border-b border-gray-100 pb-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-bold text-charcoal">{review.user_name}</span>
+                            <div className="flex text-[#f5b041]">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'fill-current' : 'text-gray-300'}`} />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-400 ml-auto">
+                              {new Date(review.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 mt-2">{review.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-8 border-t border-gray-200 pt-6">
+                  <button 
+                    onClick={() => setShowReviewForm(!showReviewForm)}
+                    className="flex items-center justify-between w-full text-left font-bold text-lg text-charcoal hover:text-forest transition-colors"
+                  >
+                    <span>Add a Review</span>
+                    <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${showReviewForm ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {showReviewForm && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }} 
+                      animate={{ height: 'auto', opacity: 1 }} 
+                      className="mt-6 bg-gray-50 p-6 rounded-xl overflow-hidden"
+                    >
+                      {!user ? (
+                        <div className="text-center py-4">
+                          <p className="text-gray-600 mb-4">Please log in to add a review.</p>
+                          <Link to="/login" className="inline-block px-6 py-2 bg-forest text-white rounded-lg font-semibold hover:bg-forest-light transition-colors">
+                            Log In
+                          </Link>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-sm text-gray-500 mb-4">Your review will be checked by an admin before it is published.</p>
+                          <form onSubmit={handleReviewSubmit} className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-semibold text-charcoal mb-1">Your Name *</label>
+                              <input 
+                                type="text" 
+                                required
+                                value={reviewForm.userName}
+                                onChange={e => setReviewForm({ ...reviewForm, userName: e.target.value })}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-forest bg-white/50"
+                                placeholder="John Doe"
+                                readOnly
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-charcoal mb-1">Rating *</label>
+                              <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <button
+                                    key={star}
+                                    type="button"
+                                    onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                                    className="focus:outline-none transition-colors"
+                                  >
+                                    <Star 
+                                      className={`w-6 h-6 ${star <= reviewForm.rating ? 'fill-[#f5b041] text-[#f5b041]' : 'text-gray-300'}`} 
+                                    />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-charcoal mb-1">Your Review</label>
+                              <textarea 
+                                rows={4}
+                                value={reviewForm.comment}
+                                onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-forest resize-none"
+                                placeholder="What did you like or dislike?"
+                              ></textarea>
+                            </div>
+                            <Button type="submit" variant="forest" className="w-full" disabled={submittingReview}>
+                              {submittingReview ? 'Submitting...' : 'Submit Review'}
+                            </Button>
+                          </form>
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </div>
               </motion.div>
             )}
           </div>
@@ -209,7 +435,7 @@ export default function ProductDetail() {
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#333] mb-8">Explore Related Products</h2>
             <div className="flex overflow-x-auto gap-4 sm:gap-6 pb-4 scrollbar-none snap-x snap-mandatory text-left">
               {relatedProducts.map((p) => (
-                <div key={p.id} className="w-[65vw] sm:w-[40vw] lg:w-[calc(25%-1.125rem)] shrink-0 snap-start">
+                <div key={p.id} className="w-[45vw] sm:w-[40vw] lg:w-[calc(25%-1.125rem)] shrink-0 snap-start">
                   <ProductCard product={p} />
                 </div>
               ))}

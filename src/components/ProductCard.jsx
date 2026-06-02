@@ -1,15 +1,34 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, Eye, ShoppingBag, Star } from 'lucide-react';
 import { formatPrice } from '../data/products.js';
 import { useAccount } from '../context/AccountContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 
 export default function ProductCard({ product, onAdd }) {
   const [hovered, setHovered] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { toggleWishlist, isInWishlist } = useAccount();
   const saved = isInWishlist(product.id);
-  const hoverImage = product.image.replace(/-300x300\.png$/, '.png');
+
+  useEffect(() => {
+    let interval;
+    if (hovered && product.images && product.images.length > 1) {
+      interval = setInterval(() => {
+        setCurrentImageIndex(prevIndex => (prevIndex + 1) % product.images.length);
+      }, 1000); // Change image every 1 second
+    } else {
+      setCurrentImageIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [hovered, product.images]);
+
+  const displayedImage = (product.images && product.images.length > 0)
+    ? product.images[currentImageIndex]
+    : product.image;
 
   const getCatLabel = (cat) => {
     if (!cat) return '';
@@ -38,13 +57,13 @@ export default function ProductCard({ product, onAdd }) {
           </span>
         )}
         {product.onSale && discount > 0 && (
-          <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-accent text-white text-[10px] font-bold">
+          <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-forest text-white text-[10px] font-bold">
             −{discount}%
           </span>
         )}
         <Link to={`/product/${product.id}`} className="block w-full h-full">
           <img
-            src={hovered && hoverImage !== product.image ? hoverImage : product.image}
+            src={displayedImage}
             alt={product.name}
             loading="lazy"
             className="w-full h-full object-contain p-2 sm:p-3 transition-transform duration-700 ease-out group-hover:scale-[1.05]"
@@ -57,7 +76,13 @@ export default function ProductCard({ product, onAdd }) {
             type="button"
             className="w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center text-charcoal hover:bg-forest hover:text-white transition-colors"
             title={saved ? 'Remove from wishlist' : 'Add to wishlist'}
-            onClick={() => toggleWishlist(product.id)}
+            onClick={() => {
+              if (!isAuthenticated) {
+                navigate('/login');
+                return;
+              }
+              toggleWishlist(product.id);
+            }}
           >
             <Heart className={`w-4 h-4 ${saved ? 'fill-red-500 text-red-500' : ''}`} />
           </button>

@@ -15,6 +15,7 @@ const DEFAULT_NAV = [
   { to: '/', label: 'Home', end: true },
   { to: '/shop', label: 'Shop' },
   { to: '/services', label: 'Services' },
+  { to: '/track-order', label: 'Tracker' },
   { to: '/about', label: 'Our Mission' },
   { to: '/contact', label: 'Contact' },
 ];
@@ -91,7 +92,7 @@ export default function Header() {
     <button
       type="button"
       onClick={openSearch}
-      className="relative flex items-center gap-2 w-full md:w-[168px] lg:w-[200px] pl-5 pr-3 py-2.5 rounded-full bg-white border border-border text-sm text-text-muted/90 hover:border-forest/30 transition-colors text-left"
+      className="relative flex items-center gap-2 w-full md:w-[168px] lg:w-[200px] h-11 pl-5 pr-3 rounded-full bg-white border border-border text-sm text-text-muted/90 hover:border-forest/30 transition-colors text-left"
     >
       <span className="flex-1 truncate">{searchLabel}</span>
       <Search className="w-[18px] h-[18px] text-charcoal/55 shrink-0" strokeWidth={1.75} />
@@ -258,7 +259,7 @@ export default function Header() {
             </Link>
 
             <nav
-              className="justify-self-center flex items-center gap-0.5 px-2 py-1.5 rounded-full bg-white border border-border shadow-[0_1px_2px_rgba(28,28,28,0.04)]"
+              className="justify-self-center flex items-center gap-0.5 px-1.5 h-11 rounded-full bg-white border border-border shadow-[0_1px_2px_rgba(28,28,28,0.04)]"
               aria-label="Main"
             >
               {nav.map((item) => (

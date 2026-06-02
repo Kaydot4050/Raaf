@@ -216,6 +216,9 @@ export const adminApi = {
   users: () => api('/admin/users'),
   setUserRole: (id, role) =>
     api(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
+  reviews: () => api('/admin/reviews'),
+  updateReviewStatus: (id, status) =>
+    api(`/admin/reviews/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
 };
 
 export const SITE_URL = import.meta.env.VITE_SITE_URL || 'http://localhost:5173';

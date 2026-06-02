@@ -19,6 +19,19 @@ function respondWithSession(res, user, status = 200) {
   res.status(status).json({ user: formatUser(user), token });
 }
 
+/** Placeholder hash so Google-only accounts satisfy NOT NULL password_hash columns. */
+function googleOnlyPasswordHash(googleId) {
+  return bcrypt.hashSync(`google-oauth:${googleId}`, 10);
+}
+
+async function userRowById(id) {
+  const result = await query(
+    'SELECT id, email, name, phone, farm_name, role, created_at, google_id FROM users WHERE id = $1',
+    [id],
+  );
+  return result.rows[0] || null;
+}
+
 router.post(
   '/register',
   asyncHandler(async (req, res) => {
@@ -127,11 +140,21 @@ router.post(
       return res.status(400).json({ error: 'Google credential is required.' });
     }
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch (e) {
+      console.error('[auth/google] verifyIdToken:', e.message);
+      return res.status(401).json({
+        error:
+          'Google sign-in could not be verified. Ensure GOOGLE_CLIENT_ID matches your Google OAuth client.',
+      });
+    }
+
     const googleId = payload.sub;
     const email = payload.email?.toLowerCase();
     const name = payload.name || payload.given_name || email?.split('@')[0] || 'User';
@@ -154,17 +177,44 @@ router.post(
       row = result.rows[0];
       if (row && !row.google_id) {
         await query('UPDATE users SET google_id = $1 WHERE id = $2', [googleId, row.id]);
+        row = await userRowById(row.id);
       }
     }
 
     if (!row) {
-      result = await query(
-        `INSERT INTO users (email, password_hash, name, google_id)
-         VALUES ($1, NULL, $2, $3)
-         RETURNING id, email, name, phone, farm_name, role, created_at`,
-        [email, name, googleId],
-      );
-      row = result.rows[0];
+      const userCount = (await query('SELECT COUNT(*)::int AS c FROM users')).rows[0].c;
+      const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+      const role =
+        userCount === 0 || (adminEmail && adminEmail === email) ? 'admin' : 'user';
+      const passwordHash = googleOnlyPasswordHash(googleId);
+
+      try {
+        result = await query(
+          `INSERT INTO users (email, password_hash, name, google_id, role)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id, email, name, phone, farm_name, role, created_at, google_id`,
+          [email, passwordHash, name, googleId, role],
+        );
+        row = result.rows[0];
+      } catch (e) {
+        if (e.code === '23505') {
+          result = await query(
+            'SELECT id, email, name, phone, farm_name, role, created_at, google_id FROM users WHERE LOWER(email) = $1',
+            [email],
+          );
+          row = result.rows[0];
+          if (row && !row.google_id) {
+            await query('UPDATE users SET google_id = $1 WHERE id = $2', [googleId, row.id]);
+            row = await userRowById(row.id);
+          }
+        } else {
+          throw e;
+        }
+      }
+    }
+
+    if (!row) {
+      return res.status(500).json({ error: 'Could not create or load your account. Please try again.' });
     }
 
     respondWithSession(res, row);
