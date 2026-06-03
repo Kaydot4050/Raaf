@@ -18,6 +18,7 @@ deploy-server
 upload-to-namecheap
 upload-to-namecheap.zip
 api-server-UPLOAD-THIS
+graphify-out/
 
 # Editor directories and files
 .vscode/*

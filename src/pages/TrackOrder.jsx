@@ -45,9 +45,10 @@ export default function TrackOrder() {
           eyebrow: 'Track order',
           title: 'Know exactly where your order is',
           description: 'Enter your order ID from your confirmation email for live status and estimated delivery.',
-          image: '/images/Raafortagro-2.png',
+          image: '/images/1-Howo-Cargo-Truck-1.jpg',
         }}
         align="center"
+        fullWidth
       />
 
       <section className="py-16 md:py-24 bg-beige-soft">

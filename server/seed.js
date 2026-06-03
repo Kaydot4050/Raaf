@@ -14,10 +14,10 @@ if (count > 0) {
 for (const p of products) {
   await query(
     `INSERT INTO products (
-      id, name, category, type, image, price_min, price_max, description,
+      id, name, category, type, image, images, price_min, price_max, description,
       featured, rating, best_seller, new_arrival, on_sale,
       original_price_min, original_price_max, in_stock
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
     ON CONFLICT (id) DO NOTHING`,
     [
       p.id,
@@ -25,6 +25,9 @@ for (const p of products) {
       p.category,
       p.type || null,
       p.image || null,
+      JSON.stringify(
+        p.images?.length ? p.images.filter(Boolean) : p.image ? [p.image] : [],
+      ),
       p.priceMin,
       p.priceMax,
       p.description || null,

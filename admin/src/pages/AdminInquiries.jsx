@@ -15,7 +15,7 @@ export default function AdminInquiries() {
   }, []);
 
   return (
-    <AdminPage title="Inquiries" description="Contact and wholesale messages from the website.">
+    <AdminPage title="Inquiries" description="Contact, wholesale, and service booking messages from the website.">
       <AdminSection
         tone="gold"
         title="Messages"
@@ -36,6 +36,18 @@ export default function AdminInquiries() {
                   {q.email} · {q.phone} · {new Date(q.created_at).toLocaleString()}
                 </p>
                 <p className="mt-2 text-sm leading-relaxed">{q.message}</p>
+                {q.metadata && typeof q.metadata === 'object' && Object.keys(q.metadata).length > 0 ? (
+                  <dl className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                    {Object.entries(q.metadata).map(([k, v]) => (
+                      v ? (
+                        <div key={k}>
+                          <dt className="inline font-medium capitalize after:content-[':_']">{k.replace(/([A-Z])/g, ' $1')}</dt>
+                          <dd className="inline">{String(v)}</dd>
+                        </div>
+                      ) : null
+                    ))}
+                  </dl>
+                ) : null}
               </div>
             </div>
           ))}

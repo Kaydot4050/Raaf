@@ -227,7 +227,7 @@ export default function ImageUpload({ value = '', onChange, label, className }) 
           </div>
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          <p className="text-xs text-muted-foreground">JPG, PNG, or WebP · up to 5 MB</p>
+          <p className="text-xs text-muted-foreground">JPG, PNG, or WebP · auto-compressed on upload for smaller files</p>
         </div>
       </div>
       <input ref={inputRef} type="file" accept="image/*" className="sr-only" onChange={onFile} />

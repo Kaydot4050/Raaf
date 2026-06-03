@@ -21,6 +21,35 @@ router.post(
 );
 
 router.post(
+  '/service-booking',
+  asyncHandler(async (req, res) => {
+    const { service, preferredDate, name, email, phone, farmName, region, notes } = req.body ?? {};
+    if (!service?.trim() || !name?.trim() || !phone?.trim()) {
+      return res.status(400).json({ error: 'Service, name, and phone are required.' });
+    }
+    const metadata = {
+      service: service.trim(),
+      preferredDate: preferredDate?.trim() || null,
+      farmName: farmName?.trim() || null,
+      region: region?.trim() || null,
+      notes: notes?.trim() || null,
+    };
+    const result = await query(
+      `INSERT INTO inquiries (type, name, email, phone, message, metadata)
+       VALUES ('service_booking', $1, $2, $3, $4, $5) RETURNING id`,
+      [
+        name.trim(),
+        email?.trim() || null,
+        phone.trim(),
+        notes?.trim() || `Service booking: ${service.trim()}`,
+        JSON.stringify(metadata),
+      ],
+    );
+    res.status(201).json({ id: result.rows[0].id, message: 'Booking request received.' });
+  }),
+);
+
+router.post(
   '/wholesale',
   asyncHandler(async (req, res) => {
     const { farmName, contactName, email, phone, productsVolume } = req.body ?? {};

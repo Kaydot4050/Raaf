@@ -1,34 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, Eye, ShoppingBag, Star } from 'lucide-react';
 import { formatPrice } from '../data/products.js';
+import { getProductGallery } from '../lib/productImages.js';
+import { useGalleryHover } from '../hooks/useGalleryHover.js';
 import { useAccount } from '../context/AccountContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function ProductCard({ product, onAdd }) {
-  const [hovered, setHovered] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { toggleWishlist, isInWishlist } = useAccount();
   const saved = isInWishlist(product.id);
 
-  useEffect(() => {
-    let interval;
-    if (hovered && product.images && product.images.length > 1) {
-      interval = setInterval(() => {
-        setCurrentImageIndex(prevIndex => (prevIndex + 1) % product.images.length);
-      }, 1000); // Change image every 1 second
-    } else {
-      setCurrentImageIndex(0);
-    }
-    return () => clearInterval(interval);
-  }, [hovered, product.images]);
-
-  const displayedImage = (product.images && product.images.length > 0)
-    ? product.images[currentImageIndex]
-    : product.image;
+  const gallery = useMemo(() => getProductGallery(product), [product]);
+  const canCycle = gallery.length > 1;
+  const { activeImageIndex: imageIndex, galleryHoverHandlers } = useGalleryHover(gallery, 0);
 
   const getCatLabel = (cat) => {
     if (!cat) return '';
@@ -43,40 +31,58 @@ export default function ProductCard({ product, onAdd }) {
 
   return (
     <motion.article
-      layout
-      className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-border/60 shadow-sm hover:shadow-xl hover:shadow-charcoal/6 transition-all duration-400"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.3 }}
+      className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-border/60 shadow-sm hover:shadow-lg hover:shadow-charcoal/5 transition-[box-shadow,transform] duration-200 ease-out"
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.15, ease: 'easeOut' }}
     >
-      <div className="relative aspect-[5/4] overflow-hidden bg-white">
+      <div
+        className="relative aspect-[5/4] overflow-hidden bg-white"
+        {...galleryHoverHandlers}
+      >
         {product.bestSeller && (
-          <span className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-full bg-charcoal text-white text-[10px] font-bold uppercase tracking-wide">
+          <span className="absolute top-3 left-3 z-20 px-2.5 py-1 rounded-full bg-charcoal text-white text-[10px] font-bold uppercase tracking-wide pointer-events-none">
             Best seller
           </span>
         )}
         {product.onSale && discount > 0 && (
-          <span className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-forest text-white text-[10px] font-bold">
+          <span className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-forest text-white text-[10px] font-bold pointer-events-none">
             −{discount}%
           </span>
         )}
-        <Link to={`/product/${product.id}`} className="block w-full h-full">
-          <img
-            src={displayedImage}
-            alt={product.name}
-            loading="lazy"
-            className="w-full h-full object-contain p-2 sm:p-3 transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-            style={{ transform: hovered ? 'scale(1.08)' : 'scale(1)' }}
-          />
+        <Link to={`/product/${product.id}`} className="relative block w-full h-full">
+          {gallery.map((src, i) => (
+            <img
+              key={`${product.id}-${i}-${src}`}
+              src={src}
+              alt={i === 0 ? product.name : `${product.name} view ${i + 1}`}
+              loading={i === 0 ? 'lazy' : 'eager'}
+              decoding="async"
+              className={`absolute inset-0 w-full h-full object-contain p-2 sm:p-3 transition-opacity duration-300 ease-out pointer-events-none ${
+                i === imageIndex ? 'opacity-100 z-[1]' : 'opacity-0 z-0'
+              }`}
+            />
+          ))}
         </Link>
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-        <div className="absolute bottom-3 right-3 flex flex-col gap-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+        {canCycle && (
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex gap-1 pointer-events-none">
+            {gallery.map((_, i) => (
+              <span
+                key={i}
+                className={`h-1 rounded-full transition-all duration-200 ${
+                  i === imageIndex ? 'w-3 bg-forest' : 'w-1 bg-charcoal/25'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+        <div className="absolute bottom-3 right-3 z-20 flex flex-col gap-2 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-out">
           <button
             type="button"
-            className="w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center text-charcoal hover:bg-forest hover:text-white transition-colors"
+            className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-charcoal hover:bg-forest hover:text-white transition-colors duration-150"
             title={saved ? 'Remove from wishlist' : 'Add to wishlist'}
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               if (!isAuthenticated) {
                 navigate('/login');
                 return;
@@ -88,8 +94,9 @@ export default function ProductCard({ product, onAdd }) {
           </button>
           <Link
             to={`/product/${product.id}`}
-            className="w-10 h-10 rounded-full bg-white/95 shadow-md flex items-center justify-center text-charcoal hover:bg-forest hover:text-white transition-colors"
+            className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-charcoal hover:bg-forest hover:text-white transition-colors duration-150"
             title="Quick view"
+            onClick={(e) => e.stopPropagation()}
           >
             <Eye className="w-4 h-4" />
           </Link>

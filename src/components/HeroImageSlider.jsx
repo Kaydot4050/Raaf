@@ -7,6 +7,7 @@ const FALLBACK_SLIDES = [
   { src: '/images/Raafortagro-3.png', mobileSrc: '', alt: 'Agro Chemicals', title: 'CHEMICALS' },
   { src: '/images/Raafortagro.png', mobileSrc: '', alt: 'Farm Equipment', title: 'EQUIPMENT' },
   { src: '/images/a.jpg', mobileSrc: '', alt: 'Sustainable agriculture', title: 'FARMING' },
+  { src: '/images/istock-hero.jpg', mobileSrc: '', alt: 'Feed & nutrition', title: 'NUTRITION' },
 ];
 
 function SlideImage({ slide }) {

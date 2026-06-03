@@ -10,9 +10,9 @@ import {
   isCloudinaryEnabled,
   isCloudinaryUrl,
   uploadBuffer,
-  uploadRemoteUrl,
   getCloudinaryPublicConfig,
 } from '../lib/cloudinary.js';
+import { compressImageBuffer } from '../lib/imageCompress.js';
 
 const router = Router();
 router.use(requireAdmin);
@@ -30,14 +30,15 @@ router.post(
   asyncHandler(async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
 
+    const { buffer, ext } = await compressImageBuffer(req.file.buffer);
+
     if (isCloudinaryEnabled()) {
-      const result = await uploadBuffer(req.file.buffer);
-      return res.status(201).json({ url: result.secure_url, provider: 'cloudinary' });
+      const result = await uploadBuffer(buffer);
+      return res.status(201).json({ url: result.secure_url, provider: 'cloudinary', compressed: true });
     }
 
-    const ext = path.extname(req.file.originalname).toLowerCase() || '.jpg';
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${ext}`;
-    await fs.writeFile(path.join(uploadsDir, filename), req.file.buffer);
+    await fs.writeFile(path.join(uploadsDir, filename), buffer);
     res.status(201).json({ url: `/uploads/${filename}`, provider: 'local' });
   }),
 );
@@ -90,21 +91,21 @@ router.post(
       return res.status(400).json({ error: 'That link does not point to an image.' });
     }
 
+    const downloaded = Buffer.from(await response.arrayBuffer());
+    if (downloaded.length > 12 * 1024 * 1024) {
+      return res.status(400).json({ error: 'Image must be 12 MB or smaller before compression.' });
+    }
+
+    const { buffer, ext } = await compressImageBuffer(downloaded);
+
     if (isCloudinaryEnabled()) {
-      const result = await uploadRemoteUrl(url);
-      return res.status(201).json({ url: result.secure_url, provider: 'cloudinary' });
+      const result = await uploadBuffer(buffer);
+      return res.status(201).json({ url: result.secure_url, provider: 'cloudinary', compressed: true });
     }
 
-    const buffer = Buffer.from(await response.arrayBuffer());
-    if (buffer.length > 5 * 1024 * 1024) {
-      return res.status(400).json({ error: 'Image must be 5 MB or smaller.' });
-    }
-
-    const ext =
-      IMAGE_EXT[contentType] || path.extname(parsed.pathname).toLowerCase() || '.jpg';
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${ext}`;
     await fs.writeFile(path.join(uploadsDir, filename), buffer);
-    res.status(201).json({ url: `/uploads/${filename}`, provider: 'local' });
+    res.status(201).json({ url: `/uploads/${filename}`, provider: 'local', compressed: true });
   }),
 );
 
@@ -189,12 +190,13 @@ router.post(
     }
     await query(
       `INSERT INTO products (
-        id, name, category, type, image, price_min, price_max, description,
+        id, name, category, type, image, images, price_min, price_max, description,
         featured, rating, best_seller, new_arrival, on_sale,
         original_price_min, original_price_max, in_stock
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
       [
-        p.id, p.name, p.category, p.type, p.image, p.price_min, p.price_max, p.description,
+        p.id, p.name, p.category, p.type, p.image, JSON.stringify(p.images),
+        p.price_min, p.price_max, p.description,
         p.featured, p.rating, p.best_seller, p.new_arrival, p.on_sale,
         p.original_price_min, p.original_price_max, p.in_stock,
       ],
@@ -210,12 +212,13 @@ router.put(
     const p = productFromBody({ ...req.body, id: req.params.id });
     const result = await query(
       `UPDATE products SET
-        name=$2, category=$3, type=$4, image=$5, price_min=$6, price_max=$7, description=$8,
-        featured=$9, rating=$10, best_seller=$11, new_arrival=$12, on_sale=$13,
-        original_price_min=$14, original_price_max=$15, in_stock=$16
+        name=$2, category=$3, type=$4, image=$5, images=$6, price_min=$7, price_max=$8, description=$9,
+        featured=$10, rating=$11, best_seller=$12, new_arrival=$13, on_sale=$14,
+        original_price_min=$15, original_price_max=$16, in_stock=$17
        WHERE id=$1 RETURNING *`,
       [
-        p.id, p.name, p.category, p.type, p.image, p.price_min, p.price_max, p.description,
+        p.id, p.name, p.category, p.type, p.image, JSON.stringify(p.images),
+        p.price_min, p.price_max, p.description,
         p.featured, p.rating, p.best_seller, p.new_arrival, p.on_sale,
         p.original_price_min, p.original_price_max, p.in_stock,
       ],

@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, Heart, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, ChevronDown } from 'lucide-react';
-import { getProduct, getRelatedProducts, formatPrice } from '../data/products.js';
+import { getProduct, formatPrice } from '../data/products.js';
+import { enrichProduct, getProductGallery } from '../lib/productImages.js';
+import { useGalleryHover } from '../hooks/useGalleryHover.js';
+import { useProducts } from '../hooks/useProducts.js';
 import { useCart } from '../context/CartContext.jsx';
 import { productsApi } from '../lib/api.js';
 import { useToast } from '../context/ToastContext.jsx';
@@ -18,11 +21,38 @@ export default function ProductDetail() {
   const { showToast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const { toggleWishlist, isInWishlist } = useAccount();
-  const product = getProduct(id);
-  const relatedProducts = product ? getRelatedProducts(product, 4) : [];
+  const [product, setProduct] = useState(null);
+  const [loadingProduct, setLoadingProduct] = useState(true);
   const [activeTab, setActiveTab] = useState('description');
   const [quantity, setQuantity] = useState(1);
-  
+  const [selectedImage, setSelectedImage] = useState(0);
+
+  useEffect(() => {
+    setLoadingProduct(true);
+    setSelectedImage(0);
+    const fallback = enrichProduct(getProduct(id));
+    productsApi
+      .get(id)
+      .then((r) => setProduct(enrichProduct(r.product) || fallback))
+      .catch(() => setProduct(fallback))
+      .finally(() => setLoadingProduct(false));
+  }, [id]);
+
+  const { products: catalog } = useProducts();
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    return catalog.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 4);
+  }, [catalog, product]);
+
+  const productImages = useMemo(() => getProductGallery(product), [product]);
+  const {
+    activeImageIndex,
+    galleryHovered,
+    hoverImageIndex,
+    setHoverImageIndex,
+    galleryHoverHandlers,
+  } = useGalleryHover(productImages, selectedImage);
+
   const [reviews, setReviews] = useState([]);
   const [reviewForm, setReviewForm] = useState({ userName: '', rating: 5, comment: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -57,6 +87,14 @@ export default function ProductDetail() {
     }
   };
 
+  if (loadingProduct) {
+    return (
+      <div className="py-12 max-w-6xl mx-auto px-4 sm:px-6 text-center text-text-muted">
+        Loading product…
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6">
@@ -72,11 +110,6 @@ export default function ProductDetail() {
     { id: 'review', label: 'Review' },
   ];
 
-  const productImages = Array(4).fill(null).map((_, i) => 
-    (product.images && product.images[i]) ? product.images[i] : product.image
-  );
-  const [selectedImage, setSelectedImage] = useState(0);
-
   const prevImage = () => setSelectedImage((prev) => (prev === 0 ? productImages.length - 1 : prev - 1));
   const nextImage = () => setSelectedImage((prev) => (prev === productImages.length - 1 ? 0 : prev + 1));
 
@@ -86,8 +119,20 @@ export default function ProductDetail() {
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 mb-16">
           {/* Left Column: Image Gallery */}
           <div className="flex flex-col gap-3 sm:gap-4">
-            <div className="relative aspect-square sm:aspect-square bg-[#f9f9f9] flex items-center justify-center overflow-hidden rounded-xl">
-              <img src={productImages[selectedImage]} alt={product.name} className="max-w-[80%] max-h-[80%] object-contain" />
+            <div
+              className="relative aspect-square sm:aspect-square bg-[#f9f9f9] overflow-hidden rounded-xl"
+              {...galleryHoverHandlers}
+            >
+              {productImages.map((src, i) => (
+                <img
+                  key={`${src}-${i}`}
+                  src={src}
+                  alt={i === activeImageIndex ? product.name : `${product.name} view ${i + 1}`}
+                  className={`absolute inset-0 m-auto max-w-[80%] max-h-[80%] w-auto h-auto object-contain transition-opacity duration-300 ease-out ${
+                    i === activeImageIndex ? 'opacity-100 z-[1]' : 'opacity-0 z-0'
+                  }`}
+                />
+              ))}
               
               {productImages.length > 1 && (
                 <>
@@ -103,13 +148,19 @@ export default function ProductDetail() {
             
             {productImages.length > 1 && (
               <div className="flex gap-2 sm:gap-4 overflow-x-auto scrollbar-none">
-                {productImages.slice(0, 4).map((img, idx) => (
+                {productImages.map((img, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImage(idx)}
-                    className={`aspect-square w-16 sm:w-[calc(25%-0.75rem)] shrink-0 border transition-all bg-[#f9f9f9] flex items-center justify-center rounded-lg ${
-                      selectedImage === idx ? 'border-gray-800' : 'border-gray-200 hover:border-gray-400'
+                    onMouseEnter={() => {
+                      setSelectedImage(idx);
+                      setHoverImageIndex(idx);
+                    }}
+                    className={`aspect-square w-16 sm:w-[calc(25%-0.75rem)] shrink-0 border transition-all duration-200 bg-[#f9f9f9] flex items-center justify-center rounded-lg ${
+                      (galleryHovered ? hoverImageIndex : selectedImage) === idx
+                        ? 'border-gray-800'
+                        : 'border-gray-200 hover:border-gray-400'
                     }`}
                   >
                     <img src={img} alt={`${product.name} thumbnail ${idx + 1}`} className="max-w-[70%] max-h-[70%] object-contain" />
@@ -164,8 +215,8 @@ export default function ProductDetail() {
 
             <p className="text-sm text-text leading-relaxed mb-6">{product.description}</p>
 
-            <div className="rounded-2xl border border-border bg-cream/50 p-4 sm:p-5 mb-6 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between gap-4">
+            <div className="space-y-4 mb-6">
+              <div className="flex items-center gap-4 flex-wrap">
                 <span className="text-sm font-semibold text-charcoal">Quantity</span>
                 <div className="flex items-center rounded-full border border-border bg-white overflow-hidden">
                   <button
@@ -186,9 +237,28 @@ export default function ProductDetail() {
                     +
                   </button>
                 </div>
+                <button
+                  type="button"
+                  className={`h-11 w-11 shrink-0 rounded-full border flex items-center justify-center transition-colors ${
+                    isInWishlist(product.id)
+                      ? 'border-red-200 bg-red-50 text-red-500'
+                      : 'border-border bg-white text-charcoal hover:border-forest/40 hover:text-forest'
+                  }`}
+                  title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  aria-label={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      navigate('/login');
+                      return;
+                    }
+                    toggleWishlist(product.id);
+                  }}
+                >
+                  <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <Button
                   type="button"
                   variant="secondary"
@@ -215,24 +285,6 @@ export default function ProductDetail() {
                 >
                   Buy now
                 </Button>
-                <button
-                  type="button"
-                  className={`h-11 w-full sm:w-11 shrink-0 rounded-full border flex items-center justify-center transition-colors ${
-                    isInWishlist(product.id)
-                      ? 'border-red-200 bg-red-50 text-red-500'
-                      : 'border-border bg-white text-charcoal hover:border-forest/40 hover:text-forest'
-                  }`}
-                  title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      navigate('/login');
-                      return;
-                    }
-                    toggleWishlist(product.id);
-                  }}
-                >
-                  <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
-                </button>
               </div>
             </div>
 

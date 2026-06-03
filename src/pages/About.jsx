@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom';
 import { usePageSection } from '../context/ContentContext.jsx';
 import {
   Heart, Users, ArrowRight, ChevronDown,
-  TrendingUp, Leaf, Shield, Mail, Phone,
+  Leaf, Shield, Mail, Phone,
 } from 'lucide-react';
+import MissionVisionBook from '../components/MissionVisionBook.jsx';
+import TeamShowcaseSlider from '../components/TeamShowcaseSlider.jsx';
 
 /* ── Animation helpers ──────────────────────────────── */
 const fadeUp = {
@@ -60,21 +62,25 @@ const team = [
     name: 'Hatchery & Supply',
     role: 'Day-old chick sourcing, quality checks & logistics',
     icon: '🐣',
+    image: '/images/Raafortagro-2.png',
   },
   {
     name: 'Veterinary Unit',
     role: 'On-farm health, vaccination programs & biosecurity',
     icon: '🩺',
+    image: '/images/Raafortagro-3.png',
   },
   {
     name: 'Farm Advisory',
     role: 'Consultancy, setup planning & investment guidance',
     icon: '📋',
+    image: '/images/Raafortagro.png',
   },
   {
     name: 'Customer Support',
     role: 'Order management, after-sales care & follow-ups',
     icon: '🤝',
+    image: '/images/a.jpg',
   },
 ];
 
@@ -143,7 +149,11 @@ export default function About() {
     icon: values[i]?.icon || values[0]?.icon,
   }));
   const statItems = statsCms.items?.length ? statsCms.items : stats;
-  const teamItems = teamCms.items?.length ? teamCms.items : team;
+  const teamItems = (teamCms.items?.length ? teamCms.items : team).map((m, i) => ({
+    ...team[i],
+    ...m,
+    image: m.image || team[i]?.image,
+  }));
 
   return (
     <div className="bg-cream min-h-screen text-charcoal overflow-x-hidden">
@@ -423,82 +433,8 @@ export default function About() {
             </motion.p>
           </div>
 
-          <motion.div
-            variants={fadeUp} custom={2} initial="hidden" whileInView="show" viewport={{ once: true }}
-            className="rounded-[1.75rem] md:rounded-[2.25rem] border border-border bg-white shadow-xl overflow-hidden"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              {/* Mission */}
-              <div className="relative p-6 sm:p-8 lg:p-10 border-b lg:border-b-0 lg:border-r border-border">
-                <span
-                  className="font-display text-[4.5rem] sm:text-[6rem] font-bold leading-none text-forest/[0.07] absolute -top-2 right-4 sm:right-8 select-none pointer-events-none"
-                  aria-hidden
-                >
-                  01
-                </span>
-                <div className="relative">
-                  <div className="mb-6">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest">Today</p>
-                    <h3 className="font-display text-xl sm:text-2xl font-bold text-charcoal">Our Mission</h3>
-                  </div>
-                  <p className="font-display text-lg sm:text-xl md:text-[1.4rem] font-semibold text-charcoal leading-snug mb-6 max-w-lg">
-                    Empower Ghanaian farmers with premium genetics, reliable logistics, and honest expertise.
-                  </p>
-                  <p className="text-text text-sm sm:text-base leading-relaxed mb-6 max-w-md">
-                    So every farm can produce more with confidence — from your first flock to full-scale operations.
-                  </p>
-                  <ul className="space-y-3.5">
-                    {[
-                      'Quality genetics from proven parent stock',
-                      'Reliable, nationwide logistics',
-                      'Expert advisory at every stage',
-                    ].map((item, i) => (
-                      <li key={item} className="flex items-start gap-4">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-forest/10 text-forest text-xs font-bold">
-                          {i + 1}
-                        </span>
-                        <span className="text-sm sm:text-base text-charcoal pt-1">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Vision */}
-              <div className="relative p-6 sm:p-8 lg:p-10 bg-gradient-to-br from-charcoal via-charcoal to-forest text-white overflow-hidden">
-                <div className="absolute top-0 right-0 w-72 h-72 bg-[#8fd4a2]/15 blur-[90px] rounded-full pointer-events-none" />
-                <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-forest/40 blur-[70px] rounded-full pointer-events-none" />
-                <span
-                  className="font-display text-[4.5rem] sm:text-[6rem] font-bold leading-none text-white/[0.06] absolute -top-2 right-4 sm:right-8 select-none pointer-events-none"
-                  aria-hidden
-                >
-                  02
-                </span>
-                <div className="relative">
-                  <div className="mb-6">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8fd4a2]">Tomorrow</p>
-                    <h3 className="font-display text-xl sm:text-2xl font-bold text-white">Our Vision</h3>
-                  </div>
-                  <p className="font-display text-lg sm:text-xl md:text-[1.4rem] font-semibold text-white leading-snug mb-6 max-w-lg">
-                    West Africa&apos;s most trusted agricultural supply brand.
-                  </p>
-                  <p className="text-white/75 text-sm sm:text-base leading-relaxed mb-7 max-w-md">
-                    Where quality, care, and community grow together toward a food-secure future for every farmer we serve.
-                  </p>
-                  <div className="rounded-2xl bg-white/5 border border-white/10 p-4 backdrop-blur-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-[#8fd4a2]/20 flex items-center justify-center shrink-0">
-                        <TrendingUp className="w-6 h-6 text-[#8fd4a2]" />
-                      </div>
-                      <div>
-                        <p className="text-white font-semibold text-sm">Growing stronger</p>
-                        <p className="text-white/55 text-xs sm:text-sm mt-0.5">Every harvest season, with you.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="show" viewport={{ once: true }}>
+            <MissionVisionBook />
           </motion.div>
         </div>
       </section>
@@ -530,23 +466,12 @@ export default function About() {
             </motion.div>
           </div>
 
-          {/* Team cards grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {teamItems.map((m, i) => (
-              <motion.div
-                key={m.name}
-                variants={fadeUp} custom={i} initial="hidden" whileInView="show" viewport={{ once: true }}
-                className="group relative rounded-2xl overflow-hidden bg-white border border-border shadow-sm hover:border-forest/30 hover:shadow-md transition-all duration-300 p-6"
-              >
-                <div className="absolute top-0 right-0 w-20 h-20 bg-forest/5 blur-2xl rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="text-3xl mb-4">{m.icon}</div>
-                <div className="w-10 h-0.5 bg-forest/30 mb-4 group-hover:bg-forest transition-colors duration-300" />
-                <h4 className="font-display font-bold text-charcoal mb-1.5 group-hover:text-forest transition-colors duration-300">{m.name}</h4>
-                <p className="text-text-muted text-xs leading-relaxed">{m.role}</p>
-              </motion.div>
-            ))}
-          </div>
         </div>
+
+        {/* Team showcase slider — full width */}
+        <motion.div variants={fadeUp} custom={3} initial="hidden" whileInView="show" viewport={{ once: true }} className="w-full">
+          <TeamShowcaseSlider items={teamItems} />
+        </motion.div>
       </section>
 
       {/* ══ CTA BANNER ════════════════════════════════ */}

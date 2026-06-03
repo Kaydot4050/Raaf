@@ -1,0 +1,14 @@
+---
+description: Apply stop-slop when drafting or editing user-facing copy, blog posts, marketing text, or long-form prose
+alwaysApply: false
+---
+
+# Stop slop (writing quality)
+
+When writing or editing **user-facing text** (product descriptions, blog posts, FAQs, marketing copy, emails, UI strings that are full sentences):
+
+1. Read `.agents/skills/stop-slop/SKILL.md` and follow its rules.
+2. Cut filler phrases, formulaic contrasts, passive voice, and generic AI patterns.
+3. Prefer specific, direct, active prose that matches Raafortagro’s tone.
+
+Do **not** apply stop-slop to code, config, SQL, or short technical labels (button text like “Add to cart” is fine without a full pass).

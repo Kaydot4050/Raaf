@@ -6,7 +6,7 @@ import AdminSection from '../components/AdminSection.jsx';
 import { adminApi } from '../lib/api.js';
 import { adminRowSurface } from '../lib/adminColors.js';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button.jsx';
+import Button from '@/components/ui/Button.jsx';
 
 export default function AdminReviews() {
   const [items, setItems] = useState([]);

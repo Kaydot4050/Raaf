@@ -85,6 +85,7 @@ export const ordersApi = {
 export const inquiriesApi = {
   contact: (body) => api('/inquiries/contact', { method: 'POST', body: JSON.stringify(body) }),
   wholesale: (body) => api('/inquiries/wholesale', { method: 'POST', body: JSON.stringify(body) }),
+  serviceBooking: (body) => api('/inquiries/service-booking', { method: 'POST', body: JSON.stringify(body) }),
 };
 
 export const contentApi = {

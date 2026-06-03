@@ -178,6 +178,7 @@ const MIGRATIONS = [
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`,
   `CREATE INDEX IF NOT EXISTS idx_product_reviews_product ON product_reviews(product_id)`,
+  `ALTER TABLE products ADD COLUMN IF NOT EXISTS images JSONB NOT NULL DEFAULT '[]'::jsonb`,
 ];
 
 export async function initDb() {
@@ -190,6 +191,19 @@ export async function initDb() {
     } catch (e) {
       console.warn('[DB migration]', e.message);
     }
+  }
+
+  try {
+    await query(
+      `UPDATE products
+       SET images = jsonb_build_array(image)
+       WHERE image IS NOT NULL AND image <> ''
+         AND (images IS NULL OR images = '[]'::jsonb)`,
+    );
+    const { syncProductGalleriesFromCatalog } = await import('./syncProductGalleries.js');
+    await syncProductGalleriesFromCatalog();
+  } catch (e) {
+    console.warn('[DB migration] product images backfill:', e.message);
   }
 }
 
@@ -219,13 +233,32 @@ export function rowToBlogPost(row) {
   };
 }
 
+function parseProductImages(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter((u) => u && String(u).trim());
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed.filter((u) => u && String(u).trim()) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 export function productFromBody(body) {
+  const images = parseProductImages(body.images).slice(0, 5);
+  const image = (body.image && String(body.image).trim()) || images[0] || null;
+  const gallery = images.length ? images : image ? [image] : [];
+
   return {
     id: body.id,
     name: body.name,
     category: body.category,
     type: body.type || null,
-    image: body.image || null,
+    image,
+    images: gallery,
     price_min: Number(body.priceMin ?? body.price_min),
     price_max: Number(body.priceMax ?? body.price_max),
     description: body.description || null,
@@ -242,12 +275,17 @@ export function productFromBody(body) {
 
 export function rowToProduct(row) {
   if (!row) return null;
+  let images = parseProductImages(row.images);
+  if (!images.length && row.image) images = [row.image];
+  const image = row.image || images[0] || null;
+
   return {
     id: row.id,
     name: row.name,
     category: row.category,
     type: row.type,
-    image: row.image,
+    image,
+    images,
     priceMin: Number(row.price_min),
     priceMax: Number(row.price_max),
     description: row.description,

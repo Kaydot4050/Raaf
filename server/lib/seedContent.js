@@ -64,6 +64,63 @@ async function migrateHeroSlidesMobileSrc() {
   console.log('Added mobile photo field to homepage slider.');
 }
 
+async function migrateTrackOrderHeroImage() {
+  const result = await query(
+    `SELECT data FROM site_content WHERE page = $1 AND section = $2`,
+    ['track_order', 'hero'],
+  );
+  if (!result.rows[0]) return;
+
+  const data = result.rows[0].data;
+  const nextImage = '/images/1-Howo-Cargo-Truck-1.jpg';
+  if (data.image === nextImage) return;
+
+  await query(
+    `UPDATE site_content SET data = $1, updated_at = NOW() WHERE page = $2 AND section = $3`,
+    [{ ...data, image: nextImage }, 'track_order', 'hero'],
+  );
+  console.log('Updated track order hero image.');
+}
+
+const HERO_SLIDE_DEFAULTS = [
+  { src: '/images/Raafortagro-2.png', mobileSrc: '', alt: 'Poultry & Livestock', title: 'LIVESTOCK' },
+  { src: '/images/Raafortagro-3.png', mobileSrc: '', alt: 'Agro Chemicals', title: 'CHEMICALS' },
+  { src: '/images/Raafortagro.png', mobileSrc: '', alt: 'Farm Equipment', title: 'EQUIPMENT' },
+  { src: '/images/a.jpg', mobileSrc: '', alt: 'Sustainable agriculture', title: 'FARMING' },
+  { src: '/images/istock-hero.jpg', mobileSrc: '', alt: 'Feed & nutrition', title: 'NUTRITION' },
+];
+
+async function migrateHeroSlidesToFive() {
+  const result = await query(
+    `SELECT data FROM site_content WHERE page = $1 AND section = $2`,
+    ['home', 'hero_slides'],
+  );
+  if (!result.rows[0]) return;
+
+  const data = result.rows[0].data;
+  const slides = Array.isArray(data.slides) ? [...data.slides] : [];
+
+  while (slides.length < 5) {
+    const template = HERO_SLIDE_DEFAULTS[slides.length] || { src: '', mobileSrc: '', alt: '', title: '' };
+    slides.push({ ...template });
+  }
+
+  const nextSlides = slides.slice(0, 5).map((slide, i) => ({
+    src: slide.src || HERO_SLIDE_DEFAULTS[i]?.src || '',
+    mobileSrc: slide.mobileSrc ?? '',
+    alt: slide.alt || HERO_SLIDE_DEFAULTS[i]?.alt || '',
+    title: slide.title || HERO_SLIDE_DEFAULTS[i]?.title || '',
+  }));
+
+  if (JSON.stringify(data.slides) === JSON.stringify(nextSlides)) return;
+
+  await query(
+    `UPDATE site_content SET data = $1, updated_at = NOW() WHERE page = $2 AND section = $3`,
+    [{ ...data, slides: nextSlides }, 'home', 'hero_slides'],
+  );
+  console.log('Homepage product slider set to 5 photos.');
+}
+
 export async function seedSiteContent() {
   let inserted = 0;
   for (const row of defaultSiteContent) {
@@ -80,7 +137,9 @@ export async function seedSiteContent() {
     console.log(`Seeded ${inserted} new site content section(s).`);
   }
   await migrateHeroSlidesMobileSrc();
+  await migrateHeroSlidesToFive();
   await migrateFooterSocial();
+  await migrateTrackOrderHeroImage();
 }
 
 export async function seedBlogPosts() {

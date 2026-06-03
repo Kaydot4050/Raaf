@@ -84,6 +84,7 @@ export const defaultSiteContent = [
         { src: '/images/Raafortagro-3.png', mobileSrc: '', alt: 'Agro Chemicals', title: 'CHEMICALS' },
         { src: '/images/Raafortagro.png', mobileSrc: '', alt: 'Farm Equipment', title: 'EQUIPMENT' },
         { src: '/images/a.jpg', mobileSrc: '', alt: 'Sustainable agriculture', title: 'FARMING' },
+        { src: '/images/istock-hero.jpg', mobileSrc: '', alt: 'Feed & nutrition', title: 'NUTRITION' },
       ],
     },
   },
@@ -285,10 +286,10 @@ export const defaultSiteContent = [
     section: 'team',
     data: {
       items: [
-        { name: 'Hatchery & Supply', role: 'Day-old chick sourcing, quality checks & logistics', icon: '🐣' },
-        { name: 'Veterinary Unit', role: 'On-farm health, vaccination programs & biosecurity', icon: '🩺' },
-        { name: 'Farm Advisory', role: 'Consultancy, setup planning & investment guidance', icon: '📋' },
-        { name: 'Customer Support', role: 'Order management, after-sales care & follow-ups', icon: '🤝' },
+        { name: 'Hatchery & Supply', role: 'Day-old chick sourcing, quality checks & logistics', icon: '🐣', image: '/images/Raafortagro-2.png' },
+        { name: 'Veterinary Unit', role: 'On-farm health, vaccination programs & biosecurity', icon: '🩺', image: '/images/Raafortagro-3.png' },
+        { name: 'Farm Advisory', role: 'Consultancy, setup planning & investment guidance', icon: '📋', image: '/images/Raafortagro.png' },
+        { name: 'Customer Support', role: 'Order management, after-sales care & follow-ups', icon: '🤝', image: '/images/a.jpg' },
       ],
     },
   },
@@ -383,7 +384,7 @@ export const defaultSiteContent = [
       eyebrow: 'Orders',
       title: 'Track your order',
       description: 'Enter your order ID and phone number to see status and delivery details.',
-      image: '/images/Raafortagro-2.png',
+      image: '/images/1-Howo-Cargo-Truck-1.jpg',
     },
   },
   {

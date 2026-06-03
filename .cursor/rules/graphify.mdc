@@ -1,0 +1,18 @@
+---
+description: Always use graphify before reading or searching code in this repo
+alwaysApply: true
+---
+
+# Graphify — always read first
+
+For **any** task that finds, reads, traces, or edits code in this repo:
+
+1. Read `.agents/skills/graphify/SKILL.md` and follow it.
+2. **Before** `Grep`, `SemanticSearch`, or opening files to hunt symbols:
+   - Ensure `graphify-out/graph.json` exists; if not, run `npm run graphify:build`.
+   - Query the index: `graphify query graphify-out/graph.json <symbol-or-concept>` (via the project script / global CLI).
+   - Use returned `sourceFile` and `sourceLocation` to open only the relevant files.
+3. **Do not** skip graphify for “quick” lookups — structural query first, then targeted reads.
+4. After you change code, run `npm run graphify:update` (or `graphify update graphify-out/graph.json <files...>`) before querying again in the same session.
+
+Graphify replaces blind greps for “where is X defined / who calls Y / what imports Z”.

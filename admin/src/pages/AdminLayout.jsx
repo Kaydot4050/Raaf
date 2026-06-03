@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Globe,
+  Image,
   Package,
   ShoppingCart,
   BookOpen,
@@ -36,6 +37,7 @@ import { cn } from '@/lib/utils';
 const mainNav = [
   { to: '/', end: true, label: 'Dashboard', icon: LayoutDashboard },
   { to: '/content', label: 'Website Content', icon: Globe },
+  { to: '/product-photos', label: 'Product photos', icon: Image },
   { to: '/products', label: 'Products', icon: Package },
   { to: '/orders', label: 'Orders', icon: ShoppingCart },
   { to: '/reviews', label: 'Reviews', icon: MessageSquare },
@@ -52,6 +54,7 @@ const bottomNav = [
 const PAGE_TITLES = {
   '/': 'Dashboard',
   '/content': 'Website Content',
+  '/product-photos': 'Product photos',
   '/products': 'Products',
   '/orders': 'Orders',
   '/reviews': 'Reviews',

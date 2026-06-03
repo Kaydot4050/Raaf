@@ -8,7 +8,7 @@ export default function AuthButtons({ stacked = false, onNavigate }) {
     <div className={wrap}>
       <Button
         to="/login"
-        variant="forest"
+        variant={stacked ? 'forest' : 'primary'}
         size="md"
         className={stacked ? 'w-full justify-center' : ''}
         onClick={onNavigate}

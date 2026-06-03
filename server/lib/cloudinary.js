@@ -35,10 +35,15 @@ export function isCloudinaryUrl(url) {
   }
 }
 
+const MAX_WIDTH = 1600;
+
 function uploadOptions(extra = {}) {
   return {
     folder: CLOUDINARY_FOLDER || 'raafortagro',
     resource_type: 'image',
+    quality: 'auto:good',
+    fetch_format: 'auto',
+    transformation: [{ width: MAX_WIDTH, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }],
     ...extra,
   };
 }

@@ -32,8 +32,8 @@ export default function AuthPageShell({
       >
         <X className="h-5 w-5" strokeWidth={2} />
       </Link>
-      {/* Left — branding (half screen on desktop) */}
-      <div className="relative flex min-h-[42vh] lg:min-h-screen flex-col justify-between overflow-hidden px-6 py-8 sm:px-10 sm:py-10">
+      {/* Left — branding (desktop only) */}
+      <div className="relative hidden lg:flex min-h-screen flex-col justify-between overflow-hidden px-6 py-8 sm:px-10 sm:py-10">
         <div className="absolute inset-0">
           <div className="grid h-full w-full grid-cols-3 grid-rows-3 gap-1 sm:gap-1.5 opacity-40">
             {HERO_IMAGES.map((src, i) => (
@@ -46,10 +46,6 @@ export default function AuthPageShell({
           {/* Fade into form panel */}
           <div
             className="pointer-events-none absolute inset-y-0 right-0 z-[1] hidden w-[28%] min-w-[7rem] max-w-[12rem] bg-gradient-to-l from-[#0f1412] via-[#0f1412]/80 to-transparent lg:block"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-28 bg-gradient-to-t from-[#0f1412] via-[#0f1412]/70 to-transparent lg:hidden"
             aria-hidden
           />
         </div>
@@ -71,8 +67,8 @@ export default function AuthPageShell({
         </div>
       </div>
 
-      {/* Right — form (half screen on desktop) */}
-      <div className="flex min-h-[58vh] lg:min-h-screen flex-col items-center justify-center px-6 py-10 sm:px-12 lg:px-12 xl:px-16 bg-[#0f1412] border-t border-white/5 lg:border-t-0">
+      {/* Right — form (full screen on mobile) */}
+      <div className="flex min-h-screen min-h-[100dvh] flex-col items-center justify-center px-6 py-10 sm:px-12 lg:px-12 xl:px-16 bg-[#0f1412]">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}

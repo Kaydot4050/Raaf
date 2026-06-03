@@ -9,15 +9,22 @@ export default function PageHero({
   align = 'left',
   children,
   tall = false,
+  fullWidth = false,
 }) {
   const isCenter = align === 'center';
 
+  const heightCls = fullWidth
+    ? 'min-h-[min(440px,62svh)] sm:min-h-[58vh] md:min-h-[65vh]'
+    : tall
+      ? 'min-h-[min(380px,55svh)] sm:min-h-[48vh]'
+      : 'min-h-[min(300px,45svh)] sm:min-h-[38vh]';
+
   return (
-    <section className="px-4 sm:px-6 lg:px-8 pt-4 pb-6 sm:pb-8 bg-cream">
+    <section className={fullWidth ? 'bg-cream' : 'px-4 sm:px-6 lg:px-8 pt-4 pb-6 sm:pb-8 bg-cream'}>
       <div
-        className={`relative overflow-hidden rounded-hero md:rounded-[2.5rem] bg-charcoal shadow-lg ${
-          tall ? 'min-h-[min(380px,55svh)] sm:min-h-[48vh]' : 'min-h-[min(300px,45svh)] sm:min-h-[38vh]'
-        } flex items-end`}
+        className={`relative overflow-hidden bg-charcoal flex items-end w-full ${
+          fullWidth ? heightCls : `shadow-lg rounded-hero md:rounded-[2.5rem] ${heightCls}`
+        }`}
       >
         <img src={image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/30 to-transparent" />

@@ -25,17 +25,27 @@ import { adminApi, mediaUrl } from '../lib/api.js';
 import { adminRowSurface } from '../lib/adminColors.js';
 import { cn } from '@/lib/utils';
 
+const GALLERY_SLOTS = 5;
+
 const empty = {
   id: '',
   name: '',
   category: 'poultry',
   image: '',
+  images: Array.from({ length: GALLERY_SLOTS }, () => ''),
   priceMin: 0,
   priceMax: 0,
   description: '',
   featured: false,
   inStock: true,
 };
+
+function padImages(images, primary = '') {
+  const list = Array.isArray(images) ? images.filter((u) => u != null).map(String) : [];
+  if (!list.length && primary) list.push(primary);
+  while (list.length < GALLERY_SLOTS) list.push('');
+  return list.slice(0, GALLERY_SLOTS);
+}
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
@@ -57,18 +67,28 @@ export default function AdminProducts() {
 
   const openEdit = (p) => {
     setEditing(p.id);
-    setForm({ ...p });
+    setForm({
+      ...p,
+      images: padImages(p.images, p.image),
+      image: p.image || p.images?.[0] || '',
+    });
     setOpen(true);
   };
 
   const save = async (e) => {
     e.preventDefault();
+    const gallery = form.images.map((u) => u.trim()).filter(Boolean).slice(0, GALLERY_SLOTS);
+    const payload = {
+      ...form,
+      images: gallery,
+      image: gallery[0] || form.image || '',
+    };
     try {
       if (editing) {
-        await adminApi.updateProduct(editing, form);
+        await adminApi.updateProduct(editing, payload);
         toast.success('Product updated.');
       } else {
-        await adminApi.createProduct(form);
+        await adminApi.createProduct(payload);
         toast.success('Product created.');
       }
       setOpen(false);
@@ -139,7 +159,7 @@ export default function AdminProducts() {
       </AdminSection>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{editing ? 'Edit product' : 'New product'}</DialogTitle>
             <DialogDescription>Product details appear on the public shop.</DialogDescription>
@@ -170,11 +190,30 @@ export default function AdminProducts() {
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
                 />
               </Field>
-              <ImageUpload
-                label="Product image"
-                value={form.image}
-                onChange={(image) => setForm({ ...form, image })}
-              />
+              <div className="rounded-xl border border-border bg-accent/20 p-4">
+                <p className="text-sm font-semibold text-foreground mb-1">Product gallery</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Up to {GALLERY_SLOTS} photos for the product detail page. Photo 1 is the main image. Uploads are auto-compressed.
+                </p>
+                <div className="flex flex-col gap-6">
+                  {form.images.map((src, index) => (
+                    <ImageUpload
+                      key={index}
+                      label={`Photo ${index + 1}${index === 0 ? ' (main)' : ''}`}
+                      value={src}
+                      onChange={(url) => {
+                        const images = [...form.images];
+                        images[index] = url;
+                        setForm({
+                          ...form,
+                          images,
+                          image: images.find(Boolean) || '',
+                        });
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field>
                   <FieldLabel>Price min (GH₵)</FieldLabel>
