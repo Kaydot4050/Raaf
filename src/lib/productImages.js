@@ -12,25 +12,35 @@ export function inferGalleryVariants(url) {
   return SIZE_VARIANTS.map((size) => `${base}-${size}${ext}`);
 }
 
-/** Unique gallery URLs for a product (API + static fallback + size variants). */
+/** Unique gallery URLs — same list for shop hover and product detail. */
 export function getProductGallery(product) {
   if (!product) return [];
+
   const staticMatch = staticCatalog.find((p) => p.id === product.id);
-  const list = [
-    ...(product.images || []),
+  const apiImages = [...new Set((product.images || []).filter(Boolean).map(String))];
+
+  if (apiImages.length >= 2) {
+    return apiImages.slice(0, 5);
+  }
+
+  const seeded = [
+    ...apiImages,
     ...(staticMatch?.images || []),
     product.image,
     staticMatch?.image,
   ]
     .filter(Boolean)
     .map(String);
+  const deduped = [...new Set(seeded)];
+  const primary = deduped[0];
+  if (!primary) return [];
 
-  const primary = list[0];
-  if (primary && !primary.includes('cloudinary.com')) {
-    list.push(...inferGalleryVariants(primary));
+  if (!primary.includes('cloudinary.com')) {
+    const inferred = inferGalleryVariants(primary);
+    if (inferred.length >= 2) return inferred.slice(0, 5);
   }
 
-  return [...new Set(list)].slice(0, 5);
+  return deduped.slice(0, 5);
 }
 
 export function enrichProduct(product) {
@@ -41,6 +51,12 @@ export function enrichProduct(product) {
     images,
     image: images[0] || product.image || null,
   };
+}
+
+/** Prefer catalog entry so detail matches the shop card the user hovered. */
+export function getProductGalleryForId(product, catalog, productId) {
+  const catalogItem = catalog?.find((p) => p.id === productId);
+  return getProductGallery(catalogItem || product);
 }
 
 export const GALLERY_HOVER_MS = 550;

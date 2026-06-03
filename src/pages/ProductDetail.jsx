@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, Heart, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, ChevronDown } from 'lucide-react';
 import { getProduct, formatPrice } from '../data/products.js';
-import { enrichProduct, getProductGallery } from '../lib/productImages.js';
+import { enrichProduct, getProductGalleryForId } from '../lib/productImages.js';
 import { useGalleryHover } from '../hooks/useGalleryHover.js';
 import { useProducts } from '../hooks/useProducts.js';
 import { useCart } from '../context/CartContext.jsx';
@@ -27,24 +27,55 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
 
+  const { products: catalog } = useProducts();
+
   useEffect(() => {
     setLoadingProduct(true);
     setSelectedImage(0);
     const fallback = enrichProduct(getProduct(id));
+    const catalogItem = catalog.find((p) => p.id === id);
+
     productsApi
       .get(id)
-      .then((r) => setProduct(enrichProduct(r.product) || fallback))
-      .catch(() => setProduct(fallback))
+      .then((r) => {
+        const apiProduct = enrichProduct(r.product) || fallback;
+        if (catalogItem?.images?.length) {
+          setProduct({
+            ...apiProduct,
+            images: catalogItem.images,
+            image: catalogItem.image || apiProduct.image,
+          });
+        } else {
+          setProduct(apiProduct);
+        }
+      })
+      .catch(() => setProduct(catalogItem || fallback))
       .finally(() => setLoadingProduct(false));
   }, [id]);
 
-  const { products: catalog } = useProducts();
+  useEffect(() => {
+    const catalogItem = catalog.find((p) => p.id === id);
+    if (!catalogItem?.images?.length) return;
+    setProduct((prev) => {
+      if (!prev || prev.id !== id) return prev;
+      if (prev.images === catalogItem.images) return prev;
+      return {
+        ...prev,
+        images: catalogItem.images,
+        image: catalogItem.image || prev.image,
+      };
+    });
+  }, [catalog, id]);
+
   const relatedProducts = useMemo(() => {
     if (!product) return [];
     return catalog.filter((p) => p.id !== product.id && p.category === product.category).slice(0, 4);
   }, [catalog, product]);
 
-  const productImages = useMemo(() => getProductGallery(product), [product]);
+  const productImages = useMemo(
+    () => getProductGalleryForId(product, catalog, id),
+    [product, catalog, id],
+  );
   const {
     activeImageIndex,
     galleryHovered,

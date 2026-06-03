@@ -14,7 +14,10 @@ export default function ProductCard({ product, onAdd }) {
   const { toggleWishlist, isInWishlist } = useAccount();
   const saved = isInWishlist(product.id);
 
-  const gallery = useMemo(() => getProductGallery(product), [product]);
+  const gallery = useMemo(
+    () => (product.images?.length ? product.images : getProductGallery(product)),
+    [product],
+  );
   const canCycle = gallery.length > 1;
   const { activeImageIndex: imageIndex, galleryHoverHandlers } = useGalleryHover(gallery, 0);
 
