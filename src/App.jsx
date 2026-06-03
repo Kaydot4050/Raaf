@@ -73,17 +73,23 @@ export default function App() {
     setHasPreview(getCookie(ACCESS_COOKIE) === 'granted');
   }, [previewTokenInUrl]);
 
-  if (SITE_LOCKED && !hasPreview && location.pathname !== '/under-development') {
-    return <Navigate to="/under-development" replace />;
-  }
+  const siteLocked = SITE_LOCKED && !hasPreview;
 
-  if (SITE_LOCKED && hasPreview && location.pathname === '/under-development') {
-    return <Navigate to="/" replace />;
+  if (siteLocked) {
+    return (
+      <Routes>
+        <Route path="/under-development" element={<UnderDevelopment />} />
+        <Route path="*" element={<Navigate to="/under-development" replace />} />
+      </Routes>
+    );
   }
 
   return (
     <Routes>
-      <Route path="under-development" element={<UnderDevelopment />} />
+      <Route
+        path="under-development"
+        element={SITE_LOCKED && hasPreview ? <Navigate to="/" replace /> : <UnderDevelopment />}
+      />
       <Route path="login" element={<GuestRoute><Login /></GuestRoute>} />
       <Route path="register" element={<GuestRoute><Register /></GuestRoute>} />
       <Route element={<Layout />}>

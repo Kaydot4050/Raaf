@@ -40,7 +40,7 @@ function FilterBlock({ title, defaultOpen = true, children, collapsed, onToggle 
 }
 
 export default function Shop() {
-  const { products } = useProducts();
+  const { products, loading, error } = useProducts();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get('category') || 'all';
 
@@ -387,11 +387,22 @@ export default function Shop() {
             ))}
           </div>
 
-          {filtered.length === 0 && (
+          {loading && products.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Loading products…</p>
+          ) : null}
+
+          {!loading && error && products.length === 0 ? (
+            <div className="p-4 border-l-4 border-red-500 bg-red-50 text-charcoal rounded mt-5 text-sm">
+              Could not load products. {error}
+              {import.meta.env.DEV ? ' Run: npm run dev:server' : ''}
+            </div>
+          ) : null}
+
+          {filtered.length === 0 && !loading && !error ? (
             <div className="p-4 border-l-4 border-primary bg-primary/5 text-heading rounded mt-5 text-sm">
               No products were found matching your selection.
             </div>
-          )}
+          ) : null}
 
           {/* Pagination */}
           {totalPages > 1 && (

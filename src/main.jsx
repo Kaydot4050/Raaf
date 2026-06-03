@@ -10,6 +10,7 @@ import GoogleAuthProvider from './components/auth/GoogleAuthProvider.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { SearchProvider } from './context/SearchContext.jsx';
 import { ContentProvider } from './context/ContentContext.jsx';
+import { ProductsProvider } from './context/ProductsContext.jsx';
 import './tailwind.css';
 
 createRoot(document.getElementById('root')).render(
@@ -21,11 +22,13 @@ createRoot(document.getElementById('root')).render(
           <GoogleAuthProvider>
             <AuthProvider>
               <ContentProvider>
-                <AccountProvider>
-                  <CartProvider>
-                    <App />
-                  </CartProvider>
-                </AccountProvider>
+                <ProductsProvider>
+                  <AccountProvider>
+                    <CartProvider>
+                      <App />
+                    </CartProvider>
+                  </AccountProvider>
+                </ProductsProvider>
               </ContentProvider>
             </AuthProvider>
           </GoogleAuthProvider>

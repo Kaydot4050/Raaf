@@ -13,40 +13,39 @@ export function inferGalleryVariants(url) {
   return SIZE_VARIANTS.map((size) => `${base}-${size}${ext}`);
 }
 
-/** Unique gallery URLs — same list for shop hover and product detail. */
-export function getProductGallery(product) {
+/** Unique gallery URLs — DB/API data only; static catalog is fallback when API is unreachable. */
+export function getProductGallery(product, { allowStaticFallback = false } = {}) {
   if (!product) return [];
 
-  const staticMatch = staticCatalog.find((p) => p.id === product.id);
   const apiImages = [...new Set((product.images || []).filter(Boolean).map(String))];
+  if (apiImages.length >= 2) return apiImages.slice(0, 5);
 
-  if (apiImages.length >= 2) {
-    return apiImages.slice(0, 5);
+  const primary = (apiImages[0] || product.image || '').trim();
+  if (primary) {
+    if (!primary.includes('cloudinary.com') && primary.startsWith('/images/')) {
+      const inferred = inferGalleryVariants(primary);
+      if (inferred.length >= 2) return inferred.slice(0, 5);
+    }
+    return [primary];
   }
 
-  const seeded = [
-    ...apiImages,
-    ...(staticMatch?.images || []),
-    product.image,
-    staticMatch?.image,
-  ]
-    .filter(Boolean)
-    .map(String);
-  const deduped = [...new Set(seeded)];
-  const primary = deduped[0];
-  if (!primary) return [];
+  if (!allowStaticFallback) return [];
 
-  if (!primary.includes('cloudinary.com')) {
-    const inferred = inferGalleryVariants(primary);
+  const staticMatch = staticCatalog.find((p) => p.id === product.id);
+  const seeded = [...(staticMatch?.images || []), staticMatch?.image].filter(Boolean).map(String);
+  const deduped = [...new Set(seeded)];
+  if (!deduped.length) return [];
+  const staticPrimary = deduped[0];
+  if (!staticPrimary.includes('cloudinary.com') && staticPrimary.startsWith('/images/')) {
+    const inferred = inferGalleryVariants(staticPrimary);
     if (inferred.length >= 2) return inferred.slice(0, 5);
   }
-
   return deduped.slice(0, 5);
 }
 
-export function enrichProduct(product) {
+export function enrichProduct(product, options) {
   if (!product) return product;
-  const images = getProductGallery(product);
+  const images = getProductGallery(product, options);
   return {
     ...product,
     images,
@@ -75,17 +74,15 @@ export function readStoredProductGallery(productId) {
   }
 }
 
-/** Same images as shop card hover — prefer navigation/session, then catalog, then product. */
+/** Same images as shop card hover — prefer link state, then live API product, then session fallback. */
 export function resolveProductGallery({ productId, product, catalog, linkGallery }) {
   if (linkGallery?.length) return linkGallery;
 
-  const stored = readStoredProductGallery(productId);
-  if (stored?.length) return stored;
+  const live = product || catalog?.find((p) => p.id === productId);
+  const fromApi = getProductGallery(live);
+  if (fromApi.length) return fromApi;
 
-  const catalogItem = catalog?.find((p) => p.id === productId);
-  if (catalogItem) return getProductGallery(catalogItem);
-
-  return getProductGallery(product);
+  return readStoredProductGallery(productId) || [];
 }
 
 export const GALLERY_HOVER_MS = 550;

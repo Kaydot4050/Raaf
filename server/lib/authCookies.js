@@ -24,8 +24,8 @@ export function clearAuthCookie(res) {
 }
 
 export function getTokenFromRequest(req) {
-  if (req.cookies?.[COOKIE_NAME]) return req.cookies[COOKIE_NAME];
   const header = req.headers.authorization;
   if (header?.startsWith('Bearer ')) return header.slice(7);
+  if (req.cookies?.[COOKIE_NAME]) return req.cookies[COOKIE_NAME];
   return null;
 }

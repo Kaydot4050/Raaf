@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, Heart, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, ChevronDown } from 'lucide-react';
-import { getProduct, formatPrice } from '../data/products.js';
+import { formatPrice } from '../data/products.js';
 import { enrichProduct, resolveProductGallery } from '../lib/productImages.js';
 import { useGalleryHover } from '../hooks/useGalleryHover.js';
 import { useProducts } from '../hooks/useProducts.js';
@@ -33,14 +33,16 @@ export default function ProductDetail() {
   useEffect(() => {
     setLoadingProduct(true);
     setSelectedImage(0);
-    const fallback = enrichProduct(getProduct(id));
 
     productsApi
       .get(id)
-      .then((r) => setProduct(enrichProduct(r.product) || fallback))
-      .catch(() => setProduct(catalog.find((p) => p.id === id) || fallback))
+      .then((r) => setProduct(enrichProduct(r.product)))
+      .catch(() => {
+        const fromCatalog = catalog.find((p) => p.id === id);
+        setProduct(fromCatalog ? enrichProduct(fromCatalog) : null);
+      })
       .finally(() => setLoadingProduct(false));
-  }, [id]);
+  }, [id, catalog]);
 
   const linkGallery = location.state?.gallery;
 

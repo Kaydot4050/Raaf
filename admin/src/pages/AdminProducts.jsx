@@ -79,10 +79,17 @@ export default function AdminProducts() {
     e.preventDefault();
     const gallery = form.images.map((u) => u.trim()).filter(Boolean).slice(0, GALLERY_SLOTS);
     const payload = {
-      ...form,
+      name: form.name,
+      category: form.category,
+      description: form.description,
+      priceMin: form.priceMin,
+      priceMax: form.priceMax,
+      featured: form.featured,
+      inStock: form.inStock,
       images: gallery,
-      image: gallery[0] || form.image || '',
+      image: gallery[0] || '',
     };
+    if (!editing) payload.id = form.id;
     try {
       if (editing) {
         await adminApi.updateProduct(editing, payload);

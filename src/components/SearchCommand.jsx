@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ArrowRight, ShoppingBag, BookOpen, Package } from 'lucide-react';
 import { useSearch } from '../context/SearchContext.jsx';
+import { useProducts } from '../hooks/useProducts.js';
 import { useLockBodyScroll } from '../lib/useLockBodyScroll.js';
-import { products, formatPrice } from '../data/products.js';
+import { formatPrice } from '../data/products.js';
 
 const GOTO = [
   { id: 'home', label: 'Home', to: '/' },
@@ -21,6 +22,7 @@ const GOTO = [
 
 export default function SearchCommand() {
   const { open, closeSearch } = useSearch();
+  const { products } = useProducts();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
@@ -70,7 +72,7 @@ export default function SearchCommand() {
     out.push({ title: 'GO TO', items: goto });
 
     return out;
-  }, [query]);
+  }, [query, products]);
 
   const flat = useMemo(() => sections.flatMap((s) => s.items.filter((i) => !i.disabled)), [sections]);
 

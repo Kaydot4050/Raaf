@@ -3,6 +3,9 @@ const DEFAULT_ORIGINS = [
   'http://127.0.0.1:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5174',
+  'https://raafortagro.com',
+  'https://www.raafortagro.com',
+  'https://admin.raafortagro.com',
 ];
 
 /** Allow LAN dev URLs (e.g. http://192.168.1.5:5174) when not in production. */
@@ -35,7 +38,7 @@ export function corsOptions() {
       if (!origin || allowed.includes(origin) || isDevLanOrigin(origin)) {
         callback(null, true);
       } else {
-        callback(new Error(`CORS blocked: ${origin}`));
+        callback(null, false);
       }
     },
     credentials: true,

@@ -68,10 +68,8 @@ function getAuthToken() {
 
 export async function api(path, options = {}) {
   const token = getAuthToken();
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  const headers = { ...options.headers };
+  if (options.body) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const bases = getApiBases();
@@ -203,8 +201,19 @@ export const adminApi = {
     api(`/admin/content/${page}/${section}`, { method: 'PUT', body: JSON.stringify({ data }) }),
   products: () => api('/admin/products'),
   createProduct: (body) => api('/admin/products', { method: 'POST', body: JSON.stringify(body) }),
-  updateProduct: (id, body) => api(`/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
-  deleteProduct: (id) => api(`/admin/products/${id}`, { method: 'DELETE' }),
+  updateProduct: (id, body) =>
+    api(`/admin/products/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteProduct: async (id) => {
+    const encoded = encodeURIComponent(id);
+    try {
+      return await api(`/admin/products/${encoded}`, { method: 'DELETE' });
+    } catch (err) {
+      if (err.status === 405 || err.status === 501) {
+        return api(`/admin/products/${encoded}/delete`, { method: 'POST' });
+      }
+      throw err;
+    }
+  },
   orders: () => api('/admin/orders'),
   updateOrder: (id, status) =>
     api(`/admin/orders/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),

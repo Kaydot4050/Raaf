@@ -10,83 +10,107 @@ function siteApiBase(hostname, protocol) {
   return `${protocol}//${siteRoot(hostname)}/api`;
 }
 
+const DEV_PORTS = new Set(['5173', '5174', '5175', '4173', '4174']);
+
+function isPrivateHost(hostname) {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.startsWith('192.168.') ||
+    hostname.startsWith('10.') ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
+  );
+}
+
+/** Vite dev/preview — use relative /api so the proxy reaches localhost:3001. */
+function isLocalDevServer(hostname, port) {
+  return isPrivateHost(hostname) && DEV_PORTS.has(port);
+}
+
 function resolveBases() {
   const fromEnv = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
   const bases = [];
 
   if (typeof window !== 'undefined') {
-    const { hostname, protocol } = window.location;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return ['/api'];
+    const { hostname, protocol, port } = window.location;
+
+    if (isLocalDevServer(hostname, port)) {
+      bases.push('/api', 'http://127.0.0.1:3001/api', 'http://localhost:3001/api');
+      return [...new Set(bases)];
     }
+
     if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
       return [`http://${hostname}:3001/api`];
     }
+
     bases.push(dedicatedApiBase(hostname, protocol));
+    if (fromEnv) bases.push(fromEnv);
     bases.push(siteApiBase(hostname, protocol));
+  } else if (fromEnv) {
+    bases.push(fromEnv);
   }
 
-  if (fromEnv) bases.unshift(fromEnv);
   return [...new Set(bases)];
 }
 
+function requestCredentials(path, method) {
+  const m = (method || 'GET').toUpperCase();
+  if (m === 'GET' && (path.startsWith('/products') || path.startsWith('/content'))) {
+    return 'omit';
+  }
+  return 'include';
+}
+
 export async function api(path, options = {}) {
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
+  const headers = { ...options.headers };
+  if (options.body) headers['Content-Type'] = 'application/json';
 
   const bases = resolveBases();
-  let res;
+  const credentials = options.credentials ?? requestCredentials(path, options.method);
   let lastError;
 
   for (const base of bases) {
     try {
-      res = await fetch(`${base}${path}`, {
+      const res = await fetch(`${base}${path}`, {
         ...options,
         headers,
-        credentials: 'include',
+        credentials,
       });
-      if (res.ok) break;
-      if (res.status === 404 && bases.length > 1) {
-        res = undefined;
+      const text = await res.text();
+
+      if (!res.ok) {
+        let data = {};
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch {
+          /* non-JSON error body */
+        }
+        const err = new Error(data.error || `Request failed (${res.status})`);
+        err.status = res.status;
+        err.data = data;
+        lastError = err;
         continue;
       }
-      break;
+
+      if (!text) return {};
+
+      try {
+        return JSON.parse(text);
+      } catch {
+        lastError = new Error(`Invalid response from ${base}${path}`);
+        continue;
+      }
     } catch (err) {
       lastError = err;
-      res = undefined;
     }
   }
 
-  if (!res) {
-    throw new Error(
-      lastError?.message ||
-        `Cannot reach the API (tried ${bases.join(', ')}). Check api.${typeof window !== 'undefined' ? siteRoot(window.location.hostname) : 'yourdomain.com'}/api/health`,
+  const err =
+    lastError ||
+    new Error(
+      `Cannot reach the API (tried ${bases.join(', ')}). Check api.${typeof window !== 'undefined' ? siteRoot(window.location.hostname) : 'yourdomain.com'}/api/health`,
     );
-  }
-
-  const text = await res.text();
-  let data = {};
-  if (text) {
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error(
-        res.ok
-          ? 'Invalid response from server.'
-          : `Server error (${res.status}). Start the API with: npm run dev:server`,
-      );
-    }
-  }
-
-  if (!res.ok) {
-    const err = new Error(data.error || res.statusText || 'Request failed');
-    err.status = res.status;
-    err.data = data;
-    throw err;
-  }
-  return data;
+  throw err;
 }
 
 export const authApi = {

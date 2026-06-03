@@ -228,11 +228,26 @@ router.put(
   }),
 );
 
+async function deleteProductById(id) {
+  const result = await query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
+  return result.rows[0]?.id;
+}
+
 router.delete(
   '/products/:id',
   asyncHandler(async (req, res) => {
-    const result = await query('DELETE FROM products WHERE id = $1 RETURNING id', [req.params.id]);
-    if (!result.rows[0]) return res.status(404).json({ error: 'Product not found.' });
+    const deleted = await deleteProductById(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Product not found.' });
+    res.json({ ok: true });
+  }),
+);
+
+/** Some hosts block DELETE — admin uses this as fallback. */
+router.post(
+  '/products/:id/delete',
+  asyncHandler(async (req, res) => {
+    const deleted = await deleteProductById(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Product not found.' });
     res.json({ ok: true });
   }),
 );

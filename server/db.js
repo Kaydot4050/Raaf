@@ -200,8 +200,6 @@ export async function initDb() {
        WHERE image IS NOT NULL AND image <> ''
          AND (images IS NULL OR images = '[]'::jsonb)`,
     );
-    const { syncProductGalleriesFromCatalog } = await import('./syncProductGalleries.js');
-    await syncProductGalleriesFromCatalog();
   } catch (e) {
     console.warn('[DB migration] product images backfill:', e.message);
   }
@@ -249,8 +247,10 @@ function parseProductImages(value) {
 
 export function productFromBody(body) {
   const images = parseProductImages(body.images).slice(0, 5);
-  const image = (body.image && String(body.image).trim()) || images[0] || null;
-  const gallery = images.length ? images : image ? [image] : [];
+  const cleared =
+    Array.isArray(body.images) && body.images.every((u) => !u || !String(u).trim()) && !images.length;
+  const image = cleared ? null : images[0] || (body.image && String(body.image).trim()) || null;
+  const gallery = cleared ? [] : images.length ? images : image ? [image] : [];
 
   return {
     id: body.id,
