@@ -13,6 +13,14 @@ const googleClient = process.env.GOOGLE_CLIENT_ID
   ? new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
   : null;
 
+router.get(
+  '/google-config',
+  asyncHandler(async (_req, res) => {
+    const clientId = process.env.GOOGLE_CLIENT_ID || null;
+    res.json({ enabled: !!clientId, clientId });
+  }),
+);
+
 function respondWithSession(res, user, status = 200) {
   const token = signToken(user);
   setAuthCookie(res, token);

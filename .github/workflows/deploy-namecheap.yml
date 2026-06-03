@@ -27,6 +27,9 @@ jobs:
         run: npm run build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.raafortagro.com/api' }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_ADMIN_URL: ${{ secrets.VITE_ADMIN_URL || 'https://admin.raafortagro.com' }}
+          VITE_SITE_PUBLIC: ${{ secrets.VITE_SITE_PUBLIC || 'false' }}
 
       - name: Build Admin Dashboard
         run: npm run build:admin

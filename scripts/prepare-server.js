@@ -127,6 +127,7 @@ DATABASE_URL=postgresql://USER:PASSWORD@HOST/DB?sslmode=require
 JWT_SECRET=
 CLIENT_ORIGIN=https://raafortagro.com,https://www.raafortagro.com,https://admin.raafortagro.com
 COOKIE_DOMAIN=.raafortagro.com
+GOOGLE_CLIENT_ID=
 `,
 );
 

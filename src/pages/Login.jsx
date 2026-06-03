@@ -4,13 +4,12 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import Button from '../components/ui/Button.jsx';
 import GoogleSignIn from '../components/auth/GoogleSignIn.jsx';
-import { isGoogleAuthEnabled } from '../components/auth/GoogleAuthProvider.jsx';
+import { useGoogleAuth } from '../components/auth/GoogleAuthProvider.jsx';
 import AuthPageShell, { authInputCls, authLabelCls } from '../components/auth/AuthPageShell.jsx';
 import AuthPasswordField from '../components/auth/AuthPasswordField.jsx';
 
-const hasGoogle = isGoogleAuthEnabled();
-
 export default function Login() {
+  const { enabled: hasGoogle } = useGoogleAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, loading: authLoading } = useAuth();

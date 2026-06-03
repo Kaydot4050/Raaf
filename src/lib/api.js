@@ -55,7 +55,12 @@ function resolveBases() {
 
 function requestCredentials(path, method) {
   const m = (method || 'GET').toUpperCase();
-  if (m === 'GET' && (path.startsWith('/products') || path.startsWith('/content'))) {
+  if (
+    m === 'GET' &&
+    (path.startsWith('/products') ||
+      path.startsWith('/content') ||
+      path.startsWith('/auth/google-config'))
+  ) {
     return 'omit';
   }
   return 'include';
@@ -114,6 +119,7 @@ export async function api(path, options = {}) {
 }
 
 export const authApi = {
+  googleConfig: () => api('/auth/google-config'),
   register: (body) => api('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
   login: (body) => api('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
   google: (credential) => api('/auth/google', { method: 'POST', body: JSON.stringify({ credential }) }),

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { isGoogleAuthEnabled } from './GoogleAuthProvider.jsx';
+import { useGoogleAuth } from './GoogleAuthProvider.jsx';
 
 /** Google Identity button max width (API limit). */
 const GOOGLE_BTN_WIDTH = 400;
@@ -31,6 +31,7 @@ function GoogleGIcon() {
 
 export default function GoogleSignIn({ onSuccess, onError, disabled, label = 'continue_with' }) {
   const { loginWithGoogle } = useAuth();
+  const { enabled, loading } = useGoogleAuth();
   const containerRef = useRef(null);
   const [scaleX, setScaleX] = useState(1);
 
@@ -62,7 +63,7 @@ export default function GoogleSignIn({ onSuccess, onError, disabled, label = 'co
     else onError?.(result.error);
   };
 
-  if (!isGoogleAuthEnabled()) return null;
+  if (loading || !enabled) return null;
 
   return (
     <div
