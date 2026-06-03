@@ -30,6 +30,7 @@ import GuestRoute from './components/auth/GuestRoute.jsx';
 const ACCESS_COOKIE = 'dev_access';
 const PREVIEW_PARAM = 'preview';
 const PREVIEW_TOKEN = import.meta.env.VITE_PREVIEW_TOKEN || 'raafort2026';
+const SITE_LOCKED = import.meta.env.VITE_SITE_LOCKED === 'true';
 const IS_LOCAL_HOST =
   typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' ||
@@ -67,11 +68,11 @@ export default function App() {
     setHasAccess(getCookie(ACCESS_COOKIE) === 'granted');
   }, [previewTokenInUrl]);
 
-  if (!IS_LOCAL_HOST && !hasAccess && location.pathname !== '/under-development') {
+  if (SITE_LOCKED && !IS_LOCAL_HOST && !hasAccess && location.pathname !== '/under-development') {
     return <Navigate to="/under-development" replace />;
   }
 
-  if (!IS_LOCAL_HOST && hasAccess && location.pathname === '/under-development') {
+  if (SITE_LOCKED && !IS_LOCAL_HOST && hasAccess && location.pathname === '/under-development') {
     return <Navigate to="/" replace />;
   }
 

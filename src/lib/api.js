@@ -1,17 +1,34 @@
-// When accessed over a network IP (not localhost), the Vite proxy doesn't apply
-// in the browser, so we point directly to the API server on port 3001.
-function resolveBase() {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  if (
-    typeof window !== 'undefined' &&
-    window.location.hostname !== 'localhost' &&
-    window.location.hostname !== '127.0.0.1'
-  ) {
-    return `http://${window.location.hostname}:3001/api`;
-  }
-  return '/api';
+function siteRoot(hostname) {
+  return hostname.replace(/^www\./, '');
 }
-const BASE = resolveBase();
+
+function dedicatedApiBase(hostname, protocol) {
+  return `${protocol}//api.${siteRoot(hostname)}/api`;
+}
+
+function siteApiBase(hostname, protocol) {
+  return `${protocol}//${siteRoot(hostname)}/api`;
+}
+
+function resolveBases() {
+  const fromEnv = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
+  const bases = [];
+
+  if (typeof window !== 'undefined') {
+    const { hostname, protocol } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return ['/api'];
+    }
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+      return [`http://${hostname}:3001/api`];
+    }
+    bases.push(dedicatedApiBase(hostname, protocol));
+    bases.push(siteApiBase(hostname, protocol));
+  }
+
+  if (fromEnv) bases.unshift(fromEnv);
+  return [...new Set(bases)];
+}
 
 export async function api(path, options = {}) {
   const headers = {
@@ -19,15 +36,34 @@ export async function api(path, options = {}) {
     ...options.headers,
   };
 
+  const bases = resolveBases();
   let res;
-  try {
-    res = await fetch(`${BASE}${path}`, {
-      ...options,
-      headers,
-      credentials: 'include',
-    });
-  } catch {
-    throw new Error('Cannot reach the API server. Run both frontend and API: npm run dev');
+  let lastError;
+
+  for (const base of bases) {
+    try {
+      res = await fetch(`${base}${path}`, {
+        ...options,
+        headers,
+        credentials: 'include',
+      });
+      if (res.ok) break;
+      if (res.status === 404 && bases.length > 1) {
+        res = undefined;
+        continue;
+      }
+      break;
+    } catch (err) {
+      lastError = err;
+      res = undefined;
+    }
+  }
+
+  if (!res) {
+    throw new Error(
+      lastError?.message ||
+        `Cannot reach the API (tried ${bases.join(', ')}). Check api.${typeof window !== 'undefined' ? siteRoot(window.location.hostname) : 'yourdomain.com'}/api/health`,
+    );
   }
 
   const text = await res.text();
