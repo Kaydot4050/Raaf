@@ -1,5 +1,30 @@
 # Namecheap / production API (503 fixes)
 
+## Fix 503 now (cPanel checklist)
+
+That HTML *"Service Unavailable… Technical Support"* means **Node is not running** — not a bug in the React shop.
+
+1. **cPanel → Setup Node.js App** → open the app for **`api.raafortagro.com`**
+2. **Application root:** folder with `app.js` + `server/` (often `api-server`)
+3. **Startup file:** `app.js` (not `server/index.js`)
+4. **Environment variables** (required — use cPanel UI, not only a `.env` file):
+   - `NODE_ENV=production`
+   - `DATABASE_URL=postgresql://…` (Neon connection string)
+   - `JWT_SECRET=` long random string
+   - `CLIENT_ORIGIN=https://raafortagro.com,https://admin.raafortagro.com`
+   - `COOKIE_DOMAIN=.raafortagro.com`
+5. **Stop** app → **Run NPM Install** → **Start**
+6. **Terminal** (use cPanel’s “Enter virtual environment” command first):
+   ```bash
+   cd ~/api-server
+   node verify.mjs
+   ```
+   If verify fails, fix what it prints before restarting.
+7. **Domains → Redirects** — remove any redirect from `api.raafortagro.com` to the main site.
+8. Test: **https://api.raafortagro.com/api/health** → JSON `{"ok":true}` (address bar must stay on `api.`)
+
+After a GitHub deploy, always repeat steps 5–8. Missing npm packages (e.g. `sharp`) or env vars are the usual crash causes.
+
 ## What the 503 means
 
 | What you see | Meaning |

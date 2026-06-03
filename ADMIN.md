@@ -46,12 +46,13 @@ VITE_ADMIN_URL=https://admin.raafortagro.com
 **Admin app** (GitHub secret or `admin/.env` at build time):
 
 ```env
-# Most Namecheap setups: Node API is reached on the MAIN domain (not api.* unless you created that subdomain)
-VITE_API_URL=https://raafortagro.com/api
+VITE_API_URL=https://api.raafortagro.com/api
 VITE_SITE_URL=https://raafortagro.com
 ```
 
-Only use `https://api.raafortagro.com/api` if that subdomain exists in DNS **and** your Node app is assigned to it in cPanel.
+GitHub Actions uses the same URL (repo secret `VITE_API_URL`, or that default). The public site loads CMS copy from this API at runtime — a wrong URL makes the shop look “reset” after every deploy.
+
+Only use `https://raafortagro.com/api` if `/api/health` on the **main** domain returns JSON (uncommon on Namecheap; see [HOSTING.md](./HOSTING.md)).
 
 ### “Cannot reach API at https://api.raafortagro.com/api”
 

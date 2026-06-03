@@ -29,6 +29,7 @@ const backendDeps = [
   'jsonwebtoken',
   'multer',
   'pg',
+  'sharp',
   'twilio',
 ];
 
@@ -102,7 +103,18 @@ for (const key of required) {
 }
 console.log('CLIENT_ORIGIN', process.env.CLIENT_ORIGIN || '(not set)');
 if (!ok) process.exit(1);
-console.log('Env OK. Next: node app.js');
+const modules = ['express', 'sharp', 'multer', '@neondatabase/serverless', 'ws'];
+for (const name of modules) {
+  try {
+    await import(name);
+    console.log('✓', name);
+  } catch (e) {
+    console.error('✗', name, '— run NPM Install:', e.message);
+    ok = false;
+  }
+}
+if (!ok) process.exit(1);
+console.log('Deps OK. Next: node app.js');
 `,
 );
 

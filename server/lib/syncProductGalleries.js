@@ -1,8 +1,17 @@
 import { query } from '../db.js';
-import { products as catalog } from '../../src/data/products.js';
 
 /** Fill empty or single-image DB rows from static catalog so hover galleries work. */
 export async function syncProductGalleriesFromCatalog() {
+  let catalog;
+  try {
+    const mod = await import('../../src/data/products.js');
+    catalog = mod.products;
+  } catch {
+    // Production deploy has no src/ — skip silently.
+    return;
+  }
+  if (!catalog?.length) return;
+
   let updated = 0;
   for (const p of catalog) {
     const gallery = (p.images || []).filter(Boolean);

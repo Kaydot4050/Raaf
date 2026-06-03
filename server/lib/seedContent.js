@@ -72,14 +72,14 @@ async function migrateTrackOrderHeroImage() {
   if (!result.rows[0]) return;
 
   const data = result.rows[0].data;
-  const nextImage = '/images/1-Howo-Cargo-Truck-1.jpg';
-  if (data.image === nextImage) return;
+  if (data.image) return;
 
+  const nextImage = '/images/1-Howo-Cargo-Truck-1.jpg';
   await query(
     `UPDATE site_content SET data = $1, updated_at = NOW() WHERE page = $2 AND section = $3`,
     [{ ...data, image: nextImage }, 'track_order', 'hero'],
   );
-  console.log('Updated track order hero image.');
+  console.log('Set default track order hero image (was empty).');
 }
 
 const HERO_SLIDE_DEFAULTS = [

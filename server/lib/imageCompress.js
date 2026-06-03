@@ -1,7 +1,18 @@
-import sharp from 'sharp';
-
 const MAX_WIDTH = 1600;
 const WEBP_QUALITY = 82;
+
+let sharpModule = null;
+
+async function getSharp() {
+  if (sharpModule !== null) return sharpModule;
+  try {
+    sharpModule = (await import('sharp')).default;
+  } catch (err) {
+    console.warn('[imageCompress] sharp unavailable — uploads will not be compressed:', err.message);
+    sharpModule = false;
+  }
+  return sharpModule;
+}
 
 /**
  * Resize, lightly brighten/normalize, and encode as WebP for smaller files while staying sharp.
@@ -9,6 +20,11 @@ const WEBP_QUALITY = 82;
 export async function compressImageBuffer(input) {
   if (!input?.length) {
     throw new Error('Empty image data.');
+  }
+
+  const sharp = await getSharp();
+  if (!sharp) {
+    return { buffer: input, mime: null, ext: '.jpg' };
   }
 
   try {

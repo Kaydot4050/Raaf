@@ -21,16 +21,17 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      # API on main domain (api.raafortagro.com is optional). Override via GitHub secret only if needed.
+      # Baked into dist at build time — must match your live Node API (see HOSTING.md).
+      # Set GitHub repo secret VITE_API_URL if the default below is wrong.
       - name: Build Main Frontend
         run: npm run build
         env:
-          VITE_API_URL: https://raafortagro.com/api
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.raafortagro.com/api' }}
 
       - name: Build Admin Dashboard
         run: npm run build:admin
         env:
-          VITE_API_URL: https://raafortagro.com/api
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.raafortagro.com/api' }}
 
       - name: Prepare Backend Server
         run: node scripts/prepare-server.js
