@@ -20,6 +20,8 @@ npm run dev:full
 
 Open **http://localhost:5174** and sign in with an **admin** account.
 
+If the page is blank, an old dev server is still holding port 5174. Stop all terminals, then free the port (PowerShell: `netstat -ano | findstr :5174` → `taskkill /PID <pid> /F`) and run `npm run dev:admin` again. Vite will error instead of silently moving to another port.
+
 ### Blank page?
 
 1. Run **both** API and admin: `npm run dev:full` (or `dev:server` + `dev:admin`).
