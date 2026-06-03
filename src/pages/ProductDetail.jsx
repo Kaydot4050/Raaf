@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Star, Heart, ChevronLeft, ChevronRight, Facebook, Twitter, Linkedin, ChevronDown } from 'lucide-react';
 import { getProduct, formatPrice } from '../data/products.js';
-import { enrichProduct, getProductGalleryForId } from '../lib/productImages.js';
+import { enrichProduct, resolveProductGallery } from '../lib/productImages.js';
 import { useGalleryHover } from '../hooks/useGalleryHover.js';
 import { useProducts } from '../hooks/useProducts.js';
 import { useCart } from '../context/CartContext.jsx';
@@ -16,6 +16,7 @@ import ProductCard from '../components/ProductCard.jsx';
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { showToast } = useToast();
@@ -33,39 +34,15 @@ export default function ProductDetail() {
     setLoadingProduct(true);
     setSelectedImage(0);
     const fallback = enrichProduct(getProduct(id));
-    const catalogItem = catalog.find((p) => p.id === id);
 
     productsApi
       .get(id)
-      .then((r) => {
-        const apiProduct = enrichProduct(r.product) || fallback;
-        if (catalogItem?.images?.length) {
-          setProduct({
-            ...apiProduct,
-            images: catalogItem.images,
-            image: catalogItem.image || apiProduct.image,
-          });
-        } else {
-          setProduct(apiProduct);
-        }
-      })
-      .catch(() => setProduct(catalogItem || fallback))
+      .then((r) => setProduct(enrichProduct(r.product) || fallback))
+      .catch(() => setProduct(catalog.find((p) => p.id === id) || fallback))
       .finally(() => setLoadingProduct(false));
   }, [id]);
 
-  useEffect(() => {
-    const catalogItem = catalog.find((p) => p.id === id);
-    if (!catalogItem?.images?.length) return;
-    setProduct((prev) => {
-      if (!prev || prev.id !== id) return prev;
-      if (prev.images === catalogItem.images) return prev;
-      return {
-        ...prev,
-        images: catalogItem.images,
-        image: catalogItem.image || prev.image,
-      };
-    });
-  }, [catalog, id]);
+  const linkGallery = location.state?.gallery;
 
   const relatedProducts = useMemo(() => {
     if (!product) return [];
@@ -73,8 +50,8 @@ export default function ProductDetail() {
   }, [catalog, product]);
 
   const productImages = useMemo(
-    () => getProductGalleryForId(product, catalog, id),
-    [product, catalog, id],
+    () => resolveProductGallery({ productId: id, product, catalog, linkGallery }),
+    [id, product, catalog, linkGallery],
   );
   const {
     activeImageIndex,

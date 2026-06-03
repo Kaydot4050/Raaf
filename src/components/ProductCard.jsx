@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, Eye, ShoppingBag, Star } from 'lucide-react';
 import { formatPrice } from '../data/products.js';
-import { getProductGallery } from '../lib/productImages.js';
+import { getProductGallery, productLinkState, storeProductGallery } from '../lib/productImages.js';
 import { useGalleryHover } from '../hooks/useGalleryHover.js';
 import { useAccount } from '../context/AccountContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -14,12 +14,12 @@ export default function ProductCard({ product, onAdd }) {
   const { toggleWishlist, isInWishlist } = useAccount();
   const saved = isInWishlist(product.id);
 
-  const gallery = useMemo(
-    () => (product.images?.length ? product.images : getProductGallery(product)),
-    [product],
-  );
+  const gallery = useMemo(() => getProductGallery(product), [product]);
   const canCycle = gallery.length > 1;
   const { activeImageIndex: imageIndex, galleryHoverHandlers } = useGalleryHover(gallery, 0);
+  const linkState = productLinkState(gallery);
+
+  const rememberGallery = () => storeProductGallery(product.id, gallery);
 
   const getCatLabel = (cat) => {
     if (!cat) return '';
@@ -49,6 +49,8 @@ export default function ProductCard({ product, onAdd }) {
         )}
         <Link
           to={`/product/${product.id}`}
+          state={linkState}
+          onClick={rememberGallery}
           className="relative block w-full h-full"
           {...galleryHoverHandlers}
         >
@@ -96,9 +98,13 @@ export default function ProductCard({ product, onAdd }) {
           </button>
           <Link
             to={`/product/${product.id}`}
+            state={linkState}
+            onClick={(e) => {
+              rememberGallery();
+              e.stopPropagation();
+            }}
             className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center text-charcoal hover:bg-forest hover:text-white transition-colors duration-150"
             title="Quick view"
-            onClick={(e) => e.stopPropagation()}
           >
             <Eye className="w-4 h-4" />
           </Link>
@@ -116,7 +122,12 @@ export default function ProductCard({ product, onAdd }) {
           )}
         </div>
         <h3 className="font-display font-semibold text-sm text-charcoal leading-snug mb-1">
-          <Link to={`/product/${product.id}`} className="hover:text-forest transition-colors line-clamp-2">
+          <Link
+            to={`/product/${product.id}`}
+            state={linkState}
+            onClick={rememberGallery}
+            className="hover:text-forest transition-colors line-clamp-2"
+          >
             {product.name}
           </Link>
         </h3>

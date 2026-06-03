@@ -1,6 +1,7 @@
 import { products as staticCatalog } from '../data/products.js';
 
 const SIZE_VARIANTS = ['300x300', '150x150', '100x100', '50x50'];
+const GALLERY_SESSION_PREFIX = 'raafort-gallery:';
 
 /** Build /images/foo-150x150.png siblings from /images/foo-300x300.png (Woo-style assets). */
 export function inferGalleryVariants(url) {
@@ -53,10 +54,40 @@ export function enrichProduct(product) {
   };
 }
 
-/** Prefer catalog entry so detail matches the shop card the user hovered. */
-export function getProductGalleryForId(product, catalog, productId) {
+/** Persist gallery when leaving shop so detail matches what was hovered. */
+export function storeProductGallery(productId, gallery) {
+  if (!productId || !gallery?.length) return;
+  try {
+    sessionStorage.setItem(`${GALLERY_SESSION_PREFIX}${productId}`, JSON.stringify(gallery));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function readStoredProductGallery(productId) {
+  if (!productId) return null;
+  try {
+    const raw = sessionStorage.getItem(`${GALLERY_SESSION_PREFIX}${productId}`);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) && parsed.length ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Same images as shop card hover — prefer navigation/session, then catalog, then product. */
+export function resolveProductGallery({ productId, product, catalog, linkGallery }) {
+  if (linkGallery?.length) return linkGallery;
+
+  const stored = readStoredProductGallery(productId);
+  if (stored?.length) return stored;
+
   const catalogItem = catalog?.find((p) => p.id === productId);
-  return getProductGallery(catalogItem || product);
+  if (catalogItem) return getProductGallery(catalogItem);
+
+  return getProductGallery(product);
 }
 
 export const GALLERY_HOVER_MS = 550;
+
+export const productLinkState = (gallery) => ({ gallery });
