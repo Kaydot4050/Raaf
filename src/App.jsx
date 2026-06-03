@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout.jsx';
 import Home from './pages/Home.jsx';
 import Shop from './pages/Shop.jsx';
@@ -26,7 +27,60 @@ import UnderDevelopment from './pages/UnderDevelopment.jsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 import GuestRoute from './components/auth/GuestRoute.jsx';
 
+const ACCESS_COOKIE = 'raafort_preview';
+const PREVIEW_PARAM = 'preview';
+const PREVIEW_TOKEN = import.meta.env.VITE_PREVIEW_TOKEN || 'raafort2026';
+const IS_LOCAL_HOST =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.startsWith('192.168.'));
+
+/** Production is locked until launch. Set VITE_SITE_PUBLIC=true to open the site. */
+const SITE_LOCKED =
+  typeof window !== 'undefined' &&
+  !IS_LOCAL_HOST &&
+  import.meta.env.VITE_SITE_PUBLIC !== 'true';
+
+function getCookie(name) {
+  return document.cookie
+    .split(';')
+    .map((v) => v.trim())
+    .find((v) => v.startsWith(`${name}=`))
+    ?.split('=')[1];
+}
+
+function setPreviewCookie() {
+  const sevenDays = 60 * 60 * 24 * 7;
+  document.cookie = `${ACCESS_COOKIE}=granted; max-age=${sevenDays}; path=/; SameSite=Lax`;
+}
+
 export default function App() {
+  const location = useLocation();
+  const [hasPreview, setHasPreview] = useState(false);
+
+  const previewTokenInUrl = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get(PREVIEW_PARAM);
+  }, [location.search]);
+
+  useEffect(() => {
+    if (previewTokenInUrl === PREVIEW_TOKEN) {
+      setPreviewCookie();
+      setHasPreview(true);
+      return;
+    }
+    setHasPreview(getCookie(ACCESS_COOKIE) === 'granted');
+  }, [previewTokenInUrl]);
+
+  if (SITE_LOCKED && !hasPreview && location.pathname !== '/under-development') {
+    return <Navigate to="/under-development" replace />;
+  }
+
+  if (SITE_LOCKED && hasPreview && location.pathname === '/under-development') {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <Routes>
       <Route path="under-development" element={<UnderDevelopment />} />
