@@ -1,10 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { GALLERY_HOVER_MS } from '../lib/productImages.js';
 
-/** Same hover cycle as product detail: advance from (selected + 1) every GALLERY_HOVER_MS. */
+/** Cycles gallery images on hover or touch — same behavior as product detail. */
 export function useGalleryHover(productImages, selectedImage = 0) {
   const [galleryHovered, setGalleryHovered] = useState(false);
   const [hoverImageIndex, setHoverImageIndex] = useState(0);
+
+  const stopHover = useCallback(() => {
+    setGalleryHovered(false);
+    setHoverImageIndex(selectedImage);
+  }, [selectedImage]);
+
+  const startHover = useCallback(() => {
+    if (productImages.length > 1) setGalleryHovered(true);
+  }, [productImages.length]);
 
   useEffect(() => {
     if (!galleryHovered || productImages.length <= 1) {
@@ -26,11 +35,13 @@ export function useGalleryHover(productImages, selectedImage = 0) {
     galleryHovered && productImages.length > 1 ? hoverImageIndex : selectedImage;
 
   const galleryHoverHandlers = {
-    onMouseEnter: () => setGalleryHovered(true),
-    onMouseLeave: () => {
-      setGalleryHovered(false);
-      setHoverImageIndex(selectedImage);
-    },
+    onMouseEnter: startHover,
+    onMouseLeave: stopHover,
+    onFocus: startHover,
+    onBlur: stopHover,
+    onTouchStart: startHover,
+    onTouchEnd: stopHover,
+    onTouchCancel: stopHover,
   };
 
   return {

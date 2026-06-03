@@ -31,14 +31,9 @@ export default function ProductCard({ product, onAdd }) {
 
   return (
     <motion.article
-      className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-border/60 shadow-sm hover:shadow-lg hover:shadow-charcoal/5 transition-[box-shadow,transform] duration-200 ease-out"
-      whileHover={{ y: -3 }}
-      transition={{ duration: 0.15, ease: 'easeOut' }}
+      className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-border/60 shadow-sm hover:shadow-lg hover:shadow-charcoal/5 transition-shadow duration-200 ease-out"
     >
-      <div
-        className="relative aspect-[5/4] overflow-hidden bg-white"
-        {...galleryHoverHandlers}
-      >
+      <div className="relative aspect-[5/4] overflow-hidden bg-white">
         {product.bestSeller && (
           <span className="absolute top-3 left-3 z-20 px-2.5 py-1 rounded-full bg-charcoal text-white text-[10px] font-bold uppercase tracking-wide pointer-events-none">
             Best seller
@@ -49,7 +44,11 @@ export default function ProductCard({ product, onAdd }) {
             −{discount}%
           </span>
         )}
-        <Link to={`/product/${product.id}`} className="relative block w-full h-full">
+        <Link
+          to={`/product/${product.id}`}
+          className="relative block w-full h-full"
+          {...galleryHoverHandlers}
+        >
           {gallery.map((src, i) => (
             <img
               key={`${product.id}-${i}-${src}`}
