@@ -110,12 +110,38 @@ export async function api(path, options = {}) {
     }
   }
 
-  const err =
-    lastError ||
-    new Error(
-      `Cannot reach the API (tried ${bases.join(', ')}). Check api.${typeof window !== 'undefined' ? siteRoot(window.location.hostname) : 'yourdomain.com'}/api/health`,
+  throw friendlyFetchError(lastError, bases);
+}
+
+function friendlyFetchError(err, bases) {
+  const raw = err?.message || '';
+  const isNetwork =
+    raw === 'Failed to fetch' ||
+    raw.includes('NetworkError') ||
+    raw.includes('Load failed') ||
+    err?.name === 'TypeError';
+
+  if (typeof window !== 'undefined') {
+    const { hostname, protocol, port } = window.location;
+    if (isLocalDevServer(hostname, port)) {
+      return new Error(
+        isNetwork
+          ? 'Cannot reach the API. Start the backend with npm run dev (port 3001) and try again.'
+          : raw || 'Request failed.',
+      );
+    }
+    const apiHost = `api.${siteRoot(hostname)}`;
+    return new Error(
+      isNetwork
+        ? `Cannot reach the sign-in server (${bases[0] || `${protocol}//${apiHost}/api`}). Open ${protocol}//${apiHost}/api/health in your browser — you should see JSON, not a 503 page. If not, restart the Node app in cPanel (see HOSTING.md).`
+        : raw || `Request failed (tried ${bases.join(', ')}).`,
     );
-  throw err;
+  }
+
+  return (
+    err ||
+    new Error(`Cannot reach the API (tried ${bases?.join(', ') || 'unknown'}).`)
+  );
 }
 
 export const authApi = {
