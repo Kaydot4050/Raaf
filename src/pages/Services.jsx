@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import ServiceCapabilities from '../components/ServiceCapabilities.jsx';
 import ServiceBookingForm from '../components/ServiceBookingForm.jsx';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 32 },
@@ -44,11 +45,12 @@ const stats = [
 
 export default function Services() {
   const { data: hero } = usePageSection('services', 'hero', {
-    title: 'Farm services built around your success.',
+    title: 'End-to-end farm solutions',
     description:
-      'From day-old chicks and livestock to feed, logistics, and expert consultation — one partner for your entire agricultural operation.',
+      'Day-old chicks, livestock, feed, logistics, and on-farm advice under one roof.',
     image: '/images/istock-hero.jpg',
   });
+  usePageMeta('Farm Services', 'Poultry, livestock, feed, logistics, and expert consultation — one partner for your entire agricultural operation in Ghana.');
   const [bookService, setBookService] = useState('');
 
   const handleBook = (title) => {

@@ -170,3 +170,15 @@ export const productsApi = {
   getReviews: (id) => api(`/products/${id}/reviews`),
   addReview: (id, body) => api(`/products/${id}/reviews`, { method: 'POST', body: JSON.stringify(body) }),
 };
+
+export const externalApi = {
+  weather: (lat, lon) => {
+    const params = new URLSearchParams();
+    if (lat) params.append('lat', lat);
+    if (lon) params.append('lon', lon);
+    const q = params.toString();
+    return api(`/external/weather${q ? `?${q}` : ''}`);
+  },
+  news: () => api('/external/news'),
+  newsArticle: (url) => api(`/external/news/article?url=${encodeURIComponent(url)}`),
+};

@@ -23,6 +23,7 @@ const defaultState = {
     promotions: true,
     farmTips: false,
     smsAlerts: false,
+    showWeather: true,
   },
 };
 

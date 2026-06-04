@@ -12,13 +12,17 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
   },
   publicDir: 'public',
   server: {
     host: true,
     port: 5173,
     strictPort: true,
-    open: true,
+    open: !process.env.PW_TEST,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

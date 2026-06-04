@@ -67,18 +67,7 @@ export default function ProductCard({ product, onAdd }) {
             />
           ))}
         </Link>
-        {canCycle && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex gap-1 pointer-events-none">
-            {gallery.map((_, i) => (
-              <span
-                key={i}
-                className={`h-1 rounded-full transition-all duration-200 ${
-                  i === imageIndex ? 'w-3 bg-forest' : 'w-1 bg-charcoal/25'
-                }`}
-              />
-            ))}
-          </div>
-        )}
+
         <div className="absolute bottom-3 right-3 z-20 flex flex-col gap-2 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ease-out">
           <button
             type="button"

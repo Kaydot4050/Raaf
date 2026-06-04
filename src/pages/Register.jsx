@@ -19,7 +19,7 @@ export default function Register() {
 
   const onGoogleSuccess = () => {
     showToast('Account created with Google');
-    navigate('/account', { replace: true });
+    navigate('/', { replace: true });
   };
 
   if (authLoading) {
@@ -31,7 +31,7 @@ export default function Register() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/account" replace />;
+    return <Navigate to="/" replace />;
   }
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -51,14 +51,14 @@ export default function Register() {
       return;
     }
     showToast('Account created successfully');
-    navigate('/account', { replace: true });
+    navigate('/', { replace: true });
   };
 
   return (
     <AuthPageShell
       title="Create account"
       subtitle="Register your farm for faster checkout and order history."
-      heroTitle="Join farms across Ghana."
+      heroTitle="Create an account to track orders and reorder stock."
       heroSubtitle="Create your account in minutes — shop feed, livestock, and supplies with delivery tracking built in."
       footer={
         <p className="mt-8 text-sm text-center text-white/50">

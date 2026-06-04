@@ -26,8 +26,11 @@ async function getOrderItems(orderId) {
 
 router.post(
   '/',
-  authOptional,
+  authRequired,
   asyncHandler(async (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required to place order.' });
+    }
     const { customer, payment, items, subtotal } = req.body ?? {};
     if (!customer?.name?.trim() || !customer?.phone?.trim() || !customer?.address?.trim()) {
       return res.status(400).json({ error: 'Name, phone, and delivery address are required.' });
@@ -37,7 +40,19 @@ router.post(
     }
 
     const orderId = generateOrderId();
-    const total = subtotal ?? items.reduce((s, i) => s + i.price * i.qty, 0);
+    const totalItems = items.reduce((s, i) => s + i.price * i.qty, 0);
+    
+    // Calculate shipping based on region
+    const SHIPPING_RATES = {
+      'Greater Accra': 50, 'Ashanti': 80, 'Central': 60, 'Western': 80,
+      'Eastern': 60, 'Volta': 70, 'Northern': 100, 'Upper East': 120,
+      'Upper West': 120, 'Bono': 90, 'Bono East': 90, 'Ahafo': 90,
+      'Oti': 80, 'Savannah': 110, 'North East': 110, 'Western North': 90,
+    };
+    const regionKey = customer.region?.trim();
+    const shippingCost = regionKey && SHIPPING_RATES[regionKey] ? SHIPPING_RATES[regionKey] : 100;
+    
+    const total = totalItems + shippingCost;
     const client = await pool.connect();
 
     try {
@@ -45,19 +60,20 @@ router.post(
       await client.query(
         `INSERT INTO orders (
           id, user_id, status, customer_name, customer_email, customer_phone,
-          region, address, notes, payment_method, subtotal
-        ) VALUES ($1, $2, 'pending', $3, $4, $5, $6, $7, $8, $9, $10)`,
+          region, address, notes, payment_method, subtotal, shipping_cost
+        ) VALUES ($1, $2, 'pending', $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
         [
           orderId,
           req.user?.id ?? null,
           customer.name.trim(),
           customer.email?.trim() || null,
           customer.phone.trim(),
-          customer.region?.trim() || null,
+          regionKey || null,
           customer.address.trim(),
           customer.notes?.trim() || null,
-          payment || 'momo',
-          total,
+          payment || 'paystack',
+          totalItems,
+          shippingCost
         ],
       );
       for (const item of items) {
@@ -66,6 +82,12 @@ router.post(
            VALUES ($1, $2, $3, $4, $5, $6)`,
           [orderId, item.id || null, item.name, item.qty, item.price, item.image || null],
         );
+        if (item.id) {
+          await client.query(
+            `UPDATE products SET stock_quantity = stock_quantity - $1 WHERE id = $2 AND stock_quantity >= $1`,
+            [item.qty, item.id]
+          );
+        }
       }
       await client.query('COMMIT');
     } catch (e) {

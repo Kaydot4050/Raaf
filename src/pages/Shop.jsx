@@ -9,6 +9,7 @@ import SortSelect from '../components/ui/SortSelect.jsx';
 import { categories, formatPrice } from '../data/products.js';
 import { useProducts } from '../hooks/useProducts.js';
 import { useCart } from '../context/CartContext.jsx';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 const TYPELABELS = {
   chicken: 'Chickens',
@@ -41,6 +42,7 @@ function FilterBlock({ title, defaultOpen = true, children, collapsed, onToggle 
 
 export default function Shop() {
   const { products, loading, error } = useProducts();
+  usePageMeta('Shop', 'Browse our full range of poultry, livestock, feed, and farm equipment.');
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get('category') || 'all';
 

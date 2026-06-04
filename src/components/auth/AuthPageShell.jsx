@@ -18,8 +18,8 @@ export const authLabelCls = 'block text-sm font-medium text-white/85';
 export default function AuthPageShell({
   title,
   subtitle,
-  heroTitle = 'Grow smarter. Farm better.',
-  heroSubtitle = 'Your farm supply hub — orders, tracking, and account tools synced in one place.',
+  heroTitle = 'Orders, tracking, and farm details in one account.',
+  heroSubtitle = 'Sign in to check deliveries, reorder stock, and update your farm profile.',
   children,
   footer,
 }) {

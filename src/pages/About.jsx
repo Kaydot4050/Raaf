@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import MissionVisionBook from '../components/MissionVisionBook.jsx';
 import TeamShowcaseSlider from '../components/TeamShowcaseSlider.jsx';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 /* ── Animation helpers ──────────────────────────────── */
 const fadeUp = {
@@ -34,19 +35,19 @@ function Counter({ to, suffix = '', prefix = '' }) {
 const values = [
   {
     icon: Heart, num: '01', title: 'Integrity',
-    desc: 'We communicate with honesty and act with transparency. Every transaction, recommendation, and partnership is held to the highest ethical standard.',
+    desc: 'We quote honestly, deliver what we promise, and flag problems early.',
   },
   {
-    icon: Shield, num: '02', title: 'Value-Driven Excellence',
-    desc: 'From hatchery to delivery, we are committed to quality. Our objective is client success — we consistently work to meet and exceed your farm goals.',
+    icon: Shield, num: '02', title: 'Quality stock',
+    desc: 'Vaccinated chicks, checked livestock, and feed batches we stand behind.',
   },
   {
-    icon: Users, num: '03', title: 'Client-Centered',
-    desc: 'Our success metrics are yours. We align our performance goals to the specific needs and growth targets of every farmer and investor we serve.',
+    icon: Users, num: '03', title: 'Farmer-first',
+    desc: 'Orders, health plans, and pricing shaped around your farm size and season.',
   },
   {
-    icon: Leaf, num: '04', title: 'Continuous Growth',
-    desc: 'We are dedicated to learning, improving, and innovating. Raafort Agro supports its team, clients, and communities to grow beyond their current limits.',
+    icon: Leaf, num: '04', title: 'Keep improving',
+    desc: 'Our team trains on new breeds, biosecurity, and logistics so your results can improve season after season.',
   },
 ];
 
@@ -126,10 +127,11 @@ function ValueItem({ v, isOpen, onClick, index }) {
 
 /* ── Main ───────────────────────────────────────────── */
 export default function About() {
+  usePageMeta('About Us', 'Learn about Raafortagro — our mission, team, and commitment to Ghanaian agriculture.');
   const [openValue, setOpenValue] = useState(0);
   const { data: hero } = usePageSection('about', 'hero', {
     eyebrow: 'Our Story',
-    title: 'THE FOUNDATION OF OUR MISSION',
+    title: 'Built for Ghanaian farms',
     card1Title: 'Since 2015',
     card1Subtitle: 'Trusted by farmers',
     card2Title: 'Raafort Agro',
@@ -137,8 +139,8 @@ export default function About() {
     card3Subtitle: 'Nationwide',
   });
   const { data: intro } = usePageSection('about', 'intro', {
-    quote: 'We exist to strengthen Ghanaian agriculture — one farm, one flock, one harvest at a time.',
-    body: 'Raafort Agro connects farmers with quality genetics, feeds, and advisory services across Ghana.',
+    quote: 'We help Ghanaian farms run on reliable stock, clear advice, and deliveries you can plan around.',
+    body: 'Raafort Agro supplies genetics, feed, and on-farm support from Accra to the regions.',
   });
   const { data: valuesCms } = usePageSection('about', 'values', { items: values });
   const { data: statsCms } = usePageSection('about', 'stats', { items: stats });
@@ -297,8 +299,7 @@ export default function About() {
               </motion.h2>
               <motion.p variants={fadeUp} custom={2} initial="hidden" whileInView="show" viewport={{ once: true }}
                 className="text-text leading-relaxed mb-4">
-                We help our clients achieve sustainable growth through values rooted in integrity,
-                innovation, and honest partnership.
+                We run on straight talk, reliable stock, and delivery you can plan around.
               </motion.p>
             </div>
 
@@ -333,20 +334,19 @@ export default function About() {
               </motion.p>
               <motion.h2 variants={fadeUp} custom={1} initial="hidden" whileInView="show" viewport={{ once: true }}
                 className="font-display text-4xl md:text-5xl font-bold text-charcoal mb-6 leading-tight">
-                We turn farm goals<br />into{' '}
-                <span className="text-forest">tangible results.</span>
+                We track results<br />in{' '}
+                <span className="text-forest">flock performance.</span>
               </motion.h2>
               <motion.p variants={fadeUp} custom={2} initial="hidden" whileInView="show" viewport={{ once: true }}
                 className="text-text leading-relaxed mb-10 max-w-md">
-                Our focus on farm performance, quality inputs, and continuous improvement ensures every partnership
-                delivers a measurable impact on your bottom line.
+                Survival rates, feed conversion, and on-time delivery are how we judge a job well done.
               </motion.p>
 
               {/* Two small stats stacked */}
               <div className="space-y-4">
                 {[
                   { value: 90, suffix: '%', label: 'Documented survival rate for our day-old chick deliveries on registered farms.' },
-                  { value: 100, suffix: '+', label: 'Programs delivered in digital marketing, branding and business strategy for agri-entrepreneurs.' },
+                  { value: 100, suffix: '+', label: 'On-farm vaccination and biosecurity plans completed with registered clients.' },
                 ].map((s, i) => (
                   <motion.div key={i} variants={fadeUp} custom={i + 3} initial="hidden" whileInView="show" viewport={{ once: true }}
                     className="flex items-start gap-5 p-5 rounded-2xl bg-white border border-border shadow-sm hover:border-forest/30 transition-colors">
@@ -455,7 +455,7 @@ export default function About() {
             </div>
             <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="show" viewport={{ once: true }}>
               <p className="text-text leading-relaxed mb-6">
-                We are a group of specialists, advisors, and producers whose mission is to grow your brand — and your farm.
+                Hatchery, veterinary, advisory, and customer support teams behind every order.
               </p>
               <Link
                 to="/contact"
@@ -490,7 +490,7 @@ export default function About() {
           </motion.h2>
           <motion.p variants={fadeUp} custom={2} initial="hidden" whileInView="show" viewport={{ once: true }}
             className="text-white/60 text-lg max-w-lg mx-auto mb-10">
-            Get in touch and let's build a plan that works for your operation.
+            Tell us your farm size and breeds. We will map stock, feed, and delivery.
           </motion.p>
           <motion.div variants={fadeUp} custom={3} initial="hidden" whileInView="show" viewport={{ once: true }}
             className="flex flex-col sm:flex-row gap-4 justify-center">

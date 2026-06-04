@@ -5,20 +5,20 @@ import {
 } from 'lucide-react';
 
 export const servicesCatalog = [
-  { isCore: true, icon: Egg, tag: 'Poultry', title: 'Day-Old Chicks', short: 'Vaccinated, high-yield chicks delivered safely nationwide.', desc: 'Sourced from elite parent stock. Every chick is vaccinated, health-certified, and transported with live-animal care protocols.', image: '/images/Raafortagro-2.png' },
+  { isCore: true, icon: Egg, tag: 'Poultry', title: 'Day-Old Chicks', short: 'Vaccinated, high-yield chicks delivered safely nationwide.', desc: 'Sourced from selected parent stock. Every chick is vaccinated, health-certified, and transported with live-animal care protocols.', image: '/images/Raafortagro-2.png' },
   { isCore: false, icon: Egg, tag: 'Poultry', title: 'Point-of-Lay Pullets', short: 'Ready-to-lay hens for immediate egg production.', desc: 'Skip the brooding phase. Our 16-week old pullets are fully vaccinated and primed for maximum yield.' },
-  { isCore: false, icon: Beef, tag: 'Poultry', title: 'Broiler Processing', short: 'Hygienic processing and packaging services.', desc: 'Commercial-grade processing facilities ensuring your meat meets all health and safety standards.' },
-  { isCore: false, icon: Warehouse, tag: 'Poultry', title: 'Hatchery Services', short: 'Custom hatching and incubation.', desc: 'State-of-the-art incubation ensuring high hatchability and robust day-old chicks.' },
+  { isCore: false, icon: Beef, tag: 'Poultry', title: 'Broiler Processing', short: 'Hygienic processing and packaging services.', desc: 'Approved processing facilities ensuring your meat meets all health and safety standards.' },
+  { isCore: false, icon: Warehouse, tag: 'Poultry', title: 'Hatchery Services', short: 'Custom hatching and incubation.', desc: 'Modern incubation ensuring high hatchability and robust day-old chicks.' },
   { isCore: false, icon: Package, tag: 'Poultry', title: 'Poultry Equipment', short: 'Feeders, drinkers, and heating systems.', desc: 'Everything you need to equip your poultry house for optimal growth and survival rates.' },
 
-  { isCore: true, icon: TrendingUp, tag: 'Advisory', title: 'Farm Consultancy', short: 'Expert analysis to unlock your farm\'s full potential.', desc: 'Our specialists assess your operation and deliver actionable recommendations.', image: '/images/Raafortagro-3.png' },
-  { isCore: false, icon: FileText, tag: 'Advisory', title: 'Business Planning', short: 'Strategic roadmaps for farm profitability.', desc: 'Comprehensive business plans tailored for agricultural startups and expanding operations.' },
+  { isCore: true, icon: TrendingUp, tag: 'Advisory', title: 'Farm Consultancy', short: 'Expert analysis to improve margins and flock health.', desc: 'Our specialists assess your operation and deliver clear next steps.', image: '/images/Raafortagro-3.png' },
+  { isCore: false, icon: FileText, tag: 'Advisory', title: 'Business Planning', short: 'Strategic roadmaps for farm profitability.', desc: 'Written business plans tailored for agricultural startups and expanding operations.' },
   { isCore: false, icon: Shield, tag: 'Advisory', title: 'Risk Management', short: 'Mitigate agricultural and financial risks.', desc: 'Identify and neutralize threats before they impact your farm\'s bottom line.' },
-  { isCore: false, icon: Droplets, tag: 'Advisory', title: 'Resource Optimization', short: 'Do more with less waste.', desc: 'Analyze water, feed, and energy usage to dramatically reduce overhead costs.' },
+  { isCore: false, icon: Droplets, tag: 'Advisory', title: 'Resource Optimization', short: 'Do more with less waste.', desc: 'Analyze water, feed, and energy usage to cut overhead costs.' },
   { isCore: false, icon: Coins, tag: 'Advisory', title: 'Market Analysis', short: 'Know where to sell for the best margins.', desc: 'Data-driven insights into agricultural commodity prices and demand forecasting.' },
 
   { isCore: true, icon: Stethoscope, tag: 'Health', title: 'Veterinary Care', short: 'Professional animal health & prevention programs.', desc: 'On-farm veterinary visits, vaccinations, and preventive health plans.' },
-  { isCore: false, icon: Shield, tag: 'Health', title: 'Vaccination Programs', short: 'Comprehensive immunization schedules.', desc: 'Protect your flock and herd with expertly administered, timely vaccines.' },
+  { isCore: false, icon: Shield, tag: 'Health', title: 'Vaccination Programs', short: 'Full vaccination schedules for your flock or herd.', desc: 'Protect your flock and herd with expertly administered, timely vaccines.' },
   { isCore: false, icon: Droplets, tag: 'Health', title: 'Disease Diagnostics', short: 'Rapid testing and treatment plans.', desc: 'Accurate laboratory diagnostics to catch and contain outbreaks early.' },
   { isCore: false, icon: Warehouse, tag: 'Health', title: 'Biosecurity Protocols', short: 'Keep pathogens off your farm.', desc: 'Custom biosecurity audits and implementation strategies to protect your investment.' },
   { isCore: false, icon: Wheat, tag: 'Health', title: 'Nutritional Supplements', short: 'Vitamins and minerals for peak health.', desc: 'Targeted supplements to boost immunity, growth, and production rates.' },
@@ -42,7 +42,7 @@ export const servicesCatalog = [
   { isCore: false, icon: Droplets, tag: 'Learning', title: 'Masterclasses', short: 'Deep dives into specialized topics.', desc: 'Intensive weekend seminars on advanced farming techniques and technologies.' },
 
   { isCore: true, icon: Coins, tag: 'Finance', title: 'Investment Packages', short: 'Grow your capital through managed agri-investment.', desc: 'Partner with us to fund projects managed by our expert team with agreed profit-sharing.' },
-  { isCore: false, icon: Shield, tag: 'Finance', title: 'Farm Insurance', short: 'Protect your flock and assets.', desc: 'Comprehensive coverage against disease outbreaks, natural disasters, and theft.' },
+  { isCore: false, icon: Shield, tag: 'Finance', title: 'Farm Insurance', short: 'Protect your flock and assets.', desc: 'Coverage for disease outbreaks, natural disasters, and theft.' },
   { isCore: false, icon: Settings, tag: 'Finance', title: 'Equipment Financing', short: 'Upgrade without breaking the bank.', desc: 'Flexible payment plans for tractors, silos, and automated housing systems.' },
   { isCore: false, icon: FileText, tag: 'Finance', title: 'Grant Assistance', short: 'Access government and NGO funding.', desc: 'Expert help in writing proposals and securing agricultural development grants.' },
   { isCore: false, icon: TrendingUp, tag: 'Finance', title: 'Profit Sharing', short: 'Joint venture farming.', desc: 'Provide the land or capital, and we provide the management for a shared return.' },

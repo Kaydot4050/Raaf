@@ -9,6 +9,7 @@ import Services from './pages/Services.jsx';
 import Contact from './pages/Contact.jsx';
 import Blog from './pages/Blog.jsx';
 import BlogPost from './pages/BlogPost.jsx';
+import NewsArticle from './pages/NewsArticle.jsx';
 import Cart from './pages/Cart.jsx';
 import Checkout from './pages/Checkout.jsx';
 import OrderConfirmation from './pages/OrderConfirmation.jsx';
@@ -101,6 +102,7 @@ export default function App() {
         <Route path="contact" element={<Contact />} />
         <Route path="blog" element={<Blog />} />
         <Route path="blog/:id" element={<BlogPost />} />
+        <Route path="news/article" element={<NewsArticle />} />
         <Route path="cart" element={<Cart />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="order-confirmation" element={<OrderConfirmation />} />

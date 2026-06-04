@@ -6,15 +6,16 @@ import { SectionHeader, RevealItem } from '../components/ui/SectionReveal.jsx';
 import { fadeUp } from '../lib/motion.js';
 import { inquiriesApi } from '../lib/api.js';
 import { usePageSection } from '../context/ContentContext.jsx';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 const CARD_ICONS = { Phone, Mail, Clock, MapPin };
 
 export default function Contact() {
+  usePageMeta('Contact Us', 'Get in touch with Raafortagro for orders, inquiries, and farm consultation.');
   const { data: cms } = usePageSection('contact', 'main', {
     eyebrow: 'Contact',
-    title: 'We are here for your farm',
-    description:
-      'Questions about orders, breeds, or delivery? Our team responds quickly — usually within one business day.',
+    title: 'Talk to our team',
+    description: 'Ask about orders, breeds, or delivery. We reply within one business day.',
     supportCards: [
       { icon: 'Phone', title: 'Call us', detail: '+233 00 000 0000', href: 'tel:+233000000000' },
       { icon: 'Mail', title: 'Email', detail: 'hello@raafortagro.com', href: 'mailto:hello@raafortagro.com' },

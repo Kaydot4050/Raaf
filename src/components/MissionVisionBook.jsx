@@ -22,10 +22,10 @@ function MissionPage({ className = '' }) {
           <h3 className="font-display text-xl sm:text-2xl font-bold text-charcoal">Our Mission</h3>
         </div>
         <p className="font-display text-lg sm:text-xl md:text-[1.4rem] font-semibold leading-snug mb-6 max-w-lg">
-          Empower Ghanaian farmers with premium genetics, reliable logistics, and honest expertise.
+          Supply Ghanaian farms with vaccinated stock, reliable delivery, and field advice you can use.
         </p>
         <p className="text-text text-sm sm:text-base leading-relaxed mb-6 max-w-md">
-          So every farm can produce more with confidence — from your first flock to full-scale operations.
+          From a first brooder to commercial houses, we stay involved through grow-out.
         </p>
         <ul className="space-y-3.5 mt-auto">
           {missionBullets.map((item, i) => (
@@ -67,7 +67,7 @@ function VisionPage({ className = '' }) {
           West Africa&apos;s most trusted agricultural supply brand.
         </p>
         <p className="text-white/75 text-sm sm:text-base leading-relaxed mb-7 max-w-md">
-          Where quality, care, and community grow together toward a food-secure future for every farmer we serve.
+          A supply chain Ghanaian farmers can depend on for chicks, feed, health plans, and honest pricing.
         </p>
         <div className="rounded-2xl bg-white/5 border border-white/10 p-4 backdrop-blur-sm mt-auto">
           <p className="text-white font-semibold text-sm">Growing stronger</p>

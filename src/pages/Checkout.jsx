@@ -7,18 +7,37 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { formatPrice } from '../data/products.js';
 import { createOrder } from '../lib/orders.js';
 import Button from '../components/ui/Button.jsx';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 const inputCls =
   'mt-1.5 w-full px-4 py-3 rounded-xl border border-border bg-white text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-forest/30';
 const labelCls = 'block text-xs font-semibold text-charcoal uppercase tracking-wide';
 
+const SHIPPING_RATES = {
+  'Greater Accra': 50,
+  'Ashanti': 80,
+  'Central': 60,
+  'Western': 80,
+  'Eastern': 60,
+  'Volta': 70,
+  'Northern': 100,
+  'Upper East': 120,
+  'Upper West': 120,
+  'Bono': 90,
+  'Bono East': 90,
+  'Ahafo': 90,
+  'Oti': 80,
+  'Savannah': 110,
+  'North East': 110,
+  'Western North': 90,
+};
+
 const PAYMENT_OPTIONS = [
-  { id: 'momo', label: 'Mobile money' },
-  { id: 'bank', label: 'Bank transfer' },
-  { id: 'account', label: 'Registered farm account (credit terms)' },
+  { id: 'paystack', label: 'Online Payment (Paystack)' },
 ];
 
 export default function Checkout() {
+  usePageMeta('Checkout', 'Complete your order — enter delivery details and pay securely.');
   const navigate = useNavigate();
   const { items, clear } = useCart();
   const { profile, farm } = useAccount();
@@ -40,7 +59,15 @@ export default function Checkout() {
     return <Navigate to="/cart" replace />;
   }
 
+  if (!isAuthenticated) {
+    // Optionally we can pass a redirect param, but for now just redirect to login
+    return <Navigate to="/login" replace />;
+  }
+
   const subtotal = items.reduce((sum, item) => sum + item.priceMin * item.qty, 0);
+  const regionKey = form.region?.trim();
+  const shippingCost = regionKey && SHIPPING_RATES[regionKey] ? SHIPPING_RATES[regionKey] : 100;
+  const orderTotal = subtotal + shippingCost;
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
@@ -73,7 +100,19 @@ export default function Checkout() {
         subtotal,
       });
       clear();
-      navigate(`/order-confirmation?order=${order.id}`, { replace: true });
+      
+      // Initialize Paystack payment
+      const paymentRes = await fetch('/api/payment/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const paymentData = await paymentRes.json();
+      if (paymentData.authorization_url) {
+        window.location.href = paymentData.authorization_url;
+      } else {
+        navigate(`/order-confirmation?order=${order.id}`, { replace: true });
+      }
     } catch (err) {
       setError(err.message || 'Could not place order. Try again.');
     } finally {
@@ -90,14 +129,6 @@ export default function Checkout() {
           <span className="text-charcoal font-medium">Checkout</span>
         </div>
         <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-charcoal mb-8">Checkout</h1>
-
-        {!isAuthenticated && (
-          <p className="mb-6 text-sm text-text bg-white border border-border rounded-xl px-4 py-3">
-            Have an account?{' '}
-            <Link to="/login" className="text-forest font-semibold hover:underline">Sign in</Link>
-            {' '}for faster checkout.
-          </p>
-        )}
 
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-[1fr_340px] gap-8 items-start">
           <motion.div
@@ -187,9 +218,16 @@ export default function Checkout() {
               <span>Subtotal</span>
               <span className="font-bold text-charcoal">{formatPrice(subtotal, subtotal)}</span>
             </p>
-            <p className="text-xs text-text-muted mt-2">Shipping quoted after order review.</p>
+            <p className="flex justify-between text-sm text-text-muted mt-2">
+              <span>Shipping</span>
+              <span className="font-bold text-charcoal">{formatPrice(shippingCost, shippingCost)}</span>
+            </p>
+            <p className="flex justify-between text-base mt-4 pt-4 border-t border-border">
+              <span className="font-bold text-charcoal">Total</span>
+              <span className="font-bold text-forest text-lg">{formatPrice(orderTotal, orderTotal)}</span>
+            </p>
             <Button type="submit" variant="forest" className="w-full justify-center mt-5" disabled={submitting}>
-              {submitting ? 'Placing order…' : 'Place order'}
+              {submitting ? 'Redirecting to payment…' : 'Pay & Place Order'}
             </Button>
             <Link to="/cart" className="block text-center text-sm text-text-muted hover:text-charcoal mt-3 py-2">
               Back to cart

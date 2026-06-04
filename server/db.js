@@ -179,6 +179,12 @@ const MIGRATIONS = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_product_reviews_product ON product_reviews(product_id)`,
   `ALTER TABLE products ADD COLUMN IF NOT EXISTS images JSONB NOT NULL DEFAULT '[]'::jsonb`,
+  `ALTER TABLE products ADD COLUMN IF NOT EXISTS stock_quantity INTEGER NOT NULL DEFAULT 100`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'pending'`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS transaction_id TEXT`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_cost DOUBLE PRECISION NOT NULL DEFAULT 0`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_code TEXT`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS logistics_provider TEXT`,
 ];
 
 export async function initDb() {
@@ -270,6 +276,7 @@ export function productFromBody(body) {
     original_price_min: body.originalPriceMin != null ? Number(body.originalPriceMin) : null,
     original_price_max: body.originalPriceMax != null ? Number(body.originalPriceMax) : null,
     in_stock: body.inStock !== false,
+    stock_quantity: body.stockQuantity != null ? Number(body.stockQuantity) : 100,
   };
 }
 
@@ -297,6 +304,7 @@ export function rowToProduct(row) {
     originalPriceMin: row.original_price_min != null ? Number(row.original_price_min) : undefined,
     originalPriceMax: row.original_price_max != null ? Number(row.original_price_max) : undefined,
     inStock: !!row.in_stock,
+    stockQuantity: Number(row.stock_quantity ?? 100),
   };
 }
 
@@ -314,7 +322,12 @@ export function rowToOrder(row, items = []) {
       notes: row.notes,
     },
     payment: row.payment_method,
+    paymentStatus: row.payment_status || 'pending',
+    transactionId: row.transaction_id,
     subtotal: Number(row.subtotal),
+    shippingCost: Number(row.shipping_cost || 0),
+    trackingCode: row.tracking_code,
+    logisticsProvider: row.logistics_provider,
     items,
   };
 }

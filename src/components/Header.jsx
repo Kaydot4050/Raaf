@@ -100,7 +100,7 @@ export default function Header() {
   );
 
   const authDesktop = loading ? <AuthSpinner /> : isAuthenticated ? <UserMenu /> : <AuthButtons />;
-  const authMobile = loading ? <AuthSpinner /> : isAuthenticated ? <UserMenu compact /> : null;
+  const authMobile = loading ? <AuthSpinner /> : isAuthenticated ? <UserMenu compact /> : <AuthButtons compact />;
 
   const mobileMenu =
     typeof document !== 'undefined' &&

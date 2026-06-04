@@ -1,155 +1,100 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { Cloud, Droplets, Wind, Sun, CloudRain, CloudLightning, Snowflake } from 'lucide-react';
+import { externalApi } from '../lib/api.js';
 
-import { Sun, CloudRain } from 'lucide-react';
+function getWeatherIcon(code) {
+  if (code === 0) return <Sun className="w-8 h-8 text-yellow-500" />;
+  if (code > 0 && code <= 3) return <Cloud className="w-8 h-8 text-gray-400" />;
+  if (code >= 51 && code <= 67) return <CloudRain className="w-8 h-8 text-blue-400" />;
+  if (code >= 71 && code <= 77) return <Snowflake className="w-8 h-8 text-blue-200" />;
+  if (code >= 80 && code <= 82) return <CloudRain className="w-8 h-8 text-blue-500" />;
+  if (code >= 95) return <CloudLightning className="w-8 h-8 text-yellow-600" />;
+  return <Cloud className="w-8 h-8 text-gray-400" />;
+}
 
-export default function WeatherWidget() {
-  const [weatherData, setWeatherData] = useState(null);
+function getWeatherDescription(code) {
+  if (code === 0) return 'Clear sky';
+  if (code === 1) return 'Mainly clear';
+  if (code === 2) return 'Partly cloudy';
+  if (code === 3) return 'Overcast';
+  if (code >= 51 && code <= 55) return 'Drizzle';
+  if (code >= 61 && code <= 65) return 'Rain';
+  if (code >= 71 && code <= 77) return 'Snow fall';
+  if (code >= 80 && code <= 82) return 'Rain showers';
+  if (code >= 95) return 'Thunderstorm';
+  return 'Cloudy';
+}
+
+export default function WeatherWidget({ lat, lon }) {
+  const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [locationName, setLocationName] = useState('Accra, Ghana');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-
-  const fetchWeather = async (lat, lon, name) => {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,precipitation,relative_humidity_2m&timezone=auto`);
-      const data = await res.json();
-      if (data.current) {
-        setWeatherData({
-          airTemp: data.current.temperature_2m,
-          soilTemp: data.current.precipitation,
-          humidity: data.current.relative_humidity_2m
-        });
-        setLocationName(name);
-      } else {
-        setError(true);
-      }
-    } catch (e) {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    
-    setIsSearching(true);
-    setError(false);
-    try {
-      const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=1&language=en&format=json`);
-      const geoData = await geoRes.json();
-      
-      if (geoData.results && geoData.results.length > 0) {
-        const { latitude, longitude, name, country } = geoData.results[0];
-        await fetchWeather(latitude, longitude, `${name}, ${country || ''}`);
-        setSearchQuery('');
-      } else {
-        setError(true); // Location not found
-      }
-    } catch (e) {
-      setError(true);
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Initial fetch for default location
-    fetchWeather(5.6037, -0.1870, 'Accra, Ghana');
-  }, []);
+    async function fetchWeather() {
+      try {
+        setLoading(true);
+        const data = await externalApi.weather(lat, lon);
+        setWeather(data);
+      } catch (err) {
+        console.error('Weather error:', err);
+        setError('Could not load weather');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchWeather();
+  }, [lat, lon]);
 
-  const isCloudy = weatherData?.humidity >= 70;
+  if (loading) return <div className="p-6 bg-white rounded-2xl shadow-sm border border-border flex items-center justify-center min-h-[160px]"><span className="text-sm text-text-muted">Loading weather...</span></div>;
+  if (error) return <div className="p-6 bg-white rounded-2xl shadow-sm border border-border flex items-center justify-center min-h-[160px]"><span className="text-sm text-red-500">{error}</span></div>;
+  if (!weather || !weather.current) return null;
+
+  const current = weather.current;
+  const todayMax = weather.daily?.temperature_2m_max?.[0];
+  const todayMin = weather.daily?.temperature_2m_min?.[0];
 
   return (
-    <motion.div 
-      className={`border border-forest/20 rounded-xl p-5 mb-10 relative overflow-hidden ${!isCloudy ? 'bg-forest/5' : ''}`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      style={isCloudy ? {
-        backgroundImage: 'url(/images/weather.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      } : {}}
-    >
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
-        <div>
-          <h3 className="text-xl font-bold text-heading mb-1">Local Farm Conditions</h3>
-          <p className="text-sm text-text">Currently showing: <span className="font-semibold text-primary">{locationName}</span></p>
-        </div>
-        
-        <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
-          <input
-            type="text"
-            placeholder="Enter city or region..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 md:w-64 px-4 py-2 text-sm border border-border rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          />
-          <button 
-            type="submit" 
-            disabled={isSearching}
-            className="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-forest transition-colors disabled:opacity-50"
-          >
-            {isSearching ? 'Searching...' : 'Check'}
-          </button>
-        </form>
+    <div className="bg-white rounded-2xl shadow-sm border border-border p-6 relative overflow-hidden">
+      <div className="absolute top-0 right-0 p-4 opacity-10">
+        {getWeatherIcon(current.weather_code)}
       </div>
       
-      <div className="relative z-10 flex gap-4 sm:gap-8 bg-white/90 backdrop-blur-sm p-4 rounded-lg shadow-sm border border-border justify-center md:justify-start items-center">
-        {loading ? (
-          <div className="text-sm text-text py-2">Loading weather data...</div>
-        ) : error ? (
-          <div className="text-sm text-red-500 py-2">Failed to load data for this location. Please try another city.</div>
-        ) : (
-          <>
-            <div className="text-center px-4">
-              <span className="block text-3xl font-bold text-primary">{weatherData?.airTemp}°C</span>
-              <span className="text-xs text-text uppercase tracking-wider font-semibold">Air Temp</span>
-            </div>
-            <div className="w-px h-12 bg-border"></div>
-            <div className="text-center px-4">
-              <span className="block text-3xl font-bold text-primary">{weatherData?.soilTemp}mm</span>
-              <span className="text-xs text-text uppercase tracking-wider font-semibold">Precipitation</span>
-            </div>
-            <div className="w-px hidden sm:block h-12 bg-border"></div>
-            <div className="text-center px-4 hidden sm:block">
-              <span className="block text-3xl font-bold text-primary">{weatherData?.humidity}%</span>
-              <span className="text-xs text-text uppercase tracking-wider font-semibold">Humidity</span>
-            </div>
-            
-            <div className="w-px h-12 bg-border mx-2"></div>
-            
-            <div className="flex flex-col items-center justify-center px-4">
-              {isCloudy ? (
-                <motion.div
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                  className="text-gray-500"
-                >
-                  <CloudRain size={40} />
-                </motion.div>
-              ) : (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
-                  className="text-yellow-500"
-                >
-                  <Sun size={40} />
-                </motion.div>
-              )}
-              <span className="text-xs text-text uppercase tracking-wider font-semibold mt-1">
-                {isCloudy ? 'Humid/Cloudy' : 'Sunny/Clear'}
-              </span>
-            </div>
-          </>
-        )}
+      <h3 className="text-sm font-semibold text-charcoal mb-4 uppercase tracking-wider">Local Weather</h3>
+      
+      <div className="flex items-center gap-4 mb-6">
+        <div className="p-3 bg-cream rounded-xl">
+          {getWeatherIcon(current.weather_code)}
+        </div>
+        <div>
+          <div className="text-3xl font-bold text-charcoal">{current.temperature_2m}°C</div>
+          <div className="text-sm text-text font-medium">{getWeatherDescription(current.weather_code)}</div>
+        </div>
       </div>
-    </motion.div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex items-center gap-2">
+          <Droplets className="w-4 h-4 text-forest" />
+          <div className="text-xs">
+            <p className="text-text-muted">Humidity</p>
+            <p className="font-semibold text-charcoal">{current.relative_humidity_2m}%</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Wind className="w-4 h-4 text-forest" />
+          <div className="text-xs">
+            <p className="text-text-muted">Wind</p>
+            <p className="font-semibold text-charcoal">{current.wind_speed_10m} km/h</p>
+          </div>
+        </div>
+      </div>
+
+      {(todayMax !== undefined && todayMin !== undefined) && (
+        <div className="mt-4 pt-4 border-t border-border flex justify-between text-xs text-text-muted">
+          <span>High: <span className="text-charcoal font-semibold">{todayMax}°C</span></span>
+          <span>Low: <span className="text-charcoal font-semibold">{todayMin}°C</span></span>
+        </div>
+      )}
+    </div>
   );
 }

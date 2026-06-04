@@ -4,8 +4,10 @@ import { Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { formatPrice } from '../data/products.js';
 import Button from '../components/ui/Button.jsx';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 export default function Cart() {
+  usePageMeta('Cart', 'Review items in your cart before checkout.');
   const { items, removeItem, updateQty, clear } = useCart();
 
   if (items.length === 0) {

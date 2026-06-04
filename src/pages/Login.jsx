@@ -19,7 +19,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const from = location.state?.from?.pathname || '/account';
+  const from = location.state?.from?.pathname || '/';
 
   const onAuthSuccess = () => {
     showToast('Welcome back!');
@@ -54,9 +54,9 @@ export default function Login() {
   return (
     <AuthPageShell
       title="Welcome back"
-      subtitle="Sign in to your Raafortagro farm account."
-      heroTitle="Track every order. Farm with confidence."
-      heroSubtitle="Premium poultry, livestock, and feed — with your watchlist, orders, and farm details in one place."
+      subtitle="Sign in to your Raafortagro account."
+      heroTitle="Orders, tracking, and farm details in one account."
+      heroSubtitle="Check deliveries, reorder stock, and update your farm profile."
       footer={
         <p className="mt-8 text-sm text-center text-white/50">
           New here?{' '}

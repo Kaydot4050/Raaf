@@ -203,12 +203,16 @@ export default function ProductDetail() {
               </div>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                  product.inStock
-                    ? 'bg-forest/10 text-forest border border-forest/25'
+                  product.stockQuantity > 0
+                    ? product.stockQuantity < 10
+                      ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                      : 'bg-forest/10 text-forest border border-forest/25'
                     : 'bg-red-50 text-red-700 border border-red-200'
                 }`}
               >
-                {product.inStock ? 'In stock' : 'Out of stock'}
+                {product.stockQuantity > 0 
+                  ? (product.stockQuantity < 10 ? `Only ${product.stockQuantity} left` : 'In stock') 
+                  : 'Out of stock'}
               </span>
             </div>
 
@@ -240,7 +244,7 @@ export default function ProductDetail() {
                   <span className="w-12 text-center font-semibold text-sm text-charcoal tabular-nums">{quantity}</span>
                   <button
                     type="button"
-                    onClick={() => setQuantity(quantity + 1)}
+                    onClick={() => setQuantity(Math.min(product.stockQuantity || 1, quantity + 1))}
                     className="w-10 h-10 flex items-center justify-center text-charcoal/70 hover:bg-beige-soft transition-colors"
                     aria-label="Increase quantity"
                   >
@@ -274,7 +278,7 @@ export default function ProductDetail() {
                   variant="secondary"
                   size="md"
                   className="w-full justify-center"
-                  disabled={!product.inStock}
+                  disabled={product.stockQuantity <= 0}
                   onClick={() => {
                     addItem(product, quantity);
                     showToast('Added to cart');
@@ -287,7 +291,7 @@ export default function ProductDetail() {
                   variant="forest"
                   size="md"
                   className="w-full justify-center"
-                  disabled={!product.inStock}
+                  disabled={product.stockQuantity <= 0}
                   onClick={() => {
                     addItem(product, quantity);
                     navigate('/cart');
@@ -368,7 +372,7 @@ export default function ProductDetail() {
                     </tr>
                     <tr className="bg-[#f9f9f9] border-b border-gray-100">
                       <td className="p-3 border-r border-gray-100 text-gray-600">Stock Status</td>
-                      <td className="p-3 font-semibold text-[#333]">{product.inStock ? 'Available' : 'Unavailable'}</td>
+                      <td className="p-3 font-semibold text-[#333]">{product.stockQuantity > 0 ? `${product.stockQuantity} available` : 'Unavailable'}</td>
                     </tr>
                     <tr className="border-b border-gray-100">
                       <td className="p-3 border-r border-gray-100 text-gray-600">Rating</td>

@@ -1,5 +1,7 @@
 /** Default CMS content — seeded / synced into site_content */
 
+import { allBlogPosts } from './posts/index.js';
+
 const FOOTER_COLUMNS = [
   {
     title: 'Explore',
@@ -44,7 +46,7 @@ export const defaultSiteContent = [
     page: 'global',
     section: 'footer',
     data: {
-      tagline: 'Premium poultry, livestock, and feed for farms across Ghana.',
+      tagline: 'Poultry, livestock, and feed for farms across Ghana.',
       phone: '+233 00 000 0000',
       email: 'hello@raafortagro.com',
       address: 'Greater Accra, Ghana',
@@ -95,15 +97,15 @@ export const defaultSiteContent = [
       cards: [
         {
           image: '/images/Raafortagro.png',
-          eyebrow: 'Expert support',
-          title: 'Need advice for your farm?',
-          buttonLabel: 'Contact Us',
+          eyebrow: 'Advisory',
+          title: 'Questions about breeds or feed?',
+          buttonLabel: 'Contact us',
           buttonTo: '/contact',
         },
         {
           eyebrow: 'Raafort Agro',
           title: 'Farm supply hub',
-          badge: 'Yield support +30%',
+          badge: 'Nationwide delivery',
         },
         {
           eyebrow: 'National Reach',
@@ -119,23 +121,19 @@ export const defaultSiteContent = [
     section: 'mission',
     data: {
       backgroundImage: '/images/animals-bg.png',
-      badge: 'Trusted since 2015',
-      title: 'Empowering growth through sustainable agriculture',
+      title: 'Better inputs for stronger flocks and herds',
       description:
-        'We offer innovative solutions to significantly enhance poultry and livestock yields for Ghanaian farmers.',
+        'We supply vaccinated chicks, feed, and field advice to poultry and livestock farmers across Ghana.',
       sideImage: '/images/Raafortagro-2.png',
-      logo: '/images/cropped-cropped-gooo-1-1.png',
-      ctaLabel: 'Learn more',
-      ctaTo: '/about',
       statValue: 500,
       statLabel: 'Farms served across Ghana',
       statProgress: 75,
-      tagline: 'Premium poultry, livestock & feed — from hatch to harvest.',
+      tagline: 'Chicks, feed, and vet support from hatch to harvest.',
       facebookUrl: 'https://facebook.com',
       instagramUrl: 'https://instagram.com',
       benefits: [
         { n: '01', title: 'Premium genetics', desc: 'Day-old chicks and livestock from trusted parent stock.' },
-        { n: '02', title: 'Smart delivery', desc: 'Nationwide logistics with live-animal care protocols.' },
+        { n: '02', title: 'Live-animal delivery', desc: 'Scheduled runs across Ghana with trained handlers.' },
       ],
     },
   },
@@ -161,9 +159,9 @@ export const defaultSiteContent = [
     page: 'home',
     section: 'featured',
     data: {
-      title: 'Hand-picked for your farm',
-      subtitle: 'Featured products',
-      description: 'Premium breeds selected by our agronomy team.',
+      title: 'Featured this week',
+      subtitle: 'Shop picks',
+      description: 'Breeds and inputs our team stocks most often.',
       buttonLabel: 'View all products',
     },
   },
@@ -182,25 +180,25 @@ export const defaultSiteContent = [
     data: {
       eyebrow: 'Testimonials',
       title: 'Voices from the field',
-      description: 'Farmers across Ghana trust Raafort for genetics, delivery, and honest support.',
+      description: 'What farmers say about orders, delivery, and follow-up.',
       items: [
         {
           name: 'Kwame Asante',
           role: 'Broiler Farmer · Ashanti',
           quote:
-            'Ross 308 chicks from Raafort performed exceptionally — low mortality and fast growth. The best investment on my farm.',
+            'Ross 308 chicks arrived healthy. Mortality stayed low through brooding.',
         },
         {
           name: 'Ama Serwaa',
           role: 'Layer Farmer · Eastern',
           quote:
-            'Two years of consistent quality layers and a support team that actually answers. I recommend them to every farmer I know.',
+            'Two years of layer orders. When I call, someone picks up.',
         },
         {
           name: 'Yaw Mensah',
           role: 'Mixed Farm · Volta',
           quote:
-            'From guinea keets to Boer goats, every order has been healthy and well handled. They understand Ghanaian farming.',
+            'Guinea keets and Boer goats arrived in good condition. They know how we farm here.',
         },
       ],
     },
@@ -209,12 +207,18 @@ export const defaultSiteContent = [
     page: 'home',
     section: 'bottom',
     data: {
-      logo: '/images/cropped-cropped-gooo-1-1.png',
-      brandName: 'raafortagro',
-      title: 'We develop cutting-edge supply chains to unlock the full potential of your farm.',
+      eyebrow: 'Why Raafort Agro',
+      title: 'From hatchery to harvest',
+      description:
+        'We supply vaccinated day-old chicks, point-of-lay birds, feed, and on-farm veterinary support. Orders are scheduled for your region, with live-animal handling on every run.',
+      bullets: [
+        'Day-old chicks and livestock from checked parent stock',
+        'Feed, vaccines, and equipment in one order',
+        'Advice on housing, biosecurity, and grow-out',
+      ],
       image: '/images/a.jpg',
       imageSecondary: '/images/Raafortagro-3.png',
-      buttonLabel: 'Our technology',
+      buttonLabel: 'View services',
       buttonTo: '/services',
     },
   },
@@ -223,8 +227,8 @@ export const defaultSiteContent = [
     section: 'hero',
     data: {
       eyebrow: 'Our Story',
-      title: 'THE FOUNDATION OF OUR MISSION',
-      titleAccent: 'OF OUR MISSION',
+      title: 'Built for Ghanaian farms',
+      titleAccent: '',
       card1Title: 'Since 2015',
       card1Subtitle: 'Trusted by farmers',
       card2Title: 'Raafort Agro',
@@ -237,8 +241,8 @@ export const defaultSiteContent = [
     page: 'about',
     section: 'intro',
     data: {
-      quote: 'We exist to strengthen Ghanaian agriculture — one farm, one flock, one harvest at a time.',
-      body: 'Raafort Agro connects farmers with quality genetics, feeds, and advisory services across Ghana.',
+      quote: 'We help Ghanaian farms run on reliable stock, clear advice, and deliveries you can plan around.',
+      body: 'Raafort Agro supplies genetics, feed, and on-farm support from Accra to the regions.',
     },
   },
   {
@@ -249,22 +253,22 @@ export const defaultSiteContent = [
         {
           num: '01',
           title: 'Integrity',
-          desc: 'We communicate with honesty and act with transparency. Every transaction, recommendation, and partnership is held to the highest ethical standard.',
+          desc: 'We quote honestly, deliver what we promise, and flag problems early.',
         },
         {
           num: '02',
-          title: 'Value-Driven Excellence',
-          desc: 'From hatchery to delivery, we are committed to quality. Our objective is client success — we consistently work to meet and exceed your farm goals.',
+          title: 'Quality stock',
+          desc: 'Vaccinated chicks, checked livestock, and feed batches we stand behind.',
         },
         {
           num: '03',
-          title: 'Client-Centered',
-          desc: 'Our success metrics are yours. We align our performance goals to the specific needs and growth targets of every farmer and investor we serve.',
+          title: 'Farmer-first',
+          desc: 'Orders, health plans, and pricing shaped around your farm size and season.',
         },
         {
           num: '04',
-          title: 'Continuous Growth',
-          desc: 'We are dedicated to learning, improving, and innovating. Raafort Agro supports its team, clients, and communities to grow beyond their current limits.',
+          title: 'Keep improving',
+          desc: 'Our team trains on new breeds, biosecurity, and logistics so your results can improve season after season.',
         },
       ],
     },
@@ -308,9 +312,9 @@ export const defaultSiteContent = [
     section: 'main',
     data: {
       eyebrow: 'Contact',
-      title: 'We are here for your farm',
+      title: 'Talk to our team',
       description:
-        'Questions about orders, breeds, or delivery? Our team responds quickly — usually within one business day.',
+        'Ask about orders, breeds, or delivery. We reply within one business day.',
       supportCards: [
         { title: 'Call us', detail: '+233 00 000 0000', href: 'tel:+233000000000' },
         { title: 'Email', detail: 'hello@raafortagro.com', href: 'mailto:hello@raafortagro.com' },
@@ -459,12 +463,13 @@ export const defaultSiteContent = [
 ];
 
 export const defaultBlogPosts = [
+  ...allBlogPosts,
   {
     id: 'why-balanced-feeding-is-key-to-animal-health',
     title: 'Why Balanced Feeding Is Key to Animal Health',
     date: '2025-09-12',
     excerpt: 'The right feed mix supports growth, immunity, and long-term productivity across poultry and livestock.',
-    body: '<p>The right feed mix supports growth, immunity, and long-term productivity across poultry and livestock.</p>',
+    body: '<p>The right feed mix supports growth, immunity, and long-term productivity across poultry and livestock. Protein, energy, and minerals must match the species and growth stage—broiler starter is not layer mash, and goat supplement is not poultry finisher.</p><p>Work with a supplier who labels rations clearly and delivers sealed bags. <a href="/shop">Shop feed</a> or <a href="/contact">contact Raafortagro</a> for ration advice.</p>',
     image: '/images/Raafortagro-2.png',
     published: true,
   },
@@ -473,8 +478,8 @@ export const defaultBlogPosts = [
     title: 'Getting the Best Start with Day-Old Chicks',
     date: '2025-08-28',
     excerpt: 'Brooding temperature, clean water, and early nutrition set the foundation for a healthy flock.',
-    body: '<p>Brooding temperature, clean water, and early nutrition set the foundation for a healthy flock.</p>',
-    image: '/images/a.jpg',
+    body: '<p>Brooding temperature, clean water, and early nutrition set the foundation for a healthy flock. See our full guide: <a href="/blog/brooding-and-chicks-ghana-guide">Brooding &amp; day-old chicks in Ghana</a>.</p>',
+    image: '/images/Raafortagro-2.png',
     published: true,
   },
 ];

@@ -38,6 +38,7 @@ const empty = {
   description: '',
   featured: false,
   inStock: true,
+  stockQuantity: 100,
 };
 
 function padImages(images, primary = '') {
@@ -86,6 +87,7 @@ export default function AdminProducts() {
       priceMax: form.priceMax,
       featured: form.featured,
       inStock: form.inStock,
+      stockQuantity: form.stockQuantity,
       images: gallery,
       image: gallery[0] || '',
     };
@@ -259,6 +261,14 @@ export default function AdminProducts() {
                 <Switch
                   checked={form.inStock}
                   onCheckedChange={(inStock) => setForm({ ...form, inStock })}
+                />
+              </Field>
+              <Field>
+                <FieldLabel>Stock Quantity</FieldLabel>
+                <Input
+                  type="number"
+                  value={form.stockQuantity ?? 100}
+                  onChange={(e) => setForm({ ...form, stockQuantity: +e.target.value })}
                 />
               </Field>
             </FieldGroup>

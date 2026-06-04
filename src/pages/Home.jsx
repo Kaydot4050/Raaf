@@ -9,19 +9,22 @@ import ProductCard from '../components/ProductCard.jsx';
 import Button from '../components/ui/Button.jsx';
 import { SectionHeader, RevealGrid, RevealItem } from '../components/ui/SectionReveal.jsx';
 import { posts as fallbackPosts } from '../data/blog.js';
+import { cardImageForPost } from '../data/blogCardImages.js';
 import { useCart } from '../context/CartContext.jsx';
 import { useProducts } from '../hooks/useProducts.js';
 import { usePageSection } from '../context/ContentContext.jsx';
 import { useEffect, useState } from 'react';
 import { contentApi } from '../lib/api.js';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 export default function Home() {
   const { addItem } = useCart();
+  usePageMeta('Home', 'Raafortagro — quality poultry, livestock, and farm supplies delivered across Ghana.');
   const { products } = useProducts();
   const { data: featuredCopy } = usePageSection('home', 'featured', {
-    title: 'Hand-picked for your farm',
-    subtitle: 'Featured products',
-    description: 'Premium breeds selected by our agronomy team.',
+    title: 'Featured this week',
+    subtitle: 'Shop picks',
+    description: 'Breeds and inputs our team stocks most often.',
     buttonLabel: 'View all products',
   });
   const { data: blogTeaser } = usePageSection('home', 'blog_teaser', {
@@ -83,8 +86,16 @@ export default function Home() {
             {posts.slice(0, 3).map((post, i) => (
               <RevealItem key={post.id} index={i} className="w-[min(82vw,320px)] sm:w-auto shrink-0 snap-center sm:shrink sm:snap-align-none">
                 <article className="group bg-cream rounded-card overflow-hidden h-full flex flex-col">
-                  <Link to={`/blog/${post.id}`} className="block h-36 sm:h-auto sm:aspect-[16/10] overflow-hidden">
-                    <img src={post.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  <Link
+                    to={`/blog/${post.id}`}
+                    className="block h-36 sm:h-auto sm:aspect-[16/10] overflow-hidden bg-beige-soft shrink-0"
+                  >
+                    <img
+                      src={post.image || cardImageForPost(post.id)}
+                      alt=""
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
                   </Link>
                   <div className="p-4 sm:p-5 flex flex-col flex-1">
                     <h3 className="font-display font-bold text-charcoal text-sm sm:text-base mb-1.5 sm:mb-2 line-clamp-2">

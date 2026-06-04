@@ -3,6 +3,7 @@ import Header from './Header.jsx';
 import Footer from './Footer.jsx';
 import WhatsAppFloat from './WhatsAppFloat.jsx';
 import SearchCommand from './SearchCommand.jsx';
+import FloatingWeather from './FloatingWeather.jsx';
 
 export default function Layout() {
   return (
@@ -14,6 +15,7 @@ export default function Layout() {
       </main>
       <Footer />
       <WhatsAppFloat />
+      <FloatingWeather />
     </div>
   );
 }

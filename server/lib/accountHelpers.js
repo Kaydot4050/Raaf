@@ -3,6 +3,7 @@ const DEFAULT_SETTINGS = {
   promotions: true,
   farmTips: false,
   smsAlerts: false,
+  showWeather: true,
 };
 
 export function splitName(name) {

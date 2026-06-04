@@ -8,6 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.jsx';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog.jsx';
+import { Input } from '@/components/ui/input.jsx';
+import { Button } from '@/components/ui/shadcn-button.jsx';
 import AdminPage from '../components/AdminPage.jsx';
 import AdminSection from '../components/AdminSection.jsx';
 import { adminApi } from '../lib/api.js';
@@ -25,10 +34,29 @@ export default function AdminOrders() {
     load();
   }, []);
 
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [trackingForm, setTrackingForm] = useState({ trackingCode: '', logisticsProvider: '' });
+
   const setStatus = async (id, status) => {
     try {
-      await adminApi.updateOrder(id, status);
+      await adminApi.updateOrder(id, { status });
       toast.success('Order status updated.');
+      load();
+    } catch (err) {
+      toast.error(err.message || 'Update failed.');
+    }
+  };
+
+  const saveTracking = async (e) => {
+    e.preventDefault();
+    if (!editingOrder) return;
+    try {
+      await adminApi.updateOrder(editingOrder.id, { 
+        status: editingOrder.status,
+        ...trackingForm 
+      });
+      toast.success('Tracking info updated.');
+      setEditingOrder(null);
       load();
     } catch (err) {
       toast.error(err.message || 'Update failed.');
@@ -53,21 +81,29 @@ export default function AdminOrders() {
                   #{o.id} · {o.customer?.name || 'Guest customer'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {o.customer?.phone || '—'} · GH₵ {o.subtotal?.toLocaleString()}
+                  {o.customer?.phone || '—'} · GH₵ {(o.subtotal + (o.shippingCost || 0))?.toLocaleString()} · Paid: {o.paymentStatus}
                 </p>
               </div>
-              <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 items-center">
+                <Button variant="outline" size="sm" onClick={() => {
+                  setEditingOrder(o);
+                  setTrackingForm({ trackingCode: o.trackingCode || '', logisticsProvider: o.logisticsProvider || '' });
+                }}>
+                  Details
+                </Button>
+                <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           ))}
           {!orders.length ? (
@@ -75,6 +111,36 @@ export default function AdminOrders() {
           ) : null}
         </div>
       </AdminSection>
+
+      <Dialog open={!!editingOrder} onOpenChange={(open) => !open && setEditingOrder(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Order #{editingOrder?.id}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={saveTracking} className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-semibold block mb-1">Logistics Provider</label>
+              <Input 
+                value={trackingForm.logisticsProvider} 
+                onChange={e => setTrackingForm(f => ({ ...f, logisticsProvider: e.target.value }))}
+                placeholder="e.g. DHL, FedEx, Local Rider"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold block mb-1">Tracking Code</label>
+              <Input 
+                value={trackingForm.trackingCode} 
+                onChange={e => setTrackingForm(f => ({ ...f, trackingCode: e.target.value }))}
+                placeholder="e.g. 1234567890"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditingOrder(null)}>Cancel</Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </AdminPage>
   );
 }

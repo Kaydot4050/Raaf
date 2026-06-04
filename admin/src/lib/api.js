@@ -215,8 +215,8 @@ export const adminApi = {
     }
   },
   orders: () => api('/admin/orders'),
-  updateOrder: (id, status) =>
-    api(`/admin/orders/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  updateOrder: (id, payload) =>
+    api(`/admin/orders/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   inquiries: () => api('/admin/inquiries'),
   blog: () => api('/admin/blog'),
   createBlog: (body) => api('/admin/blog', { method: 'POST', body: JSON.stringify(body) }),

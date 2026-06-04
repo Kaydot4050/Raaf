@@ -10,12 +10,12 @@ import { usePageSection } from '../context/ContentContext.jsx';
 const DEFAULT_CARDS = [
   {
     image: '/images/Raafortagro.png',
-    eyebrow: 'Expert support',
-    title: 'Need advice for your farm?',
-    buttonLabel: 'Contact Us',
+    eyebrow: 'Advisory',
+    title: 'Questions about breeds or feed?',
+    buttonLabel: 'Contact us',
     buttonTo: '/contact',
   },
-  { eyebrow: 'Raafort Agro', title: 'Farm supply hub', badge: 'Yield support +30%' },
+  { eyebrow: 'Raafort Agro', title: 'Farm supply hub', badge: 'Nationwide delivery' },
   { eyebrow: 'National Reach', statValue: '500+', statLabel: 'Farms served across Ghana', statProgress: 75 },
 ];
 
@@ -33,7 +33,7 @@ export default function HomeHero() {
   const [card1, card2, card3] = cards;
 
   return (
-    <section className="relative pt-4 sm:pt-6 pb-2 md:pb-12 bg-cream">
+    <section className="relative pt-0 sm:pt-2 pb-2 md:pb-12 bg-cream">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link
           to="/shop"

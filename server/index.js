@@ -13,7 +13,9 @@ import inquiryRoutes from './routes/inquiries.js';
 import contentRoutes from './routes/content.js';
 import adminRoutes from './routes/admin.js';
 import accountRoutes from './routes/account.js';
-import { seedSiteContent, seedBlogPosts } from './lib/seedContent.js';
+import paymentRoutes from './routes/payment.js';
+import externalRoutes from './routes/external.js';
+import { seedSiteContent, seedBlogPosts, migrateBlogPosts } from './lib/seedContent.js';
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
@@ -56,6 +58,8 @@ app.use('/api/account', accountRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/external', externalRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error('[API Error]', err);
@@ -92,6 +96,7 @@ async function start() {
     await initDb();
     await seedSiteContent();
     await seedBlogPosts();
+    await migrateBlogPosts();
     console.log('PostgreSQL schema ready.');
   } catch (err) {
     console.error('[startup] Database init failed:', err.message);

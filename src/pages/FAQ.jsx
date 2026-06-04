@@ -4,13 +4,16 @@ import { ChevronDown } from 'lucide-react';
 import { SectionHeader } from '../components/ui/SectionReveal.jsx';
 import Button from '../components/ui/Button.jsx';
 import { usePageSection } from '../context/ContentContext.jsx';
+import usePageMeta from '../hooks/usePageMeta.js';
 
 const FALLBACK_FAQS = [
   { q: 'How do I place a bulk order?', a: 'Contact us with your farm size and breed preferences, or use our wholesale inquiry form.' },
   { q: 'What payment methods do you accept?', a: 'Mobile money, bank transfer, and approved credit terms for registered farm accounts.' },
+  { q: 'How do I track my order?', a: 'Visit the Track Order page and enter your order reference to see real‑time status.' },
 ];
 
 export default function FAQ() {
+  usePageMeta('FAQ', 'Frequently asked questions about ordering, delivery, and payments.');
   const { data } = usePageSection('faq', 'main', {
     title: 'Frequently asked questions',
     subtitle: 'Quick answers about orders, delivery, and products.',

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Quote } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SectionHeader } from './ui/SectionReveal.jsx';
@@ -7,20 +8,17 @@ const FALLBACK = [
   {
     name: 'Kwame Asante',
     role: 'Broiler Farmer · Ashanti',
-    quote:
-      'Ross 308 chicks from Raafort performed exceptionally — low mortality and fast growth. The best investment on my farm.',
+    quote: 'Ross 308 chicks arrived healthy. Mortality stayed low through brooding.',
   },
   {
     name: 'Ama Serwaa',
     role: 'Layer Farmer · Eastern',
-    quote:
-      'Two years of consistent quality layers and a support team that actually answers. I recommend them to every farmer I know.',
+    quote: 'Two years of layer orders. When I call, someone picks up.',
   },
   {
     name: 'Yaw Mensah',
     role: 'Mixed Farm · Volta',
-    quote:
-      'From guinea keets to Boer goats, every order has been healthy and well handled. They understand Ghanaian farming.',
+    quote: 'Guinea keets and Boer goats arrived in good condition. They know how we farm here.',
   },
 ];
 
@@ -34,7 +32,10 @@ function Stars() {
   );
 }
 
+const SCROLL_DURATION_S = 90;
+
 export default function Testimonials() {
+  const [paused, setPaused] = useState(false);
   const { data } = usePageSection('home', 'testimonials', { items: FALLBACK });
   const testimonials = data.items?.length ? data.items : FALLBACK;
   const baseGroup = [...testimonials, ...testimonials, ...testimonials];
@@ -46,18 +47,24 @@ export default function Testimonials() {
         <SectionHeader
           eyebrow={data.eyebrow || 'Testimonials'}
           title={data.title || 'Voices from the field'}
-          description={data.description || 'Farmers across Ghana trust Raafort for genetics, delivery, and honest support.'}
+          description={data.description || 'What farmers say about orders, delivery, and follow-up.'}
         />
       </div>
 
-      <div className="relative w-full overflow-hidden flex">
+      <div
+        className="relative w-full overflow-hidden flex"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocus={() => setPaused(true)}
+        onBlur={() => setPaused(false)}
+      >
         <div className="absolute top-0 bottom-0 left-0 w-16 md:w-32 bg-gradient-to-r from-cream-dark/50 to-transparent z-10 pointer-events-none" />
         <div className="absolute top-0 bottom-0 right-0 w-16 md:w-32 bg-gradient-to-l from-cream-dark/50 to-transparent z-10 pointer-events-none" />
 
         <motion.div
           className="flex gap-6 lg:gap-8 w-max px-4"
-          animate={{ x: ['0%', '-50%'] }}
-          transition={{ ease: 'linear', duration: 45, repeat: Infinity }}
+          animate={paused ? false : { x: ['0%', '-50%'] }}
+          transition={{ ease: 'linear', duration: SCROLL_DURATION_S, repeat: Infinity }}
         >
           {loopItems.map((t, i) => (
             <div

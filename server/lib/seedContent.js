@@ -1,5 +1,6 @@
 import { query } from '../db.js';
 import { defaultSiteContent, defaultBlogPosts } from './defaultSiteContent.js';
+import { allBlogPosts } from './posts/index.js';
 
 const FOOTER_SOCIAL_DEFAULTS = {
   facebookUrl: 'https://facebook.com',
@@ -154,4 +155,24 @@ export async function seedBlogPosts() {
     );
   }
   console.log(`Seeded ${defaultBlogPosts.length} blog posts.`);
+}
+
+export async function migrateBlogPosts() {
+  for (const p of allBlogPosts) {
+    const exists = await query('SELECT id FROM blog_posts WHERE id = $1', [p.id]);
+    if (exists.rows[0]) {
+      await query(
+        `UPDATE blog_posts SET title = $2, excerpt = $3, body = $4, image = $5, post_date = $6, published = $7
+         WHERE id = $1`,
+        [p.id, p.title, p.excerpt, p.body, p.image, p.date, p.published],
+      );
+    } else {
+      await query(
+        `INSERT INTO blog_posts (id, title, excerpt, body, image, post_date, published)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [p.id, p.title, p.excerpt, p.body, p.image, p.date, p.published],
+      );
+      console.log(`Added blog post: ${p.id}`);
+    }
+  }
 }

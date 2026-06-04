@@ -20,6 +20,12 @@ upload-to-namecheap.zip
 api-server-UPLOAD-THIS
 graphify-out/
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Facebook, Instagram } from 'lucide-react';
-import Button from './ui/Button.jsx';
+import { SocialIconLink } from './SocialIconLink.jsx';
 import AnimatedCounter from './ui/AnimatedCounter.jsx';
 import AnimatedProgressBar from './ui/AnimatedProgressBar.jsx';
 import { RevealGrid, RevealItem } from './ui/SectionReveal.jsx';
@@ -9,23 +9,19 @@ import { usePageSection } from '../context/ContentContext.jsx';
 
 const DEFAULT = {
   backgroundImage: '/images/animals-bg.png',
-  badge: 'Trusted since 2015',
-  title: 'Empowering growth through sustainable agriculture',
+  title: 'Better inputs for stronger flocks and herds',
   description:
-    'We offer innovative solutions to significantly enhance poultry and livestock yields for Ghanaian farmers.',
+    'We supply vaccinated chicks, feed, and field advice to poultry and livestock farmers across Ghana.',
   sideImage: '/images/Raafortagro-2.png',
-  logo: '/images/cropped-cropped-gooo-1-1.png',
-  ctaLabel: 'Learn more',
-  ctaTo: '/about',
   statValue: 500,
   statLabel: 'Farms served across Ghana',
   statProgress: 75,
-  tagline: 'Premium poultry, livestock & feed — from hatch to harvest.',
+  tagline: 'Chicks, feed, and vet support from hatch to harvest.',
   facebookUrl: 'https://facebook.com',
   instagramUrl: 'https://instagram.com',
   benefits: [
     { n: '01', title: 'Premium genetics', desc: 'Day-old chicks and livestock from trusted parent stock.' },
-    { n: '02', title: 'Smart delivery', desc: 'Nationwide logistics with live-animal care protocols.' },
+    { n: '02', title: 'Live-animal delivery', desc: 'Scheduled runs across Ghana with trained handlers.' },
   ],
 };
 
@@ -56,24 +52,18 @@ export default function HomeMission() {
           whileInView="show"
           viewport={viewportOnce}
           transition={{ staggerChildren: 0.1 }}
-          className="grid lg:hidden grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 auto-rows-[84px] sm:auto-rows-[120px] md:auto-rows-[160px]"
+          className="grid lg:hidden grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 auto-rows-[68px] sm:auto-rows-[96px] md:auto-rows-[130px]"
         >
           <motion.div
             variants={item}
-            className="col-span-2 row-span-2 bg-white/50 backdrop-blur-lg border border-white/40 rounded-2xl sm:rounded-3xl p-3.5 sm:p-8 shadow-xl sm:shadow-2xl flex flex-col justify-between"
+            className="col-span-2 row-span-2 bg-white/50 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xl sm:shadow-2xl border border-white/40 flex flex-col justify-center gap-2 sm:gap-3"
           >
-            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-              <img src={m.logo} alt="" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover shadow-sm" />
-              <span className="text-[10px] sm:text-xs font-bold text-charcoal/80 bg-white/50 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full backdrop-blur-sm">
-                {m.badge}
-              </span>
-            </div>
-            <h2 className="font-display text-base sm:text-3xl md:text-4xl font-bold text-charcoal leading-snug sm:leading-[1.12] drop-shadow-sm">
+            <h2 className="font-display text-base sm:text-2xl md:text-3xl font-bold text-charcoal leading-snug drop-shadow-sm">
               {m.title}
             </h2>
-            <Button to={m.ctaTo || '/about'} size="sm" className="shadow-lg mt-2 sm:mt-4 w-fit sm:!px-6 sm:!py-3 sm:text-base">
-              {m.ctaLabel}
-            </Button>
+            <p className="text-xs sm:text-base text-charcoal leading-snug sm:leading-relaxed font-medium">
+              {m.description}
+            </p>
           </motion.div>
 
           <motion.div
@@ -100,18 +90,32 @@ export default function HomeMission() {
 
           <motion.div
             variants={item}
-            className="col-span-1 row-span-2 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl border border-white/30"
+            className="col-span-1 row-span-2 bg-gray-800 rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl sm:shadow-2xl border border-gray-600/30 flex flex-col justify-between p-3.5 sm:p-5 text-white relative"
           >
-            <img src={m.sideImage} alt="" className="w-full h-full object-cover" />
-          </motion.div>
-
-          <motion.div
-            variants={item}
-            className="col-span-2 row-span-1 bg-white/50 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-xl sm:shadow-2xl border border-white/40 flex items-center"
-          >
-            <p className="text-xs sm:text-base text-charcoal leading-snug sm:leading-relaxed font-semibold drop-shadow-sm">
-              {m.description}
-            </p>
+            {/* Printed chick silhouette */}
+            <svg className="absolute bottom-0 right-0 w-24 h-24 sm:w-36 sm:h-36 text-white/[0.07]" viewBox="0 0 120 120" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="65" cy="48" rx="28" ry="30" />
+              <circle cx="55" cy="28" r="18" />
+              <ellipse cx="46" cy="22" rx="5" ry="3" transform="rotate(-20 46 22)" />
+              <polygon points="42,30 34,28 42,33" />
+              <circle cx="50" cy="25" r="2.5" fill="rgba(0,0,0,0.15)" />
+              <ellipse cx="52" cy="78" rx="8" ry="14" transform="rotate(-8 52 78)" />
+              <ellipse cx="78" cy="78" rx="8" ry="14" transform="rotate(8 78 78)" />
+              <rect x="48" y="90" width="5" height="12" rx="2" transform="rotate(-5 50 96)" />
+              <rect x="72" y="90" width="5" height="12" rx="2" transform="rotate(5 74 96)" />
+              <ellipse cx="80" cy="50" rx="14" ry="8" transform="rotate(25 80 50)" />
+            </svg>
+            <div className="relative z-10">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-white/70 mb-1">Fresh Stock</p>
+              <p className="font-display text-sm sm:text-xl font-bold leading-snug">Quality breeds ready for your farm</p>
+            </div>
+            <a
+              href="/shop"
+              className="relative z-10 mt-2 sm:mt-4 inline-flex items-center justify-center gap-1.5 bg-white text-forest font-bold text-[10px] sm:text-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl hover:bg-white/90 transition-colors w-fit"
+            >
+              Shop now
+              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+            </a>
           </motion.div>
 
           {benefits.map((b) => (
@@ -133,102 +137,77 @@ export default function HomeMission() {
             <p className="text-white text-[11px] sm:text-base font-medium leading-snug">{m.tagline}</p>
             <div className="flex gap-1.5 sm:gap-2 shrink-0">
               {m.facebookUrl ? (
-                <a
+                <SocialIconLink
+                  network="facebook"
                   href={m.facebookUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 border border-white/20 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </a>
+                  label="Facebook"
+                  Icon={Facebook}
+                  className="h-8 w-8 sm:h-9 sm:w-9"
+                />
               ) : null}
               {m.instagramUrl ? (
-                <a
+                <SocialIconLink
+                  network="instagram"
                   href={m.instagramUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/15 border border-white/20 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </a>
+                  label="Instagram"
+                  Icon={Instagram}
+                  className="h-8 w-8 sm:h-9 sm:w-9"
+                />
               ) : null}
             </div>
           </motion.div>
         </motion.div>
 
-        <div className="hidden lg:grid grid-cols-2 gap-10 lg:gap-16 items-start">
-          <RevealGrid className="bg-white/50 backdrop-blur-lg border border-white/40 rounded-3xl p-6 sm:p-10 shadow-2xl">
-            <RevealItem className="flex items-center gap-3 mb-6">
-              <img src={m.logo} alt="" className="w-12 h-12 rounded-full object-cover shadow-sm" />
-              <span className="text-sm font-bold text-charcoal/80 bg-white/50 px-3 py-1 rounded-full backdrop-blur-sm">
-                {m.badge}
-              </span>
-            </RevealItem>
-            <RevealItem>
-              <h2 className="font-display text-[2.75rem] font-bold text-charcoal leading-[1.12] mb-6 drop-shadow-sm">
-                {m.title}
-              </h2>
-            </RevealItem>
-            <RevealItem className="flex items-center gap-6">
-              <Button to={m.ctaTo || '/about'} size="lg" className="shadow-lg shrink-0">
-                {m.ctaLabel}
-              </Button>
-              <p className="text-sm font-medium text-charcoal/80 max-w-xs leading-relaxed">{m.tagline}</p>
-            </RevealItem>
+        <div className="hidden lg:block max-w-3xl mx-auto space-y-6">
+          <RevealItem>
+            <h2 className="font-display text-[2.75rem] font-bold text-charcoal leading-[1.12] drop-shadow-sm">
+              {m.title}
+            </h2>
+          </RevealItem>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={viewportOnce}
+            className="bg-white/50 backdrop-blur-lg rounded-card p-8 shadow-2xl border border-white/40"
+          >
+            <p className="text-xl text-charcoal leading-relaxed font-semibold drop-shadow-sm">{m.description}</p>
+          </motion.div>
+
+          <RevealGrid className="space-y-4">
+            {benefits.map((b, i) => (
+              <RevealItem
+                key={b.n}
+                index={i}
+                className="flex gap-5 p-6 bg-white/50 backdrop-blur-lg rounded-card border border-white/40 shadow-xl"
+              >
+                <span className="font-display text-2xl font-bold text-forest shrink-0">{b.n}</span>
+                <div>
+                  <h3 className="font-display font-bold text-charcoal mb-1">{b.title}</h3>
+                  <p className="text-sm font-medium text-charcoal/70">{b.desc}</p>
+                </div>
+              </RevealItem>
+            ))}
           </RevealGrid>
 
-          <div className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={viewportOnce}
-              className="bg-white/50 backdrop-blur-lg rounded-card p-8 shadow-2xl border border-white/40"
-            >
-              <p className="text-xl text-charcoal leading-relaxed font-semibold drop-shadow-sm">{m.description}</p>
-            </motion.div>
-
-            <RevealGrid className="space-y-4">
-              {benefits.map((b, i) => (
-                <RevealItem
-                  key={b.n}
-                  index={i}
-                  className="flex gap-5 p-6 bg-white/50 backdrop-blur-lg rounded-card border border-white/40 shadow-xl"
-                >
-                  <span className="font-display text-2xl font-bold text-forest shrink-0">{b.n}</span>
-                  <div>
-                    <h3 className="font-display font-bold text-charcoal mb-1">{b.title}</h3>
-                    <p className="text-sm font-medium text-charcoal/70">{b.desc}</p>
-                  </div>
-                </RevealItem>
-              ))}
-            </RevealGrid>
-
-            <div className="flex justify-end gap-3 pt-2">
-              {m.facebookUrl ? (
-                <a
-                  href={m.facebookUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-md border border-white/50 flex items-center justify-center text-charcoal hover:bg-white/80 transition-colors shadow-lg"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
-              ) : null}
-              {m.instagramUrl ? (
-                <a
-                  href={m.instagramUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/60 backdrop-blur-md border border-white/50 flex items-center justify-center text-charcoal hover:bg-white/80 transition-colors shadow-lg"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-              ) : null}
-            </div>
+          <div className="flex justify-end gap-3 pt-2">
+            {m.facebookUrl ? (
+              <SocialIconLink
+                network="facebook"
+                href={m.facebookUrl}
+                label="Facebook"
+                Icon={Facebook}
+                className="h-10 w-10"
+              />
+            ) : null}
+            {m.instagramUrl ? (
+              <SocialIconLink
+                network="instagram"
+                href={m.instagramUrl}
+                label="Instagram"
+                Icon={Instagram}
+                className="h-10 w-10"
+              />
+            ) : null}
           </div>
         </div>
       </div>

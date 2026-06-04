@@ -213,6 +213,15 @@ export function OrdersSection() {
                   </li>
                 ))}
               </ul>
+              
+              {o.trackingCode && (
+                <div className="bg-forest/5 rounded-xl p-3 mb-4 text-sm">
+                  <p className="font-semibold text-charcoal">Delivery Info</p>
+                  <p className="text-charcoal mt-1">Provider: {o.logisticsProvider || 'Local Delivery'}</p>
+                  <p className="text-charcoal">Tracking Code: <span className="font-mono bg-white px-1 py-0.5 rounded border border-border">{o.trackingCode}</span></p>
+                </div>
+              )}
+
               <Button to={`/track-order?order=${encodeURIComponent(o.id)}`} variant="ghost" size="sm">
                 Track this order
               </Button>
@@ -541,6 +550,7 @@ export function NotificationsSection() {
     { key: 'promotions', label: 'Offers & promotions', desc: 'Seasonal deals on chicks and feed' },
     { key: 'farmTips', label: 'Farm insights', desc: 'Tips from our blog and agronomy team' },
     { key: 'smsAlerts', label: 'SMS alerts', desc: 'Text messages for urgent order updates' },
+    { key: 'showWeather', label: 'Show local weather', desc: 'Display the floating weather widget' },
   ];
 
   return (

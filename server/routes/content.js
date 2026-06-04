@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { query } from '../db.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { resolveRelatedPosts } from '../lib/posts/related.js';
 
 const router = Router();
 
@@ -56,6 +57,19 @@ router.get(
     ]);
     const row = result.rows[0];
     if (!row) return res.status(404).json({ error: 'Post not found.' });
+
+    const allResult = await query(
+      'SELECT id, title, excerpt, image, post_date FROM blog_posts WHERE published = TRUE ORDER BY post_date DESC',
+    );
+    const allPosts = allResult.rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      excerpt: r.excerpt,
+      image: r.image,
+      date: r.post_date,
+    }));
+    const related = resolveRelatedPosts(row.id, allPosts);
+
     res.json({
       post: {
         id: row.id,
@@ -65,6 +79,7 @@ router.get(
         image: row.image,
         date: row.post_date,
       },
+      related,
     });
   }),
 );
