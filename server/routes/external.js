@@ -26,7 +26,7 @@ router.get('/weather', asyncHandler(async (req, res) => {
 
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
 
-  const response = await fetch(url);
+  const response = await fetch(url, { signal: AbortSignal.timeout(12_000) });
   if (!response.ok) {
     throw new Error('Failed to fetch weather data');
   }

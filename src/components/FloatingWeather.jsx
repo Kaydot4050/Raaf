@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Droplets, Wind, X, Search, MapPin, Locate } from 'lucide-react';
-import { externalApi } from '../lib/api.js';
+import { loadWeather } from '../lib/weatherClient.js';
 import { useAccount } from '../context/AccountContext.jsx';
 
 /* ── Weather helpers ─────────────────────────────────────────── */
@@ -146,7 +146,7 @@ export default function FloatingWeather() {
   const SAVED_LOC_KEY = 'raafort_weather_loc';
 
   function fetchWithCoords(latitude, longitude, saveName = null) {
-    externalApi.weather(latitude, longitude).then(setWeather).catch(() => {});
+    loadWeather(latitude, longitude).then(setWeather).catch(() => {});
 
     if (saveName) {
       setLocation(saveName);
@@ -184,7 +184,7 @@ export default function FloatingWeather() {
 
   function requestLocation() {
     if (!navigator.geolocation) {
-      externalApi.weather().then(setWeather).catch(() => {});
+      loadWeather().then(setWeather).catch(() => {});
       setLocation('Accra, Ghana');
       return;
     }
@@ -195,7 +195,7 @@ export default function FloatingWeather() {
       },
       () => {
         setLocDenied(true);
-        externalApi.weather().then(setWeather).catch(() => {});
+        loadWeather().then(setWeather).catch(() => {});
         setLocation('Accra, Ghana');
       },
       { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 }
@@ -224,12 +224,12 @@ export default function FloatingWeather() {
           // Already allowed — grab coordinates silently
           navigator.geolocation.getCurrentPosition(
             (pos) => fetchWithCoords(pos.coords.latitude, pos.coords.longitude),
-            () => { externalApi.weather().then(setWeather).catch(() => {}); setLocation('Accra, Ghana'); }
+            () => { loadWeather().then(setWeather).catch(() => {}); setLocation('Accra, Ghana'); }
           );
         } else if (result.state === 'denied') {
           // Permanently blocked — use default and show re-enable hint
           setLocDenied(true);
-          externalApi.weather().then(setWeather).catch(() => {});
+          loadWeather().then(setWeather).catch(() => {});
           setLocation('Accra, Ghana');
         } else {
           // 'prompt' — ask user

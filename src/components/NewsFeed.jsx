@@ -18,7 +18,11 @@ export default function NewsFeed() {
         }
       } catch (err) {
         console.error('News error:', err);
-        setError('Could not load industry news');
+        setError(
+          err?.message?.includes('API') || err?.message?.includes('sign-in server')
+            ? 'News needs the site API — check api.raafortagro.com/api/health'
+            : 'Could not load industry news',
+        );
       } finally {
         setLoading(false);
       }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Cloud, Droplets, Wind, Sun, CloudRain, CloudLightning, Snowflake } from 'lucide-react';
-import { externalApi } from '../lib/api.js';
+import { loadWeather } from '../lib/weatherClient.js';
 
 function getWeatherIcon(code) {
   if (code === 0) return <Sun className="w-8 h-8 text-yellow-500" />;
@@ -34,7 +34,7 @@ export default function WeatherWidget({ lat, lon }) {
     async function fetchWeather() {
       try {
         setLoading(true);
-        const data = await externalApi.weather(lat, lon);
+        const data = await loadWeather(lat, lon);
         setWeather(data);
       } catch (err) {
         console.error('Weather error:', err);

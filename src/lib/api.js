@@ -59,6 +59,7 @@ function requestCredentials(path, method) {
     m === 'GET' &&
     (path.startsWith('/products') ||
       path.startsWith('/content') ||
+      path.startsWith('/external') ||
       path.startsWith('/auth/google-config'))
   ) {
     return 'omit';

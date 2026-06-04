@@ -17,6 +17,7 @@ const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8
 
 // 3. Filter dependencies (only backend ones)
 const backendDeps = [
+  '@mozilla/readability',
   '@neondatabase/serverless',
   'ws',
   'bcryptjs',
@@ -26,9 +27,11 @@ const backendDeps = [
   'dotenv',
   'express',
   'google-auth-library',
+  'jsdom',
   'jsonwebtoken',
   'multer',
   'pg',
+  'rss-parser',
   'sharp',
   'twilio',
 ];
@@ -103,7 +106,7 @@ for (const key of required) {
 }
 console.log('CLIENT_ORIGIN', process.env.CLIENT_ORIGIN || '(not set)');
 if (!ok) process.exit(1);
-const modules = ['express', 'sharp', 'multer', '@neondatabase/serverless', 'ws'];
+const modules = ['express', 'sharp', 'multer', '@neondatabase/serverless', 'ws', 'rss-parser', 'jsdom', '@mozilla/readability'];
 for (const name of modules) {
   try {
     await import(name);

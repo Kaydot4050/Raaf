@@ -16,6 +16,7 @@ export default function Blog() {
   const [posts, setPosts] = useState(fallback);
   const [news, setNews] = useState([]);
   const [loadingNews, setLoadingNews] = useState(false);
+  const [newsError, setNewsError] = useState(null);
 
   useEffect(() => {
     contentApi.blog().then((r) => {
@@ -24,14 +25,24 @@ export default function Blog() {
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'news' && news.length === 0) {
+    if (activeTab === 'news' && news.length === 0 && !newsError) {
       setLoadingNews(true);
-      externalApi.news().then((data) => {
-        if (data?.items) setNews(data.items);
-        setLoadingNews(false);
-      }).catch(() => setLoadingNews(false));
+      setNewsError(null);
+      externalApi
+        .news()
+        .then((data) => {
+          if (data?.items) setNews(data.items);
+        })
+        .catch((err) => {
+          setNewsError(
+            err?.message?.includes('Cannot reach')
+              ? 'Industry news needs the API online. Open api.raafortagro.com/api/health — you should see JSON, not 503.'
+              : 'Could not load industry news.',
+          );
+        })
+        .finally(() => setLoadingNews(false));
     }
-  }, [activeTab, news.length]);
+  }, [activeTab, news.length, newsError]);
 
   return (
     <div className="py-12 sm:py-16 md:py-20 min-h-[50vh] bg-beige-soft/30">
@@ -111,6 +122,8 @@ export default function Blog() {
               <div className="py-12 flex justify-center">
                 <div className="w-8 h-8 rounded-full border-2 border-forest/20 border-t-forest animate-spin" />
               </div>
+            ) : newsError ? (
+              <p className="text-center text-red-600 text-sm py-8 max-w-lg mx-auto">{newsError}</p>
             ) : news.length === 0 ? (
               <p className="text-center text-text-muted py-8">No news articles found right now.</p>
             ) : (
