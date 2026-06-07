@@ -25,6 +25,17 @@ That HTML *"Service Unavailable… Technical Support"* means **Node is not runni
 
 After a GitHub deploy, always repeat steps 5–8. Missing npm packages (e.g. `sharp`) or env vars are the usual crash causes.
 
+## Red error after “Run NPM Install” (content-type text/html)
+
+cPanel may show: *content type before `text/html` doesn't equal after `text/html; charset=utf-8`*.
+
+**Usually npm install still succeeded.** cPanel compares Apache’s placeholder page to Node’s response after restart.
+
+1. Close the error.
+2. Click **Start** (or Stop → Start).
+3. Open **https://api.raafortagro.com/api/health** — JSON `{"ok":true}` means you are fine.
+4. If the app still won’t start, use Terminal: `node verify.mjs` then `node app.js` and read the stack trace.
+
 ## What the 503 means
 
 | What you see | Meaning |
@@ -56,9 +67,27 @@ DATABASE_URL=postgresql://USER:PASSWORD@HOST/DB?sslmode=require
 JWT_SECRET=long-random-string
 CLIENT_ORIGIN=https://raafortagro.com,https://admin.raafortagro.com
 COOKIE_DOMAIN=.raafortagro.com
+GOOGLE_CLIENT_ID=123456789-xxxx.apps.googleusercontent.com
 ```
 
 6. **Restart** the Node app after changing env or uploading files (`tmp/restart.txt` is touched on deploy).
+
+## Google sign-in
+
+Google login needs **both** the API and the frontend build configured with the **same** OAuth client ID.
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → **OAuth 2.0 Client ID** (Web application).
+2. **Authorized JavaScript origins:**
+   - `https://raafortagro.com`
+   - `https://www.raafortagro.com`
+   - `http://localhost:5173` (local dev)
+3. **cPanel** (Node app env): `GOOGLE_CLIENT_ID=…apps.googleusercontent.com`
+4. **GitHub** → Settings → Secrets → `VITE_GOOGLE_CLIENT_ID` = same value (redeploy main site after adding).
+5. API must be up: `https://api.raafortagro.com/api/health` → `{"ok":true}`.
+
+If the button appears but sign-in fails with “server offline” or 503, fix the Node API first — not Google settings.
+
+A **404** on register/login usually meant the shop domain has no `/api` routes; the app now only calls `api.raafortagro.com` for auth.
 
 ## `api.raafortagro.com` redirects to `raafortagro.com`
 

@@ -27,7 +27,7 @@ function isLocalDevServer(hostname, port) {
   return isPrivateHost(hostname) && DEV_PORTS.has(port);
 }
 
-function resolveBases() {
+function resolveBases({ authOnly = false } = {}) {
   const fromEnv = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
   const bases = [];
 
@@ -45,7 +45,7 @@ function resolveBases() {
 
     bases.push(dedicatedApiBase(hostname, protocol));
     if (fromEnv) bases.push(fromEnv);
-    bases.push(siteApiBase(hostname, protocol));
+    if (!authOnly) bases.push(siteApiBase(hostname, protocol));
   } else if (fromEnv) {
     bases.push(fromEnv);
   }
@@ -71,7 +71,8 @@ export async function api(path, options = {}) {
   const headers = { ...options.headers };
   if (options.body) headers['Content-Type'] = 'application/json';
 
-  const bases = resolveBases();
+  const authOnly = path.startsWith('/auth');
+  const bases = resolveBases({ authOnly });
   const credentials = options.credentials ?? requestCredentials(path, options.method);
   let lastError;
 
@@ -94,7 +95,11 @@ export async function api(path, options = {}) {
         const err = new Error(data.error || `Request failed (${res.status})`);
         err.status = res.status;
         err.data = data;
+        err.base = base;
         lastError = err;
+        if (authOnly && (res.status === 502 || res.status === 503 || res.status === 504)) {
+          break;
+        }
         continue;
       }
 
@@ -132,6 +137,13 @@ function friendlyFetchError(err, bases) {
       );
     }
     const apiHost = `api.${siteRoot(hostname)}`;
+    const apiDown =
+      err?.status === 503 || err?.status === 502 || err?.status === 504;
+    if (apiDown) {
+      return new Error(
+        `Sign-in server is offline (${err.status}). Open ${protocol}//${apiHost}/api/health — you need JSON {"ok":true}, not a 503 page. Restart the Node app in cPanel (HOSTING.md).`,
+      );
+    }
     return new Error(
       isNetwork
         ? `Cannot reach the sign-in server (${bases[0] || `${protocol}//${apiHost}/api`}). Open ${protocol}//${apiHost}/api/health in your browser — you should see JSON, not a 503 page. If not, restart the Node app in cPanel (see HOSTING.md).`

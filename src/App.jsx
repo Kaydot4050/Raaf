@@ -91,9 +91,9 @@ export default function App() {
         path="under-development"
         element={SITE_LOCKED && hasPreview ? <Navigate to="/" replace /> : <UnderDevelopment />}
       />
-      <Route path="login" element={<GuestRoute><Login /></GuestRoute>} />
-      <Route path="register" element={<GuestRoute><Register /></GuestRoute>} />
       <Route element={<Layout />}>
+        <Route path="login" element={<GuestRoute><Login /></GuestRoute>} />
+        <Route path="register" element={<GuestRoute><Register /></GuestRoute>} />
         <Route index element={<Home />} />
         <Route path="shop" element={<Shop />} />
         <Route path="product/:id" element={<ProductDetail />} />

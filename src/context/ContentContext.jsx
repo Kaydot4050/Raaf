@@ -4,15 +4,25 @@ import { api } from '../lib/api.js';
 const ContentContext = createContext(null);
 
 export function ContentProvider({ children }) {
-  const [content, setContent] = useState({});
+  const [content, setContent] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_content');
+      return cached ? JSON.parse(cached) : {};
+    } catch {
+      return {};
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     try {
       const { content: data } = await api('/content');
-      setContent(data || {});
+      if (data) {
+        setContent(data);
+        localStorage.setItem('site_content', JSON.stringify(data));
+      }
     } catch {
-      setContent({});
+      // Don't clear content on network error, keep cached
     } finally {
       setLoading(false);
     }

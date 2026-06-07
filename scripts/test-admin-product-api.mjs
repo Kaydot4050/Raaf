@@ -52,8 +52,8 @@ const update = await req(`/admin/products/${encodeURIComponent(id)}`, {
   body: JSON.stringify({
     name: list.data.products[0].name,
     category: list.data.products[0].category,
-    priceMin: list.data.products[0].priceMin,
-    priceMax: list.data.products[0].priceMax,
+    price: list.data.products[0].price,
+    originalPrice: list.data.products[0].originalPrice,
     images: list.data.products[0].images || [],
     image: list.data.products[0].image,
     featured: list.data.products[0].featured,

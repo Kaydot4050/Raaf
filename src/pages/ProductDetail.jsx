@@ -13,6 +13,13 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useAccount } from '../context/AccountContext.jsx';
 import Button from '../components/ui/Button.jsx';
 import ProductCard from '../components/ProductCard.jsx';
+import { products, getRelatedProducts } from '../data/products.js';
+
+const labelColors = {
+  green: 'bg-forest text-white',
+  gold: 'bg-amber-500 text-white',
+  silver: 'bg-slate-400 text-white',
+};
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -182,9 +189,16 @@ export default function ProductDetail() {
 
           {/* Right Column: Product Info */}
           <div className="flex flex-col pt-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-forest mb-2 capitalize">
-              {product.category}
-            </span>
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-forest capitalize">
+                {product.category}
+              </span>
+              {product.label && (
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${labelColors[product.labelColor] || labelColors.green}`}>
+                  {product.label}
+                </span>
+              )}
+            </div>
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-charcoal mb-3 leading-tight">
               {product.name}
             </h1>
@@ -218,11 +232,11 @@ export default function ProductDetail() {
 
             <div className="mb-5 flex flex-wrap items-baseline gap-2">
               <span className="text-2xl font-bold text-charcoal">
-                {formatPrice(product.priceMin, product.priceMax)}
+                {formatPrice(product.price)}
               </span>
-              {product.onSale && product.originalPriceMin && (
+              {product.onSale && product.originalPrice && (
                 <span className="text-sm text-text-muted line-through">
-                  {formatPrice(product.originalPriceMin, product.originalPriceMax)}
+                  {formatPrice(product.originalPrice)}
                 </span>
               )}
             </div>

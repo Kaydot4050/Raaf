@@ -8,6 +8,12 @@ import { useGalleryHover } from '../hooks/useGalleryHover.js';
 import { useAccount } from '../context/AccountContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
+const labelColors = {
+  green: 'bg-forest/90 text-white',
+  gold: 'bg-amber-500 text-white',
+  silver: 'bg-slate-400 text-white',
+};
+
 export default function ProductCard({ product, onAdd }) {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -28,8 +34,8 @@ export default function ProductCard({ product, onAdd }) {
   };
 
   const discount =
-    product.onSale && product.originalPriceMin && product.priceMin
-      ? Math.round(((product.originalPriceMin - product.priceMin) / product.originalPriceMin) * 100)
+    product.onSale && product.originalPrice && product.price
+      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
       : 0;
 
   return (
@@ -38,12 +44,17 @@ export default function ProductCard({ product, onAdd }) {
     >
       <div className="relative aspect-[5/4] overflow-hidden bg-white">
         {product.bestSeller && (
-          <span className="absolute top-3 left-3 z-20 px-2.5 py-1 rounded-full bg-charcoal text-white text-[10px] font-bold uppercase tracking-wide pointer-events-none">
+          <div className="absolute top-0 left-0 w-full z-20 px-2 py-0.5 bg-charcoal text-white text-[10px] font-bold uppercase tracking-wide text-center pointer-events-none">
             Best seller
-          </span>
+          </div>
+        )}
+        {product.label && !product.bestSeller && (
+          <div className={`absolute top-0 left-0 w-full z-20 px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wide pointer-events-none ${labelColors[product.labelColor] || labelColors.green}`}>
+            {product.label}
+          </div>
         )}
         {product.onSale && discount > 0 && (
-          <span className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-forest text-white text-[10px] font-bold pointer-events-none">
+          <span className={`absolute ${product.label || product.bestSeller ? 'top-8' : 'top-3'} right-3 z-20 px-2.5 py-1 rounded-full bg-forest text-white text-[10px] font-bold pointer-events-none`}>
             −{discount}%
           </span>
         )}
@@ -123,11 +134,11 @@ export default function ProductCard({ product, onAdd }) {
         <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-border/60">
           <div className="min-w-0 flex-1 pr-1">
             <p className="text-xs sm:text-sm font-bold text-charcoal whitespace-nowrap leading-tight">
-              {formatPrice(product.priceMin, product.priceMax)}
+              {formatPrice(product.price)}
             </p>
-            {product.onSale && product.originalPriceMin && (
+            {product.onSale && product.originalPrice && (
               <p className="text-[11px] sm:text-xs text-text-muted line-through whitespace-nowrap leading-tight mt-0.5">
-                {formatPrice(product.originalPriceMin, product.originalPriceMax || product.originalPriceMin)}
+                {formatPrice(product.originalPrice)}
               </p>
             )}
           </div>

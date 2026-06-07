@@ -19,7 +19,7 @@ async function req(path, options = {}) {
 
 const noAuthPut = await req('/admin/products/test-id', {
   method: 'PUT',
-  body: JSON.stringify({ name: 'T', category: 'poultry', priceMin: 1, priceMax: 2, images: [] }),
+  body: JSON.stringify({ name: 'T', category: 'poultry', price: 1, originalPrice: 2, images: [] }),
 });
 console.log('PUT no auth:', noAuthPut.status, noAuthPut.data);
 

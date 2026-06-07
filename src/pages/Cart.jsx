@@ -22,7 +22,7 @@ export default function Cart() {
     );
   }
 
-  const total = items.reduce((sum, item) => sum + item.priceMin * item.qty, 0);
+  const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   return (
     <div className="py-12 sm:py-16 md:py-20 min-h-[50vh]">
@@ -46,7 +46,7 @@ export default function Cart() {
                   <Link to={`/product/${item.id}`} className="font-semibold text-charcoal text-sm sm:text-base hover:text-forest line-clamp-2">
                     {item.name}
                   </Link>
-                  <p className="text-sm text-forest font-bold mt-1">{formatPrice(item.priceMin, item.priceMax)}</p>
+                  <p className="text-sm text-forest font-bold mt-1">{formatPrice(item.price)}</p>
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
                   <div className="inline-flex items-center border border-border rounded-full overflow-hidden">
@@ -69,7 +69,7 @@ export default function Cart() {
                     </button>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-charcoal">{formatPrice(item.priceMin * item.qty, item.priceMin * item.qty)}</p>
+                    <p className="text-sm font-bold text-charcoal">{formatPrice(item.price * item.qty)}</p>
                     <button
                       type="button"
                       onClick={() => removeItem(item.id)}
@@ -93,7 +93,7 @@ export default function Cart() {
             <div className="space-y-2 mt-4 text-sm">
               <p className="flex justify-between text-text-muted">
                 <span>Subtotal</span>
-                <span className="font-semibold text-charcoal">{formatPrice(total, total)}</span>
+                <span className="font-semibold text-charcoal">{formatPrice(total)}</span>
               </p>
               <p className="flex justify-between text-text-muted">
                 <span>Shipping</span>
@@ -101,7 +101,7 @@ export default function Cart() {
               </p>
               <p className="flex justify-between text-base font-bold text-charcoal pt-3 border-t border-border">
                 <span>Total</span>
-                <span>{formatPrice(total, total)}</span>
+                <span>{formatPrice(total)}</span>
               </p>
             </div>
             <div className="mt-5 space-y-3">

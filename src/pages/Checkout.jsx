@@ -64,7 +64,7 @@ export default function Checkout() {
     return <Navigate to="/login" replace />;
   }
 
-  const subtotal = items.reduce((sum, item) => sum + item.priceMin * item.qty, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
   const regionKey = form.region?.trim();
   const shippingCost = regionKey && SHIPPING_RATES[regionKey] ? SHIPPING_RATES[regionKey] : 100;
   const orderTotal = subtotal + shippingCost;
@@ -94,7 +94,7 @@ export default function Checkout() {
           id: i.id,
           name: i.name,
           qty: i.qty,
-          price: i.priceMin,
+          price: i.price,
           image: i.image,
         })),
         subtotal,
@@ -210,21 +210,21 @@ export default function Checkout() {
                   <span className="text-charcoal line-clamp-2">
                     {item.name} <span className="text-text-muted">×{item.qty}</span>
                   </span>
-                  <span className="font-semibold shrink-0">{formatPrice(item.priceMin * item.qty, item.priceMin * item.qty)}</span>
+                  <span className="font-semibold shrink-0">{formatPrice(item.price * item.qty)}</span>
                 </li>
               ))}
             </ul>
             <p className="flex justify-between text-sm text-text-muted mt-4 pt-4 border-t border-border">
               <span>Subtotal</span>
-              <span className="font-bold text-charcoal">{formatPrice(subtotal, subtotal)}</span>
+              <span className="font-bold text-charcoal">{formatPrice(subtotal)}</span>
             </p>
             <p className="flex justify-between text-sm text-text-muted mt-2">
               <span>Shipping</span>
-              <span className="font-bold text-charcoal">{formatPrice(shippingCost, shippingCost)}</span>
+              <span className="font-bold text-charcoal">{formatPrice(shippingCost)}</span>
             </p>
             <p className="flex justify-between text-base mt-4 pt-4 border-t border-border">
               <span className="font-bold text-charcoal">Total</span>
-              <span className="font-bold text-forest text-lg">{formatPrice(orderTotal, orderTotal)}</span>
+              <span className="font-bold text-forest text-lg">{formatPrice(orderTotal)}</span>
             </p>
             <Button type="submit" variant="forest" className="w-full justify-center mt-5" disabled={submitting}>
               {submitting ? 'Redirecting to payment…' : 'Pay & Place Order'}

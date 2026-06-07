@@ -1,14 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { usePageSection } from '../context/ContentContext.jsx';
-
-const FALLBACK_SLIDES = [
-  { src: '/images/logo.png', mobileSrc: '', alt: 'Poultry & Livestock', title: 'LIVESTOCK' },
-  { src: '/images/Raafortagro-3.png', mobileSrc: '', alt: 'Agro Chemicals', title: 'CHEMICALS' },
-  { src: '/images/Raafortagro.png', mobileSrc: '', alt: 'Farm Equipment', title: 'EQUIPMENT' },
-  { src: '/images/a.jpg', mobileSrc: '', alt: 'Sustainable agriculture', title: 'FARMING' },
-  { src: '/images/istock-hero.jpg', mobileSrc: '', alt: 'Feed & nutrition', title: 'NUTRITION' },
-];
+import { HERO_SLIDES } from '../data/heroSlides.js';
 
 function SlideImage({ slide }) {
   return (
@@ -27,8 +19,7 @@ function SlideImage({ slide }) {
 }
 
 export default function HeroImageSlider({ className = '' }) {
-  const { data } = usePageSection('home', 'hero_slides', { slides: FALLBACK_SLIDES });
-  const SLIDES = data.slides?.length ? data.slides : FALLBACK_SLIDES;
+  const SLIDES = HERO_SLIDES;
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isDesktop, setIsDesktop] = useState(
@@ -49,7 +40,7 @@ export default function HeroImageSlider({ className = '' }) {
     }, 4000); // Cycles every 4 seconds
     
     return () => clearInterval(interval);
-  }, [isHovered]);
+  }, [isHovered, SLIDES.length]);
 
   return (
     <div 
@@ -64,7 +55,7 @@ export default function HeroImageSlider({ className = '' }) {
           const isActive = i === activeIndex;
           return (
             <motion.article
-              key={i}
+              key={slide.src || i}
               className="relative h-full overflow-hidden cursor-pointer"
               animate={{
                 flex: isActive ? (isDesktop ? 9.5 : 8) : isDesktop ? 0.7 : 1,

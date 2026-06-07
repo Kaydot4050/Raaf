@@ -5,7 +5,15 @@ import { useToast } from '../context/ToastContext.jsx';
 import Button from '../components/ui/Button.jsx';
 import GoogleSignIn from '../components/auth/GoogleSignIn.jsx';
 import { useGoogleAuth } from '../components/auth/GoogleAuthProvider.jsx';
-import AuthPageShell, { authInputCls, authLabelCls } from '../components/auth/AuthPageShell.jsx';
+import AuthPageShell, {
+  authInputCls,
+  authLabelCls,
+  authErrorCls,
+  authFooterTextCls,
+  authFooterLinkCls,
+  authDividerLineCls,
+  authDividerOrCls,
+} from '../components/auth/AuthPageShell.jsx';
 import AuthPasswordField from '../components/auth/AuthPasswordField.jsx';
 
 export default function Login() {
@@ -19,23 +27,21 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const from = location.state?.from?.pathname || '/';
-
   const onAuthSuccess = () => {
     showToast('Welcome back!');
-    navigate(from, { replace: true });
+    navigate('/', { replace: true });
   };
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f1412]">
+      <div className="flex items-center justify-center py-16 bg-cream lg:min-h-screen lg:bg-[#0f1412]">
         <div className="w-10 h-10 rounded-full border-2 border-forest/30 border-t-forest animate-spin" />
       </div>
     );
   }
 
   if (isAuthenticated) {
-    return <Navigate to={from} replace />;
+    return <Navigate to="/" replace />;
   }
 
   const handleEmailSubmit = async (e) => {
@@ -58,18 +64,16 @@ export default function Login() {
       heroTitle="Orders, tracking, and farm details in one account."
       heroSubtitle="Check deliveries, reorder stock, and update your farm profile."
       footer={
-        <p className="mt-8 text-sm text-center text-white/50">
+        <p className={authFooterTextCls}>
           New here?{' '}
-          <Link to="/register" className="text-beige font-semibold hover:text-white transition-colors">
+          <Link to="/register" className={authFooterLinkCls}>
             Create an account
           </Link>
         </p>
       }
     >
       {error && (
-        <p className="mb-4 text-sm text-red-200 bg-red-500/15 border border-red-400/30 rounded-xl px-4 py-2">
-          {error}
-        </p>
+        <p className={authErrorCls}>{error}</p>
       )}
 
       <form onSubmit={handleEmailSubmit} className="space-y-4">
@@ -92,7 +96,12 @@ export default function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <Button type="submit" variant="cream" className="w-full justify-center mt-2 !rounded-xl" disabled={loading}>
+        <Button
+          type="submit"
+          variant="forest"
+          className="w-full justify-center mt-2 !rounded-xl lg:!bg-cream lg:!text-charcoal lg:hover:!bg-cream-dark lg:!border-beige-dark/50 lg:border lg:shadow-md"
+          disabled={loading}
+        >
           {loading ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>
@@ -101,10 +110,10 @@ export default function Login() {
         <>
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
+              <div className={authDividerLineCls} />
             </div>
-            <div className="relative flex justify-center text-xs uppercase tracking-widest">
-              <span className="bg-[#0f1412] px-3 text-white/40">or</span>
+            <div className="relative flex justify-center">
+              <span className={authDividerOrCls}>or</span>
             </div>
           </div>
           <GoogleSignIn disabled={loading} onSuccess={onAuthSuccess} onError={(msg) => msg && setError(msg)} />

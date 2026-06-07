@@ -33,12 +33,14 @@ const empty = {
   category: 'poultry',
   image: '',
   images: Array.from({ length: GALLERY_SLOTS }, () => ''),
-  priceMin: 0,
-  priceMax: 0,
+  price: 0,
+  originalPrice: 0,
   description: '',
   featured: false,
   inStock: true,
   stockQuantity: 100,
+  label: '',
+  labelColor: 'green',
 };
 
 function padImages(images, primary = '') {
@@ -83,13 +85,15 @@ export default function AdminProducts() {
       name: form.name,
       category: form.category,
       description: form.description,
-      priceMin: form.priceMin,
-      priceMax: form.priceMax,
+      price: form.price,
+      originalPrice: form.originalPrice,
       featured: form.featured,
       inStock: form.inStock,
       stockQuantity: form.stockQuantity,
       images: gallery,
       image: gallery[0] || '',
+      label: form.label || null,
+      labelColor: form.labelColor || 'green',
     };
     if (!editing) payload.id = form.id;
     try {
@@ -148,7 +152,7 @@ export default function AdminProducts() {
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{p.name}</p>
                 <p className="text-sm text-muted-foreground">
-                  {p.category} · GH₵ {p.priceMin}–{p.priceMax}
+                  {p.category} · GH₵ {p.price}
                 </p>
               </div>
               <div className="flex gap-1">
@@ -225,19 +229,19 @@ export default function AdminProducts() {
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field>
-                  <FieldLabel>Price min (GH₵)</FieldLabel>
+                  <FieldLabel>Price (GH₵)</FieldLabel>
                   <Input
                     type="number"
-                    value={form.priceMin}
-                    onChange={(e) => setForm({ ...form, priceMin: +e.target.value })}
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: +e.target.value })}
                   />
                 </Field>
                 <Field>
-                  <FieldLabel>Price max (GH₵)</FieldLabel>
+                  <FieldLabel>Original Price (GH₵) - Optional</FieldLabel>
                   <Input
                     type="number"
-                    value={form.priceMax}
-                    onChange={(e) => setForm({ ...form, priceMax: +e.target.value })}
+                    value={form.originalPrice ?? ''}
+                    onChange={(e) => setForm({ ...form, originalPrice: e.target.value ? +e.target.value : null })}
                   />
                 </Field>
               </div>
@@ -270,6 +274,26 @@ export default function AdminProducts() {
                   value={form.stockQuantity ?? 100}
                   onChange={(e) => setForm({ ...form, stockQuantity: +e.target.value })}
                 />
+              </Field>
+              <Field>
+                <FieldLabel>Card Label (optional — e.g. "Premium", "Heritage Breed")</FieldLabel>
+                <div className="flex gap-2">
+                  <Input
+                    className="flex-1"
+                    placeholder="e.g. Premium, Heritage Breed"
+                    value={form.label ?? ''}
+                    onChange={(e) => setForm({ ...form, label: e.target.value })}
+                  />
+                  <select
+                    className="flex h-10 w-[120px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={form.labelColor || 'green'}
+                    onChange={(e) => setForm({ ...form, labelColor: e.target.value })}
+                  >
+                    <option value="green">Green</option>
+                    <option value="gold">Gold</option>
+                    <option value="silver">Silver</option>
+                  </select>
+                </div>
               </Field>
             </FieldGroup>
             <DialogFooter className="mt-6">

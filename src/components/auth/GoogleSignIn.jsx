@@ -72,10 +72,12 @@ export default function GoogleSignIn({ onSuccess, onError, disabled, label = 'co
     >
       {/* Visible full-width button */}
       <div
-        className="pointer-events-none relative z-10 flex h-full w-full items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-white text-sm font-semibold text-charcoal shadow-sm"
+        className="pointer-events-none relative z-10 flex h-full w-full items-center justify-center gap-2.5 rounded-xl border text-sm font-semibold shadow-sm lg:shadow-sm bg-forest border-forest/20 text-white shadow-md shadow-forest/20 lg:bg-white lg:border-white/20 lg:text-charcoal lg:shadow-sm"
         aria-hidden
       >
-        <GoogleGIcon />
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/95 shrink-0">
+          <GoogleGIcon />
+        </span>
         <span>{labelText}</span>
       </div>
 

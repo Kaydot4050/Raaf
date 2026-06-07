@@ -190,15 +190,15 @@ router.post(
     }
     await query(
       `INSERT INTO products (
-        id, name, category, type, image, images, price_min, price_max, description,
+        id, name, category, type, image, images, price, description,
         featured, rating, best_seller, new_arrival, on_sale,
-        original_price_min, original_price_max, in_stock, stock_quantity
+        original_price, in_stock, stock_quantity, label, label_color
       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
       [
         p.id, p.name, p.category, p.type, p.image, JSON.stringify(p.images),
-        p.price_min, p.price_max, p.description,
+        p.price, p.description,
         p.featured, p.rating, p.best_seller, p.new_arrival, p.on_sale,
-        p.original_price_min, p.original_price_max, p.in_stock, p.stock_quantity,
+        p.original_price, p.in_stock, p.stock_quantity, p.label, p.label_color,
       ],
     );
     const row = (await query('SELECT * FROM products WHERE id = $1', [p.id])).rows[0];
@@ -212,15 +212,15 @@ router.put(
     const p = productFromBody({ ...req.body, id: req.params.id });
     const result = await query(
       `UPDATE products SET
-        name=$2, category=$3, type=$4, image=$5, images=$6, price_min=$7, price_max=$8, description=$9,
-        featured=$10, rating=$11, best_seller=$12, new_arrival=$13, on_sale=$14,
-        original_price_min=$15, original_price_max=$16, in_stock=$17, stock_quantity=$18
+        name=$2, category=$3, type=$4, image=$5, images=$6, price=$7, description=$8,
+        featured=$9, rating=$10, best_seller=$11, new_arrival=$12, on_sale=$13,
+        original_price=$14, in_stock=$15, stock_quantity=$16, label=$17, label_color=$18
        WHERE id=$1 RETURNING *`,
       [
         p.id, p.name, p.category, p.type, p.image, JSON.stringify(p.images),
-        p.price_min, p.price_max, p.description,
+        p.price, p.description,
         p.featured, p.rating, p.best_seller, p.new_arrival, p.on_sale,
-        p.original_price_min, p.original_price_max, p.in_stock, p.stock_quantity,
+        p.original_price, p.in_stock, p.stock_quantity, p.label, p.label_color,
       ],
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Product not found.' });

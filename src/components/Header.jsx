@@ -45,7 +45,7 @@ function AuthSpinner() {
   );
 }
 
-export default function Header() {
+export default function Header({ className = '' }) {
   const { count } = useCart();
   const { openSearch } = useSearch();
   const { isAuthenticated, loading } = useAuth();
@@ -203,7 +203,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 safe-top bg-cream/95 backdrop-blur-md">
+      <header className={`fixed top-0 left-0 right-0 z-50 safe-top bg-cream/95 backdrop-blur-md ${className}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex lg:hidden items-center justify-between h-14 gap-2">
             <Link to="/" className="flex items-center gap-2 min-w-0 shrink-0">
@@ -286,7 +286,7 @@ export default function Header() {
           </div>
         </div>
       </header>
-      <div className="h-14 lg:h-[76px] shrink-0" aria-hidden="true" />
+      <div className={`h-14 lg:h-[76px] shrink-0 ${className}`} aria-hidden="true" />
       {mobileMenu}
     </>
   );

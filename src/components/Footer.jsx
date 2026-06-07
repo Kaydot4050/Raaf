@@ -46,7 +46,7 @@ function FooterColumn({ title, children }) {
   );
 }
 
-function SocialLinks({ footer }) {
+function SocialLinks({ footer, className = '' }) {
   const social = { ...DEFAULT_SOCIAL, ...footer };
   const wa = whatsAppHref(footer.phone, footer.whatsappUrl);
 
@@ -60,7 +60,7 @@ function SocialLinks({ footer }) {
   if (!items.length && !wa) return null;
 
   return (
-    <div className="mt-5 flex flex-wrap items-center gap-2">
+    <div className={`flex flex-wrap items-center justify-center gap-2 sm:justify-start ${className}`}>
       {items.map(({ href, label, network, Icon }) => (
         <SocialIconLink key={label} network={network} href={href} label={label} Icon={Icon} />
       ))}
@@ -73,7 +73,7 @@ function SocialLinks({ footer }) {
   );
 }
 
-export default function Footer() {
+export default function Footer({ className = '' }) {
   const { data: footer } = usePageSection('global', 'footer', {
     tagline: 'Poultry, livestock, and feed for farms across Ghana.',
     phone: '+233 00 000 0000',
@@ -89,7 +89,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto bg-charcoal text-white/75 rounded-t-[2rem] sm:rounded-t-[2.5rem]">
+    <footer className={`mt-auto bg-charcoal text-white/75 rounded-t-[2rem] sm:rounded-t-[2.5rem] ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-14 pb-8">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12 pb-10 sm:pb-12 border-b border-white/10">
           {/* Brand */}
@@ -99,7 +99,6 @@ export default function Footer() {
               <span className="font-display font-bold text-white text-lg lowercase">raafortagro</span>
             </Link>
             <p className="mt-3 text-sm leading-relaxed text-white/70">{footer.tagline}</p>
-            <SocialLinks footer={footer} />
           </div>
 
           {/* Nav + contact — equal columns, shared top alignment */}
@@ -147,22 +146,25 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 pt-8 text-xs text-white/40">
-          <p>{footer.copyright || `© ${year} Raafortagro. All rights reserved.`}</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-1">
-            <Link to="/privacy" className="hover:text-white/70 transition-colors">
-              Privacy
-            </Link>
-            <Link to="/terms" className="hover:text-white/70 transition-colors">
-              Terms
-            </Link>
-            <Link to="/shipping" className="hover:text-white/70 transition-colors">
-              Shipping
-            </Link>
-            <Link to="/returns" className="hover:text-white/70 transition-colors">
-              Returns
-            </Link>
+        <div className="pt-8 space-y-6">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 text-xs text-white/40">
+            <p>{footer.copyright || `© ${year} Raafortagro. All rights reserved.`}</p>
+            <div className="flex flex-wrap gap-x-5 gap-y-1">
+              <Link to="/privacy" className="hover:text-white/70 transition-colors">
+                Privacy
+              </Link>
+              <Link to="/terms" className="hover:text-white/70 transition-colors">
+                Terms
+              </Link>
+              <Link to="/shipping" className="hover:text-white/70 transition-colors">
+                Shipping
+              </Link>
+              <Link to="/returns" className="hover:text-white/70 transition-colors">
+                Returns
+              </Link>
+            </div>
           </div>
+          <SocialLinks footer={footer} className="pb-1" />
         </div>
       </div>
     </footer>

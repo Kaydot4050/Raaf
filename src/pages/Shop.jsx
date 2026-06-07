@@ -144,7 +144,7 @@ export default function Shop() {
         : list.filter((p) => p.category === category);
     }
     if (selectedTypes.length > 0) list = list.filter((p) => selectedTypes.includes(p.type));
-    list = list.filter((p) => p.priceMin >= priceRange.min && p.priceMin <= priceRange.max);
+    list = list.filter((p) => p.price >= priceRange.min && p.price <= priceRange.max);
     if (selectedRating !== null) list = list.filter((p) => p.rating >= selectedRating);
     if (promotions.newArrivals) list = list.filter((p) => p.newArrival);
     if (promotions.bestSellers) list = list.filter((p) => p.bestSeller);
@@ -155,12 +155,12 @@ export default function Shop() {
       const q = query.toLowerCase();
       list = list.filter((p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
     }
-    if (sortBy === 'price-low-high') list.sort((a, b) => a.priceMin - b.priceMin);
-    else if (sortBy === 'price-high-low') list.sort((a, b) => b.priceMax - a.priceMax);
+    if (sortBy === 'price-low-high') list.sort((a, b) => a.price - b.price);
+    else if (sortBy === 'price-high-low') list.sort((a, b) => b.price - a.price);
     else if (sortBy === 'rating') list.sort((a, b) => b.rating - a.rating);
     else if (sortBy === 'popularity') list.sort((a, b) => (b.bestSeller ? 1 : 0) - (a.bestSeller ? 1 : 0));
     return list;
-  }, [category, selectedTypes, priceRange, selectedRating, promotions, availability, query, sortBy]);
+  }, [products, category, selectedTypes, priceRange, selectedRating, promotions, availability, query, sortBy]);
 
   const totalPages = Math.ceil(filtered.length / MAX_PER_PAGE);
   const displayed = useMemo(() => filtered.slice((page - 1) * MAX_PER_PAGE, page * MAX_PER_PAGE), [filtered, page]);

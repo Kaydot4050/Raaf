@@ -54,7 +54,7 @@ export default function SearchCommand() {
       .map((p) => ({
         id: `product-${p.id}`,
         label: p.name,
-        hint: formatPrice(p.priceMin, p.priceMax),
+        hint: formatPrice(p.price),
         to: `/product/${p.id}`,
         icon: Package,
         image: p.image,
@@ -127,7 +127,7 @@ export default function SearchCommand() {
           <motion.button
             type="button"
             aria-label="Close search"
-            className="fixed inset-0 z-[300] bg-charcoal/60 backdrop-blur-md border-none cursor-default"
+            className="fixed inset-0 z-[300] bg-charcoal/25 backdrop-blur-sm border-none cursor-default"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -137,23 +137,23 @@ export default function SearchCommand() {
             role="dialog"
             aria-modal="true"
             aria-label="Search"
-            className="fixed left-1/2 top-[12%] sm:top-[18%] z-[301] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-xl bg-[#1a1a1a] border border-white/10 shadow-2xl overflow-hidden"
+            className="fixed left-1/2 top-[12%] sm:top-[18%] z-[301] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 rounded-2xl bg-cream border border-border shadow-2xl overflow-hidden"
             initial={{ opacity: 0, y: -12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.2 }}
             onKeyDown={onKeyDown}
           >
-            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/10">
-              <Search className="w-5 h-5 text-white/40 shrink-0" />
+            <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border bg-white/60">
+              <Search className="w-5 h-5 text-text-muted shrink-0" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Type a command or search…"
-                className="flex-1 bg-transparent border-none outline-none text-white text-sm placeholder:text-white/35"
+                className="flex-1 bg-transparent border-none outline-none text-charcoal text-sm placeholder:text-text-muted"
               />
-              <kbd className="hidden sm:inline text-[10px] text-white/30 border border-white/15 rounded px-1.5 py-0.5">
+              <kbd className="hidden sm:inline text-[10px] text-text-muted border border-border rounded px-1.5 py-0.5 bg-beige-soft/80">
                 esc
               </kbd>
             </div>
@@ -161,14 +161,14 @@ export default function SearchCommand() {
             <div className="max-h-[min(60vh,420px)] overflow-y-auto py-2">
               {sections.map((section) => (
                 <div key={section.title} className="mb-1">
-                  <p className="px-4 py-2 text-[10px] font-semibold tracking-widest text-white/35 uppercase">
+                  <p className="px-4 py-2 text-[10px] font-semibold tracking-widest text-text-muted uppercase">
                     {section.title}
                   </p>
                   <ul>
                     {section.items.map((item) => {
                       if (item.disabled) {
                         return (
-                          <li key={item.id} className="px-4 py-2.5 text-sm text-white/30">
+                          <li key={item.id} className="px-4 py-2.5 text-sm text-text-muted">
                             {item.label}
                           </li>
                         );
@@ -184,16 +184,18 @@ export default function SearchCommand() {
                             onClick={() => go(item)}
                             onMouseEnter={() => setActive(idx)}
                             className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
-                              selected ? 'bg-white/10 text-white' : 'text-white/75 hover:bg-white/5'
+                              selected
+                                ? 'bg-forest/10 text-charcoal'
+                                : 'text-charcoal/90 hover:bg-beige-soft'
                             }`}
                           >
                             {item.image ? (
-                              <img src={item.image} alt="" className="w-8 h-8 rounded-lg object-cover bg-white/10" />
+                              <img src={item.image} alt="" className="w-8 h-8 rounded-lg object-cover bg-beige-soft border border-border" />
                             ) : (
-                              <Icon className="w-4 h-4 shrink-0 text-white/45" />
+                              <Icon className="w-4 h-4 shrink-0 text-forest-muted" />
                             )}
                             <span className="flex-1 truncate">{item.label}</span>
-                            {item.hint && <span className="text-xs text-white/35 shrink-0">{item.hint}</span>}
+                            {item.hint && <span className="text-xs text-text-muted shrink-0">{item.hint}</span>}
                           </button>
                         </li>
                       );

@@ -1,7 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 
-export default function GuestRoute({ children, redirectTo = '/account' }) {
+export default function GuestRoute({ children, redirectTo = '/' }) {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {

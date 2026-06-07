@@ -24,6 +24,13 @@ const projectRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..'
 app.use(cors(corsOptions()));
 app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
+
+/** Stable root for cPanel post–npm-install probe (avoids text/html vs text/html; charset=utf-8 mismatch). */
+app.get('/', (_req, res) => {
+  res.set('Content-Type', 'text/html');
+  res.status(200).send('Raafortagro API');
+});
+
 app.use('/uploads', express.static(path.join(projectRoot, 'public', 'uploads')));
 app.use(express.static(path.join(projectRoot, 'public')));
 

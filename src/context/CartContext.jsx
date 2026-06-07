@@ -5,7 +5,20 @@ const CartContext = createContext(null);
 export function CartProvider({ children }) {
   const [items, setItems] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('raafort-cart') || '[]');
+      const parsed = JSON.parse(localStorage.getItem('raafort-cart') || '[]');
+      return parsed.map((item) => {
+        if (item.priceMin !== undefined && item.price === undefined) {
+          item.price = item.priceMin;
+          delete item.priceMin;
+          delete item.priceMax;
+        }
+        if (item.originalPriceMin !== undefined && item.originalPrice === undefined) {
+          item.originalPrice = item.originalPriceMin;
+          delete item.originalPriceMin;
+          delete item.originalPriceMax;
+        }
+        return item;
+      });
     } catch {
       return [];
     }

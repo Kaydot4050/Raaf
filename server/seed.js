@@ -14,9 +14,9 @@ if (count > 0) {
 for (const p of products) {
   await query(
     `INSERT INTO products (
-      id, name, category, type, image, images, price_min, price_max, description,
+      id, name, category, type, image, images, price, description,
       featured, rating, best_seller, new_arrival, on_sale,
-      original_price_min, original_price_max, in_stock
+      original_price, in_stock, label, label_color
     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
     ON CONFLICT (id) DO NOTHING`,
     [
@@ -28,17 +28,17 @@ for (const p of products) {
       JSON.stringify(
         p.images?.length ? p.images.filter(Boolean) : p.image ? [p.image] : [],
       ),
-      p.priceMin,
-      p.priceMax,
+      p.price,
       p.description || null,
       !!p.featured,
       p.rating ?? 0,
       !!p.bestSeller,
       !!p.newArrival,
       !!p.onSale,
-      p.originalPriceMin ?? null,
-      p.originalPriceMax ?? null,
+      p.originalPrice ?? null,
       p.inStock !== false,
+      p.label || null,
+      p.labelColor || 'green',
     ],
   );
 }
