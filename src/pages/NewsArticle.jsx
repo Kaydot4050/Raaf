@@ -54,7 +54,7 @@ export default function NewsArticle() {
         ]);
         setArticle(articleData);
         if (newsData?.items) {
-          setRelated(newsData.items.filter((item) => item.link !== url).slice(0, 4));
+          setRelated(newsData.items.filter((item) => item.link !== url).slice(0, 8));
         }
       } catch (err) {
         console.error('Article error:', err);

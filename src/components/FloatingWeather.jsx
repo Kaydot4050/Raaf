@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Droplets, Wind, X, Search, MapPin, Locate } from 'lucide-react';
 import { loadWeather } from '../lib/weatherClient.js';
+import { externalApi } from '../lib/api.js';
 import { useAccount } from '../context/AccountContext.jsx';
 
 /* ── Weather helpers ─────────────────────────────────────────── */
@@ -141,7 +142,9 @@ export default function FloatingWeather() {
   const [searching, setSearching]   = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [searchError, setSearchError] = useState('');
   const searchRef = useRef(null);
+  const searchTimerRef = useRef(null);
 
   const SAVED_LOC_KEY = 'raafort_weather_loc';
 
@@ -154,15 +157,9 @@ export default function FloatingWeather() {
       return;
     }
 
-    // Reverse-geocode with zoom=14 for neighbourhood-level precision
-    fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=14&addressdetails=1`,
-      { headers: { 'Accept-Language': 'en' } }
-    )
-      .then((r) => r.json())
+    externalApi.geocodeReverse(latitude, longitude)
       .then((data) => {
         const a = data.address || {};
-        // Prefer the most local name available
         const place =
           a.suburb        ||
           a.neighbourhood ||
@@ -242,15 +239,27 @@ export default function FloatingWeather() {
   }, []);
 
   function searchLocation(q) {
-    if (!q.trim()) { setSearchResults([]); return; }
-    fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`,
-      { headers: { 'Accept-Language': 'en' } }
-    )
-      .then((r) => r.json())
-      .then((results) => setSearchResults(results))
-      .catch(() => setSearchResults([]));
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    if (!q.trim()) {
+      setSearchResults([]);
+      setSearchError('');
+      return;
+    }
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        setSearchError('');
+        const { results } = await externalApi.geocodeSearch(q.trim());
+        setSearchResults(Array.isArray(results) ? results : []);
+      } catch (err) {
+        setSearchResults([]);
+        setSearchError(err.message || 'Search failed');
+      }
+    }, 350);
   }
+
+  useEffect(() => () => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+  }, []);
 
   function pickLocation(result) {
     const a = result.address || {};
@@ -263,7 +272,18 @@ export default function FloatingWeather() {
     setSearching(false);
     setSearchQuery('');
     setSearchResults([]);
+    setSearchError('');
   }
+
+  const [position, setPosition] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('raafort_weather_pos');
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e) {}
+      }
+    }
+    return { x: 0, y: 0 };
+  });
 
   if (settings?.showWeather === false) return null;
   if (!weather?.current) return null;
@@ -278,7 +298,18 @@ export default function FloatingWeather() {
   const stormy = isStormy(code);
 
   return (
-    <div className="fixed top-20 right-4 z-40 flex flex-col items-end gap-2">
+    <motion.div
+      drag
+      dragMomentum={false}
+      initial={position}
+      onDragEnd={(e, info) => {
+        const newPos = { x: position.x + info.offset.x, y: position.y + info.offset.y };
+        setPosition(newPos);
+        localStorage.setItem('raafort_weather_pos', JSON.stringify(newPos));
+      }}
+      className="fixed top-20 right-4 z-40 flex flex-col items-end gap-2 cursor-grab active:cursor-grabbing"
+      style={{ touchAction: 'none' }}
+    >
       <AnimatePresence>
         {open && (
           <motion.div
@@ -286,10 +317,11 @@ export default function FloatingWeather() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className={`relative bg-gradient-to-br ${bg} rounded-2xl shadow-2xl p-4 w-56 text-white overflow-visible`}
+            className={`relative bg-gradient-to-br ${bg} rounded-2xl shadow-2xl p-4 w-56 text-white overflow-visible cursor-default`}
+            onPointerDown={(e) => e.stopPropagation()} // Prevent dragging when clicking inside the panel
           >
             <button
-              onClick={() => setOpen(false)}
+              onClick={(e) => { e.stopPropagation(); setOpen(false); }}
               className="absolute top-2 right-2 p-1 rounded-full hover:bg-white/20 transition-colors"
             >
               <X className="w-3.5 h-3.5" />
@@ -318,6 +350,11 @@ export default function FloatingWeather() {
                   >
                     <Locate className="w-3.5 h-3.5" />
                   </button>
+                  {searchError && (
+                    <p className="absolute top-full left-0 right-0 mt-1 text-[10px] text-white/90 bg-black/30 rounded-lg px-2 py-1 z-50">
+                      {searchError}
+                    </p>
+                  )}
                   {searchResults.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl overflow-hidden z-50 max-h-48 overflow-y-auto">
                       {searchResults.map((r, i) => (
@@ -394,6 +431,6 @@ export default function FloatingWeather() {
         {sunny  && <SunShape temp={c.temperature_2m} />}
         {!sunny && <CloudShape temp={c.temperature_2m} rainy={rainy} stormy={stormy} />}
       </motion.button>
-    </div>
+    </motion.div>
   );
 }

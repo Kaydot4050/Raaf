@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ShoppingBag, Search } from 'lucide-react';
+import { Menu, X, ShoppingBag, Search, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { useSearch } from '../context/SearchContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -13,9 +13,15 @@ import UserMenu from './auth/UserMenu.jsx';
 
 const DEFAULT_NAV = [
   { to: '/', label: 'Home', end: true },
-  { to: '/shop', label: 'Shop' },
+  { 
+    to: '/shop', 
+    label: 'Shop',
+    dropdown: [
+      { to: '/shop', label: 'All Products', end: true },
+      { to: '/track-order', label: 'Track Order' }
+    ]
+  },
   { to: '/services', label: 'Services' },
-  { to: '/track-order', label: 'Tracker' },
   { to: '/about', label: 'Our Mission' },
   { to: '/contact', label: 'Contact' },
 ];
@@ -33,6 +39,125 @@ function NavPillLink({ to, label, end }) {
     >
       {label}
     </NavLink>
+  );
+}
+
+function NavDropdownPill({ to, label, end, dropdown }) {
+  return (
+    <div className="relative group">
+      <NavLink
+        to={to}
+        end={end}
+        className={({ isActive }) =>
+          `flex items-center gap-1.5 px-4 xl:px-5 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-200 ${
+            isActive ? 'bg-beige text-charcoal shadow-sm' : 'text-charcoal/75 hover:text-charcoal'
+          }`
+        }
+      >
+        {label}
+        <ChevronDown className="w-3.5 h-3.5 opacity-60 group-hover:rotate-180 transition-transform duration-200" strokeWidth={2.5} />
+      </NavLink>
+      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+        <div className="bg-white rounded-xl shadow-lg border border-border/60 p-1.5 min-w-[150px] flex flex-col gap-0.5">
+          {dropdown.map(item => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                `px-3 py-2 text-sm rounded-lg transition-colors ${
+                  isActive ? 'bg-beige-soft font-semibold text-charcoal' : 'text-charcoal/80 hover:bg-beige-soft/60 hover:text-charcoal'
+                }`
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileNavItem({ item, closeMenu }) {
+  const { to, label, end, dropdown } = item;
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!dropdown) {
+    return (
+      <li className="flex flex-col gap-1">
+        <NavLink
+          to={to}
+          end={end}
+          onClick={closeMenu}
+          className={({ isActive }) =>
+            `block px-4 py-3 rounded-full text-sm font-medium ${
+              isActive ? 'bg-beige text-charcoal' : 'text-charcoal hover:bg-white'
+            }`
+          }
+        >
+          {label}
+        </NavLink>
+      </li>
+    );
+  }
+
+  return (
+    <li className="flex flex-col gap-1">
+      <div className="flex items-center gap-1">
+        <NavLink
+          to={to}
+          end={end}
+          onClick={closeMenu}
+          className={({ isActive }) =>
+            `flex-1 block px-4 py-3 rounded-full text-sm font-medium ${
+              isActive ? 'bg-beige text-charcoal' : 'text-charcoal hover:bg-white'
+            }`
+          }
+        >
+          {label}
+        </NavLink>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+          }}
+          className="w-11 h-11 rounded-full flex items-center justify-center text-charcoal hover:bg-white shrink-0"
+          aria-label="Toggle dropdown"
+          aria-expanded={isOpen}
+        >
+          <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.ul
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="flex flex-col pl-4 ml-6 border-l border-border/60 gap-1 mb-2 overflow-hidden"
+          >
+            {dropdown.map(d => (
+              <li key={d.to}>
+                <NavLink
+                  to={d.to}
+                  end={d.end}
+                  onClick={closeMenu}
+                  className={({ isActive }) =>
+                    `block px-4 py-2.5 rounded-full text-sm font-medium ${
+                      isActive ? 'text-forest font-semibold' : 'text-charcoal/70 hover:text-charcoal'
+                    }`
+                  }
+                >
+                  {d.label}
+                </NavLink>
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </li>
   );
 }
 
@@ -142,21 +267,8 @@ export default function Header({ className = '' }) {
                 </button>
               </div>
               <ul className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-1">
-                {nav.map(({ to, label, end }) => (
-                  <li key={to}>
-                    <NavLink
-                      to={to}
-                      end={end}
-                      onClick={closeMenu}
-                      className={({ isActive }) =>
-                        `block px-4 py-3 rounded-full text-sm font-medium ${
-                          isActive ? 'bg-beige text-charcoal' : 'text-charcoal hover:bg-white'
-                        }`
-                      }
-                    >
-                      {label}
-                    </NavLink>
-                  </li>
+                {nav.map((item) => (
+                  <MobileNavItem key={item.to} item={item} closeMenu={closeMenu} />
                 ))}
                 {isAuthenticated && (
                   <>
@@ -263,7 +375,7 @@ export default function Header({ className = '' }) {
               aria-label="Main"
             >
               {nav.map((item) => (
-                <NavPillLink key={item.to} {...item} />
+                item.dropdown ? <NavDropdownPill key={item.to} {...item} /> : <NavPillLink key={item.to} {...item} />
               ))}
             </nav>
 

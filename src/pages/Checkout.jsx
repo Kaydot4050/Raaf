@@ -6,6 +6,7 @@ import { useAccount } from '../context/AccountContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { formatPrice } from '../data/products.js';
 import { createOrder } from '../lib/orders.js';
+import { paymentApi } from '../lib/api.js';
 import Button from '../components/ui/Button.jsx';
 import usePageMeta from '../hooks/usePageMeta.js';
 
@@ -50,7 +51,7 @@ export default function Checkout() {
     region: farm.region || '',
     address: '',
     notes: '',
-    payment: 'momo',
+    payment: 'paystack',
   });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -101,18 +102,14 @@ export default function Checkout() {
       });
       clear();
       
-      // Initialize Paystack payment
-      const paymentRes = await fetch('/api/payment/initialize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id }),
-      });
-      const paymentData = await paymentRes.json();
-      if (paymentData.authorization_url) {
-        window.location.href = paymentData.authorization_url;
-      } else {
-        navigate(`/order-confirmation?order=${order.id}`, { replace: true });
+      if (form.payment === 'paystack') {
+        const paymentData = await paymentApi.initialize(order.id);
+        if (paymentData.authorization_url) {
+          window.location.href = paymentData.authorization_url;
+          return;
+        }
       }
+      navigate(`/order-confirmation?order=${order.id}`, { replace: true });
     } catch (err) {
       setError(err.message || 'Could not place order. Try again.');
     } finally {
@@ -192,7 +189,7 @@ export default function Checkout() {
                 ))}
               </div>
               <p className="mt-4 text-xs text-text-muted leading-relaxed">
-                Payment instructions will be sent after we confirm your order. Live-animal orders may require a deposit.
+                You will be redirected to Paystack to pay by card or mobile money. Live-animal orders may require a deposit.
               </p>
             </div>
           </motion.div>

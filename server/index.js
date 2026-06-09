@@ -13,7 +13,7 @@ import inquiryRoutes from './routes/inquiries.js';
 import contentRoutes from './routes/content.js';
 import adminRoutes from './routes/admin.js';
 import accountRoutes from './routes/account.js';
-import paymentRoutes from './routes/payment.js';
+import paymentRoutes, { paystackWebhookHandler } from './routes/payment.js';
 import externalRoutes from './routes/external.js';
 import { seedSiteContent, seedBlogPosts, migrateBlogPosts } from './lib/seedContent.js';
 
@@ -23,6 +23,11 @@ const projectRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..'
 
 app.use(cors(corsOptions()));
 app.use(cookieParser());
+app.post(
+  '/api/payment/webhook',
+  express.raw({ type: 'application/json' }),
+  paystackWebhookHandler,
+);
 app.use(express.json({ limit: '1mb' }));
 
 /** Stable root for cPanel post–npm-install probe (avoids text/html vs text/html; charset=utf-8 mismatch). */

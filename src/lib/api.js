@@ -187,6 +187,13 @@ export const ordersApi = {
   mine: () => api('/orders/mine'),
 };
 
+export const paymentApi = {
+  initialize: (orderId) =>
+    api('/payment/initialize', { method: 'POST', body: JSON.stringify({ orderId }) }),
+  verify: (reference, orderId) =>
+    api('/payment/verify', { method: 'POST', body: JSON.stringify({ reference, orderId }) }),
+};
+
 export const inquiriesApi = {
   contact: (body) => api('/inquiries/contact', { method: 'POST', body: JSON.stringify(body) }),
   wholesale: (body) => api('/inquiries/wholesale', { method: 'POST', body: JSON.stringify(body) }),
@@ -218,6 +225,9 @@ export const externalApi = {
     const q = params.toString();
     return api(`/external/weather${q ? `?${q}` : ''}`);
   },
+  geocodeSearch: (q) => api(`/external/geocode/search?q=${encodeURIComponent(q)}`),
+  geocodeReverse: (lat, lon) =>
+    api(`/external/geocode/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`),
   news: () => api('/external/news'),
   newsArticle: (url) => api(`/external/news/article?url=${encodeURIComponent(url)}`),
 };

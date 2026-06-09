@@ -69,10 +69,17 @@ export const defaultSiteContent = [
       searchPlaceholder: 'Search products…',
       nav: [
         { to: '/', label: 'Home', end: true },
-        { to: '/shop', label: 'Shop' },
+        { 
+          to: '/shop', 
+          label: 'Shop',
+          dropdown: [
+            { to: '/shop', label: 'All Products', end: true },
+            { to: '/track-order', label: 'Track Order' }
+          ]
+        },
         { to: '/services', label: 'Services' },
-        { to: '/track-order', label: 'Tracker' },
         { to: '/about', label: 'Our Mission' },
+        { to: '/blog?tab=news', label: 'News' },
         { to: '/contact', label: 'Contact' },
       ],
     },

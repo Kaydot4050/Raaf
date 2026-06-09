@@ -68,9 +68,18 @@ JWT_SECRET=long-random-string
 CLIENT_ORIGIN=https://raafortagro.com,https://admin.raafortagro.com
 COOKIE_DOMAIN=.raafortagro.com
 GOOGLE_CLIENT_ID=123456789-xxxx.apps.googleusercontent.com
+PAYSTACK_SECRET_KEY=sk_live_xxx
+PAYSTACK_CURRENCY=GHS
 ```
 
 6. **Restart** the Node app after changing env or uploading files (`tmp/restart.txt` is touched on deploy).
+
+## Paystack
+
+1. [Paystack Dashboard](https://dashboard.paystack.com/) → **Settings → API Keys & Webhooks** — copy **Secret Key** into cPanel env as `PAYSTACK_SECRET_KEY` (never commit live keys to git).
+2. **Webhook URL:** `https://api.raafortagro.com/api/payment/webhook` — subscribe to **charge.success**.
+3. `CLIENT_ORIGIN` must list the public shop first (e.g. `https://raafortagro.com,https://admin.raafortagro.com`) so Paystack redirects customers back to the shop after payment.
+4. Checkout calls `POST /api/payment/initialize` on the API host; currency defaults to **GHS**.
 
 ## Google sign-in
 
