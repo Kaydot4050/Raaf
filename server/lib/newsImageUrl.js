@@ -6,6 +6,7 @@ export function publicApiBase() {
 
 export function proxyNewsImage(externalUrl) {
   if (!externalUrl?.startsWith('http')) return null;
+  if (process.env.NEWS_SNAPSHOT_MODE === '1') return externalUrl;
   const path = `external/image?url=${encodeURIComponent(externalUrl)}`;
   const base = publicApiBase();
   return base ? `${base}/${path}` : `/api/${path}`;

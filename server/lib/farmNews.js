@@ -324,6 +324,7 @@ function hasExternalImage(image) {
 }
 
 async function enrichMissingImages(items) {
+  if (process.env.NEWS_SNAPSHOT_MODE === '1') return items;
   return Promise.all(
     items.map(async (item) => {
       if (hasExternalImage(item.image)) return item;
@@ -383,7 +384,7 @@ async function writeDbCache(items) {
   }
 }
 
-async function fetchFreshNews() {
+export async function fetchFreshNews() {
   const [ghanaRss, africaRss, globalRss, ghanaG, africaG, globalG] = await Promise.all([
     fetchRssFeeds('ghana'),
     fetchRssFeeds('africa'),

@@ -12,7 +12,7 @@
     "dev:all": "npm run dev:full",
     "db:seed": "node server/seed.js",
     "make-admin": "node server/make-admin.js",
-    "build": "npm run assets && vite build",
+    "build": "npm run assets && node scripts/build-news-snapshot.mjs && vite build",
     "build:admin": "vite build --config admin/vite.config.js",
     "preview:admin": "vite preview --config admin/vite.config.js",
     "build:all": "npm run build && npm run build:admin",
