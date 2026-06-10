@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { products as staticProducts } from '../data/products.js';
 import { productsApi } from '../lib/api.js';
 import { enrichProduct } from '../lib/productImages.js';
 
@@ -18,7 +19,13 @@ export function ProductsProvider({ children }) {
       setError(null);
       loaded.current = true;
     } catch (e) {
-      setError(e.message || 'Could not load products.');
+      if (staticProducts.length) {
+        setProducts(staticProducts.map((p) => enrichProduct(p)));
+        setError(null);
+        loaded.current = true;
+      } else {
+        setError(e.message || 'Could not load products.');
+      }
     } finally {
       setLoading(false);
     }

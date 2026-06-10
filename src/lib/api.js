@@ -45,7 +45,6 @@ function resolveBases({ authOnly = false } = {}) {
 
     bases.push(dedicatedApiBase(hostname, protocol));
     if (fromEnv) bases.push(fromEnv);
-    if (!authOnly) bases.push(siteApiBase(hostname, protocol));
   } else if (fromEnv) {
     bases.push(fromEnv);
   }
@@ -105,7 +104,9 @@ export async function api(path, options = {}) {
         err.status = res.status;
         err.data = data;
         err.base = base;
-        lastError = err;
+        if (!lastError || res.status >= 500 || (lastError.status === 404 && res.status !== 404)) {
+          lastError = err;
+        }
         if (authOnly && (res.status === 502 || res.status === 503 || res.status === 504)) {
           break;
         }
@@ -148,16 +149,12 @@ function friendlyFetchError(err, bases) {
     const apiHost = `api.${siteRoot(hostname)}`;
     const apiDown =
       err?.status === 503 || err?.status === 502 || err?.status === 504;
-    if (apiDown) {
+    if (apiDown || isNetwork) {
       return new Error(
-        `Sign-in server is offline (${err.status}). Open ${protocol}//${apiHost}/api/health — you need JSON {"ok":true}, not a 503 page. Restart the Node app in cPanel (HOSTING.md).`,
+        `Cannot reach the API (${err?.status || 'offline'}). Open ${protocol}//${apiHost}/api/health — you need JSON {"ok":true}, not a 503 page. Restart the Node app in cPanel (HOSTING.md).`,
       );
     }
-    return new Error(
-      isNetwork
-        ? `Cannot reach the sign-in server (${bases[0] || `${protocol}//${apiHost}/api`}). Open ${protocol}//${apiHost}/api/health in your browser — you should see JSON, not a 503 page. If not, restart the Node app in cPanel (see HOSTING.md).`
-        : raw || `Request failed (tried ${bases.join(', ')}).`,
-    );
+    return new Error(raw || `Request failed (tried ${bases.join(', ')}).`);
   }
 
   return (
