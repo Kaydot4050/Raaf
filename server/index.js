@@ -14,6 +14,7 @@ import contentRoutes from './routes/content.js';
 import adminRoutes from './routes/admin.js';
 import accountRoutes from './routes/account.js';
 import paymentRoutes, { paystackWebhookHandler } from './routes/payment.js';
+import couponRoutes from './routes/coupons.js';
 import externalRoutes from './routes/external.js';
 import { seedSiteContent, seedBlogPosts, migrateBlogPosts } from './lib/seedContent.js';
 
@@ -71,6 +72,7 @@ app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/coupons', couponRoutes);
 app.use('/api/external', externalRoutes);
 
 app.use((err, _req, res, _next) => {

@@ -196,6 +196,28 @@ const MIGRATIONS = [
   `ALTER TABLE products DROP COLUMN IF EXISTS original_price_max`,
   `ALTER TABLE products ADD COLUMN IF NOT EXISTS label TEXT`,
   `ALTER TABLE products ADD COLUMN IF NOT EXISTS label_color TEXT DEFAULT 'green'`,
+  `CREATE TABLE IF NOT EXISTS coupons (
+    id SERIAL PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    description TEXT,
+    discount_type TEXT NOT NULL DEFAULT 'percent',
+    discount_value DOUBLE PRECISION NOT NULL,
+    min_order_amount DOUBLE PRECISION NOT NULL DEFAULT 0,
+    max_uses INTEGER,
+    used_count INTEGER NOT NULL DEFAULT 0,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    expires_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS coupon_code TEXT`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount DOUBLE PRECISION NOT NULL DEFAULT 0`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS items_total DOUBLE PRECISION`,
+  `UPDATE orders SET items_total = subtotal WHERE items_total IS NULL`,
+  `CREATE TABLE IF NOT EXISTS farm_news_cache (
+    id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    items JSONB NOT NULL DEFAULT '[]'::jsonb,
+    fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`,
 ];
 
 export async function initDb() {
@@ -336,6 +358,9 @@ export function rowToOrder(row, items = []) {
     paymentStatus: row.payment_status || 'pending',
     transactionId: row.transaction_id,
     subtotal: Number(row.subtotal),
+    itemsTotal: Number(row.items_total ?? row.subtotal),
+    discountAmount: Number(row.discount_amount || 0),
+    couponCode: row.coupon_code || null,
     shippingCost: Number(row.shipping_cost || 0),
     trackingCode: row.tracking_code,
     logisticsProvider: row.logistics_provider,

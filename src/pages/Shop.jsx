@@ -48,7 +48,7 @@ export default function Shop() {
 
   const [category, setCategoryState] = useState(initialCategory);
   const [selectedTypes, setSelectedTypes] = useState([]);
-  const [priceRange, setPriceRange] = useState({ min: 10, max: 20000 });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 20000 });
   const [selectedRating, setSelectedRating] = useState(null);
   const [promotions, setPromotions] = useState({ newArrivals: false, bestSellers: false, onSale: false });
   const [availability, setAvailability] = useState({ inStock: false, outOfStock: false });
@@ -107,7 +107,7 @@ export default function Shop() {
   const clearAllFilters = () => {
     setCategoryState('all');
     setSelectedTypes([]);
-    setPriceRange({ min: 10, max: 20000 });
+    setPriceRange({ min: 0, max: 20000 });
     setSelectedRating(null);
     setPromotions({ newArrivals: false, bestSellers: false, onSale: false });
     setAvailability({ inStock: false, outOfStock: false });
@@ -124,8 +124,8 @@ export default function Shop() {
       chips.push({ id: 'category', label: `Category: ${catObj ? catObj.label : category}`, onClear: () => { handleCategorySelect('all'); resetPage(); } });
     }
     selectedTypes.forEach((t) => chips.push({ id: `type-${t}`, label: `Type: ${TYPELABELS[t] || t}`, onClear: () => { toggleType(t); resetPage(); } }));
-    if (priceRange.min > 10 || priceRange.max < 20000)
-      chips.push({ id: 'price', label: `Price: GHS ${priceRange.min} - GHS ${priceRange.max}`, onClear: () => { setPriceRange({ min: 10, max: 20000 }); resetPage(); } });
+    if (priceRange.min > 0 || priceRange.max < 20000)
+      chips.push({ id: 'price', label: `Price: GHS ${priceRange.min} - GHS ${priceRange.max}`, onClear: () => { setPriceRange({ min: 0, max: 20000 }); resetPage(); } });
     if (selectedRating !== null)
       chips.push({ id: 'rating', label: `Rating: ${selectedRating} Star${selectedRating > 1 ? 's' : ''}`, onClear: () => { setSelectedRating(null); resetPage(); } });
     if (promotions.newArrivals) chips.push({ id: 'promo-new', label: 'New Arrivals', onClear: () => { handlePromoChange('newArrivals'); resetPage(); } });
@@ -223,24 +223,24 @@ export default function Shop() {
               <div className="flex gap-2.5 items-center mb-3">
                 <div className="relative flex-1">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 pointer-events-none">GHS</span>
-                  <input type="number" min="10" max="20000" value={priceRange.min}
-                    onChange={(e) => { setPriceRange((p) => ({ ...p, min: Math.max(10, parseInt(e.target.value) || 10) })); resetPage(); }}
+                  <input type="number" min="0" max="20000" value={priceRange.min}
+                    onChange={(e) => { setPriceRange((p) => ({ ...p, min: Math.max(0, parseInt(e.target.value) || 0) })); resetPage(); }}
                     className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm font-inherit" />
                 </div>
                 <span className="text-xs text-gray-400">to</span>
                 <div className="relative flex-1">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">GHS</span>
-                  <input type="number" min="10" max="20000" value={priceRange.max}
+                  <input type="number" min="0" max="20000" value={priceRange.max}
                     onChange={(e) => { setPriceRange((p) => ({ ...p, max: Math.min(20000, parseInt(e.target.value) || 20000) })); resetPage(); }}
                     className="w-full pl-8 pr-2 py-1.5 border border-gray-300 rounded text-sm font-inherit" />
                 </div>
               </div>
               <div className="mt-2.5">
-                <input type="range" min="10" max="20000" value={priceRange.max}
+                <input type="range" min="0" max="20000" value={priceRange.max}
                   onChange={(e) => { setPriceRange((p) => ({ ...p, max: parseInt(e.target.value) })); resetPage(); }}
                   className="w-full my-2" />
                 <div className="flex justify-between text-xs text-gray-400">
-                  <span>GHS 10</span>
+                  <span>GHS 0</span>
                   <span>GHS 20,000</span>
                 </div>
               </div>

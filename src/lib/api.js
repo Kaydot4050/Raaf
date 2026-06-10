@@ -53,6 +53,15 @@ function resolveBases({ authOnly = false } = {}) {
   return [...new Set(bases)];
 }
 
+/** News image proxy lives on the API host — not the shop domain in production. */
+export function externalImageUrl(src) {
+  if (!src) return null;
+  if (src.startsWith('http')) return src;
+  const [base] = resolveBases();
+  if (!base || !src.startsWith('/api/')) return src;
+  return `${base}${src.slice(4)}`;
+}
+
 function requestCredentials(path, method) {
   const m = (method || 'GET').toUpperCase();
   if (
@@ -187,6 +196,11 @@ export const ordersApi = {
   mine: () => api('/orders/mine'),
 };
 
+export const couponsApi = {
+  validate: (code, subtotal) =>
+    api('/coupons/validate', { method: 'POST', body: JSON.stringify({ code, subtotal }) }),
+};
+
 export const paymentApi = {
   initialize: (orderId) =>
     api('/payment/initialize', { method: 'POST', body: JSON.stringify({ orderId }) }),
@@ -228,6 +242,12 @@ export const externalApi = {
   geocodeSearch: (q) => api(`/external/geocode/search?q=${encodeURIComponent(q)}`),
   geocodeReverse: (lat, lon) =>
     api(`/external/geocode/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`),
-  news: () => api('/external/news'),
+  news: (params = {}) => {
+    const q = new URLSearchParams();
+    if (params.region) q.set('region', params.region);
+    if (params.category) q.set('category', params.category);
+    const qs = q.toString();
+    return api(`/external/news${qs ? `?${qs}` : ''}`);
+  },
   newsArticle: (url) => api(`/external/news/article?url=${encodeURIComponent(url)}`),
 };

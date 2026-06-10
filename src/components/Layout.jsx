@@ -10,9 +10,9 @@ const AUTH_PAGES = new Set(['/login', '/register']);
 export default function Layout() {
   const { pathname } = useLocation();
   const isAuthPage = AUTH_PAGES.has(pathname);
-  const showFloatingWidgets = !isAuthPage;
+  const isWeatherPage = pathname === '/news/weather';
+  const showFloatingWidgets = !isAuthPage && !isWeatherPage;
   const hideOnDesktopAuth = isAuthPage ? 'lg:hidden' : '';
-
   return (
     <div className={`min-h-screen min-h-[100dvh] flex flex-col bg-cream overflow-x-hidden ${isAuthPage ? 'lg:overflow-hidden' : ''}`}>
       <SearchCommand />

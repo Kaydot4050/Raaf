@@ -16,6 +16,7 @@ import {
   FieldLabel,
 } from '@/components/ui/field.jsx';
 import ImageUpload from './ImageUpload.jsx';
+import FieldSelect from './FieldSelect.jsx';
 import {
   humanLabel,
   fieldHint,
@@ -23,14 +24,20 @@ import {
   listAddLabel,
   sectionGroupLabel,
 } from '../lib/fieldLabels.js';
+import { getFieldOptions } from '../lib/fieldOptions.js';
 import { cn } from '@/lib/utils';
+
+function extendPath(path, key) {
+  if (/^\d+$/.test(String(key))) return path;
+  return [...path, key];
+}
 
 function isImageField(key) {
   return /(^image|logo|src|mobileSrc|photo|banner|avatar|thumb)/i.test(key || '');
 }
 
 function isLongTextField(key, str) {
-  return str.length > 100 || ['body', 'quote', 'description', 'message', 'tagline', 'excerpt'].includes(key);
+  return str.length > 100 || ['body', 'quote', 'description', 'desc', 'message', 'tagline', 'excerpt'].includes(key);
 }
 
 function isLinkField(key) {
@@ -76,12 +83,71 @@ function SaveButton({ onSave, saving, className }) {
   );
 }
 
-function FieldEditor({ fieldKey, value, onChange, parentKey, onSave, saving }) {
+function FieldEditor({
+  fieldKey,
+  value,
+  onChange,
+  parentKey,
+  onSave,
+  saving,
+  contextPath = [],
+  sectionKey = '',
+  pageKey = '',
+}) {
   const label = humanLabel(fieldKey);
+  const path = extendPath(contextPath, fieldKey);
+  const optionMeta = { sectionKey, pageKey, inArrayItem: /^\d+$/.test(String(fieldKey)) };
+  const fieldOptions = getFieldOptions(fieldKey, contextPath, optionMeta);
 
   if (Array.isArray(value)) {
     const sample = value[0];
     const listTitle = sectionGroupLabel(parentKey || fieldKey);
+    const stringListOptions = getFieldOptions(fieldKey, contextPath, { sectionKey, pageKey });
+
+    if (stringListOptions && (typeof sample === 'string' || value.length === 0)) {
+      return (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-semibold text-foreground">{listTitle}</p>
+          {value.map((item, index) => (
+            <div key={index} className="flex items-end gap-2">
+              <div className="min-w-0 flex-1">
+                <FieldSelect
+                  label={listItemName(parentKey || fieldKey, index)}
+                  value={item}
+                  options={stringListOptions.options}
+                  allowCustom={stringListOptions.allowCustom}
+                  onChange={(next) => {
+                    const copy = [...value];
+                    copy[index] = next;
+                    onChange(copy);
+                  }}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="mb-0.5 shrink-0"
+                onClick={() => onChange(value.filter((_, i) => i !== index))}
+                aria-label="Remove"
+              >
+                <Trash2Icon />
+              </Button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onChange([...value, stringListOptions.options[0]?.value ?? ''])}
+          >
+            <PlusIcon data-icon="inline-start" />
+            {listAddLabel(parentKey || fieldKey)}
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col gap-3">
         <p className="text-sm font-semibold text-foreground">{listTitle}</p>
@@ -105,12 +171,17 @@ function FieldEditor({ fieldKey, value, onChange, parentKey, onSave, saving }) {
               <FieldEditor
                 fieldKey={String(index)}
                 parentKey={parentKey || fieldKey}
+                contextPath={path}
+                sectionKey={sectionKey}
+                pageKey={pageKey}
                 value={item}
                 onChange={(next) => {
                   const copy = [...value];
                   copy[index] = next;
                   onChange(copy);
                 }}
+                onSave={onSave}
+                saving={saving}
               />
               <div className="flex justify-end border-t border-border pt-3">
                 <SaveButton onSave={onSave} saving={saving} />
@@ -141,6 +212,9 @@ function FieldEditor({ fieldKey, value, onChange, parentKey, onSave, saving }) {
               key={k}
               fieldKey={k}
               parentKey={fieldKey}
+              contextPath={path}
+              sectionKey={sectionKey}
+              pageKey={pageKey}
               value={v}
               onChange={(next) => onChange({ ...value, [k]: next })}
               onSave={onSave}
@@ -179,6 +253,19 @@ function FieldEditor({ fieldKey, value, onChange, parentKey, onSave, saving }) {
   }
 
   const str = value ?? '';
+
+  if (fieldOptions) {
+    return (
+      <FieldSelect
+        label={label}
+        hint={fieldHint(fieldKey)}
+        value={str}
+        options={fieldOptions.options}
+        allowCustom={fieldOptions.allowCustom}
+        onChange={onChange}
+      />
+    );
+  }
 
   if (isImageField(fieldKey)) {
     return (
@@ -223,7 +310,14 @@ function FieldEditor({ fieldKey, value, onChange, parentKey, onSave, saving }) {
   );
 }
 
-export default function JsonContentEditor({ data, onChange, onSave, saving = false }) {
+export default function JsonContentEditor({
+  data,
+  onChange,
+  onSave,
+  saving = false,
+  sectionKey = '',
+  pageKey = '',
+}) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -247,6 +341,9 @@ export default function JsonContentEditor({ data, onChange, onSave, saving = fal
                 <FieldEditor
                   fieldKey={key}
                   value={val}
+                  contextPath={[]}
+                  sectionKey={sectionKey}
+                  pageKey={pageKey}
                   onChange={(next) => onChange({ ...data, [key]: next })}
                 />
                 <div className="flex justify-end border-t border-border pt-3">
@@ -267,6 +364,9 @@ export default function JsonContentEditor({ data, onChange, onSave, saving = fal
                 <FieldEditor
                   fieldKey={key}
                   value={val}
+                  contextPath={[]}
+                  sectionKey={sectionKey}
+                  pageKey={pageKey}
                   onChange={(next) => onChange({ ...data, [key]: next })}
                   onSave={onSave}
                   saving={saving}
@@ -285,6 +385,9 @@ export default function JsonContentEditor({ data, onChange, onSave, saving = fal
               <FieldEditor
                 fieldKey={key}
                 value={val}
+                contextPath={[]}
+                sectionKey={sectionKey}
+                pageKey={pageKey}
                 onChange={(next) => onChange({ ...data, [key]: next })}
               />
               <div className="flex justify-end border-t border-border pt-3">

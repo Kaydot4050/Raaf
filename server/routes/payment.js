@@ -68,7 +68,7 @@ router.post('/initialize', asyncHandler(async (req, res) => {
   const order = orderRes.rows[0];
   if (!order) return res.status(404).json({ error: 'Order not found' });
 
-  const amount = Math.round((Number(order.subtotal) + Number(order.shipping_cost || 0)) * 100);
+  const amount = Math.round(Number(order.subtotal) * 100);
   if (amount < 100) {
     return res.status(400).json({ error: 'Order total is too low for Paystack.' });
   }

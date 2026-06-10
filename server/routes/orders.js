@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { pool, query, rowToOrder } from '../db.js';
-import { authOptional, authRequired } from '../middleware/auth.js';
+import { authRequired } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { incrementCouponUse, validateCouponCode } from '../lib/coupons.js';
 
 const router = Router();
 
@@ -31,7 +32,7 @@ router.post(
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required to place order.' });
     }
-    const { customer, payment, items, subtotal } = req.body ?? {};
+    const { customer, payment, items, subtotal, couponCode } = req.body ?? {};
     if (!customer?.name?.trim() || !customer?.phone?.trim() || !customer?.address?.trim()) {
       return res.status(400).json({ error: 'Name, phone, and delivery address are required.' });
     }
@@ -40,19 +41,22 @@ router.post(
     }
 
     const orderId = generateOrderId();
-    const totalItems = items.reduce((s, i) => s + i.price * i.qty, 0);
-    
-    // Calculate shipping based on region
-    const SHIPPING_RATES = {
-      'Greater Accra': 50, 'Ashanti': 80, 'Central': 60, 'Western': 80,
-      'Eastern': 60, 'Volta': 70, 'Northern': 100, 'Upper East': 120,
-      'Upper West': 120, 'Bono': 90, 'Bono East': 90, 'Ahafo': 90,
-      'Oti': 80, 'Savannah': 110, 'North East': 110, 'Western North': 90,
-    };
+    const itemsTotal = items.reduce((s, i) => s + Number(i.price) * Number(i.qty), 0);
+    let discountAmount = 0;
+    let appliedCouponCode = null;
+
+    if (couponCode?.trim()) {
+      const couponResult = await validateCouponCode(couponCode, itemsTotal);
+      if (!couponResult.ok) {
+        return res.status(400).json({ error: couponResult.error });
+      }
+      discountAmount = couponResult.discountAmount;
+      appliedCouponCode = couponResult.coupon.code;
+    }
+
+    const finalTotal = Math.round((itemsTotal - discountAmount) * 100) / 100;
     const regionKey = customer.region?.trim();
-    const shippingCost = regionKey && SHIPPING_RATES[regionKey] ? SHIPPING_RATES[regionKey] : 100;
-    
-    const total = totalItems + shippingCost;
+    const shippingCost = 0;
     const client = await pool.connect();
 
     try {
@@ -60,8 +64,9 @@ router.post(
       await client.query(
         `INSERT INTO orders (
           id, user_id, status, customer_name, customer_email, customer_phone,
-          region, address, notes, payment_method, subtotal, shipping_cost
-        ) VALUES ($1, $2, 'pending', $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          region, address, notes, payment_method, subtotal, shipping_cost,
+          coupon_code, discount_amount, items_total
+        ) VALUES ($1, $2, 'pending', $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
         [
           orderId,
           req.user?.id ?? null,
@@ -72,8 +77,11 @@ router.post(
           customer.address.trim(),
           customer.notes?.trim() || null,
           payment || 'paystack',
-          totalItems,
-          shippingCost
+          finalTotal,
+          shippingCost,
+          appliedCouponCode,
+          discountAmount,
+          itemsTotal,
         ],
       );
       for (const item of items) {
@@ -88,6 +96,9 @@ router.post(
             [item.qty, item.id]
           );
         }
+      }
+      if (appliedCouponCode) {
+        await incrementCouponUse(appliedCouponCode, client);
       }
       await client.query('COMMIT');
     } catch (e) {

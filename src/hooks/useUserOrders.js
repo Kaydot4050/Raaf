@@ -9,22 +9,7 @@ function formatOrderDate(createdAt) {
   return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-const STATUS_LABELS = {
-  pending: 'Processing',
-  processing: 'Processing',
-  shipped: 'In transit',
-  in_transit: 'In transit',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled',
-};
-
-function formatStatus(status) {
-  if (!status) return 'Processing';
-  const key = String(status).toLowerCase();
-  if (STATUS_LABELS[key]) return STATUS_LABELS[key];
-  const s = key.replace(/_/g, ' ');
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
+import { formatOrderStatus } from '../lib/orderTracking.js';
 
 export function useUserOrders() {
   const { isAuthenticated } = useAuth();
@@ -66,7 +51,7 @@ export function useUserOrders() {
   const displayOrders = orders.map((o) => ({
     ...o,
     date: formatOrderDate(o.createdAt),
-    statusLabel: formatStatus(o.status),
+    statusLabel: formatOrderStatus(o.status),
     total: o.subtotal ?? 0,
   }));
 

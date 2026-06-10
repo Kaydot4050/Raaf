@@ -23,6 +23,7 @@ import AdminSection from '../components/AdminSection.jsx';
 import ImageUpload from '../components/ImageUpload.jsx';
 import { adminApi, mediaUrl } from '../lib/api.js';
 import { adminRowSurface } from '../lib/adminColors.js';
+import { PRODUCT_CATEGORIES, SELECT_CLASS } from '../lib/fieldOptions.js';
 import { cn } from '@/lib/utils';
 
 const GALLERY_SLOTS = 5;
@@ -34,7 +35,9 @@ const empty = {
   image: '',
   images: Array.from({ length: GALLERY_SLOTS }, () => ''),
   price: 0,
-  originalPrice: 0,
+  originalPrice: null,
+  onSale: false,
+  discountPercent: '',
   description: '',
   featured: false,
   inStock: true,
@@ -70,23 +73,46 @@ export default function AdminProducts() {
 
   const openEdit = (p) => {
     setEditing(p.id);
+    const discountPercent =
+      p.onSale && p.originalPrice && p.price
+        ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
+        : '';
     setForm({
       ...p,
       images: padImages(p.images, p.image),
       image: p.image || p.images?.[0] || '',
+      originalPrice: p.originalPrice ?? null,
+      onSale: !!p.onSale,
+      discountPercent,
     });
     setOpen(true);
+  };
+
+  const applyDiscountPercent = (percent) => {
+    const pct = Math.min(100, Math.max(0, Number(percent) || 0));
+    const base = Number(form.originalPrice || form.price) || 0;
+    if (!base) return;
+    const salePrice = Math.round(base * (1 - pct / 100) * 100) / 100;
+    setForm((f) => ({
+      ...f,
+      discountPercent: pct,
+      originalPrice: f.originalPrice || base,
+      price: salePrice,
+      onSale: pct > 0,
+    }));
   };
 
   const save = async (e) => {
     e.preventDefault();
     const gallery = form.images.map((u) => u.trim()).filter(Boolean).slice(0, GALLERY_SLOTS);
+    const onSale = !!form.onSale && form.originalPrice && form.price < form.originalPrice;
     const payload = {
       name: form.name,
       category: form.category,
       description: form.description,
       price: form.price,
-      originalPrice: form.originalPrice,
+      originalPrice: onSale ? form.originalPrice : null,
+      onSale,
       featured: form.featured,
       inStock: form.inStock,
       stockQuantity: form.stockQuantity,
@@ -153,6 +179,7 @@ export default function AdminProducts() {
                 <p className="font-medium">{p.name}</p>
                 <p className="text-sm text-muted-foreground">
                   {p.category} · GH₵ {p.price}
+                  {p.onSale && p.originalPrice ? ` · was GH₵ ${p.originalPrice}` : ''}
                 </p>
               </div>
               <div className="flex gap-1">
@@ -198,10 +225,17 @@ export default function AdminProducts() {
               </Field>
               <Field>
                 <FieldLabel>Category</FieldLabel>
-                <Input
+                <select
+                  className={SELECT_CLASS}
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                />
+                >
+                  {PRODUCT_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
               </Field>
               <div className="rounded-xl border border-border bg-accent/20 p-4">
                 <p className="text-sm font-semibold text-foreground mb-1">Product gallery</p>
@@ -227,23 +261,74 @@ export default function AdminProducts() {
                   ))}
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel>Price (GH₵)</FieldLabel>
-                  <Input
-                    type="number"
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: +e.target.value })}
+              <div className="rounded-xl border border-border bg-accent/20 p-4 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Discount / sale</p>
+                    <p className="text-xs text-muted-foreground">Shows strikethrough price and % off on the shop.</p>
+                  </div>
+                  <Switch
+                    checked={form.onSale}
+                    onCheckedChange={(onSale) =>
+                      setForm((f) => ({
+                        ...f,
+                        onSale,
+                        originalPrice: onSale ? f.originalPrice || f.price || null : null,
+                      }))
+                    }
                   />
-                </Field>
-                <Field>
-                  <FieldLabel>Original Price (GH₵) - Optional</FieldLabel>
-                  <Input
-                    type="number"
-                    value={form.originalPrice ?? ''}
-                    onChange={(e) => setForm({ ...form, originalPrice: e.target.value ? +e.target.value : null })}
-                  />
-                </Field>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel>{form.onSale ? 'Sale price (GH₵)' : 'Price (GH₵)'}</FieldLabel>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: +e.target.value })}
+                    />
+                  </Field>
+                  {form.onSale ? (
+                    <Field>
+                      <FieldLabel>Compare-at price (GH₵)</FieldLabel>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={form.originalPrice ?? ''}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            originalPrice: e.target.value ? +e.target.value : null,
+                          })
+                        }
+                      />
+                    </Field>
+                  ) : null}
+                </div>
+                {form.onSale ? (
+                  <Field>
+                    <FieldLabel>Quick discount (%)</FieldLabel>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={form.discountPercent}
+                        onChange={(e) => applyDiscountPercent(e.target.value)}
+                        placeholder="e.g. 15"
+                      />
+                      <div className="flex gap-1">
+                        {[10, 15, 20, 25].map((pct) => (
+                          <Button key={pct} type="button" variant="outline" size="sm" onClick={() => applyDiscountPercent(pct)}>
+                            {pct}%
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </Field>
+                ) : null}
               </div>
               <Field>
                 <FieldLabel>Description</FieldLabel>
@@ -285,13 +370,14 @@ export default function AdminProducts() {
                     onChange={(e) => setForm({ ...form, label: e.target.value })}
                   />
                   <select
-                    className="flex h-10 w-[120px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className={`${SELECT_CLASS} w-[120px]`}
                     value={form.labelColor || 'green'}
                     onChange={(e) => setForm({ ...form, labelColor: e.target.value })}
                   >
                     <option value="green">Green</option>
                     <option value="gold">Gold</option>
                     <option value="silver">Silver</option>
+                    <option value="brown">Brown</option>
                   </select>
                 </div>
               </Field>

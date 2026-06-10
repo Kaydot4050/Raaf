@@ -8,11 +8,24 @@ import { useGalleryHover } from '../hooks/useGalleryHover.js';
 import { useAccount } from '../context/AccountContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
-const labelColors = {
-  green: 'bg-forest/90 text-white',
-  gold: 'bg-amber-500 text-white',
-  silver: 'bg-slate-400 text-white',
+const labelGlass = {
+  green: 'bg-forest/45 text-white border-white/25',
+  gold: 'bg-amber-500/45 text-white border-white/25',
+  silver: 'bg-slate-500/40 text-white border-white/25',
+  brown: 'bg-accent/55 text-white border-white/25',
 };
+
+function ProductBadge({ children, className = '', glass = false }) {
+  return (
+    <span
+      className={`inline-flex max-w-full items-center rounded-lg px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide truncate sm:text-[10px] sm:px-2.5 sm:py-1 ${
+        glass ? 'backdrop-blur-md border shadow-sm saturate-150' : 'shadow-sm'
+      } ${className}`}
+    >
+      {children}
+    </span>
+  );
+}
 
 export default function ProductCard({ product, onAdd }) {
   const navigate = useNavigate();
@@ -42,22 +55,22 @@ export default function ProductCard({ product, onAdd }) {
     <motion.article
       className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-border/60 shadow-sm hover:shadow-lg hover:shadow-charcoal/5 transition-shadow duration-200 ease-out"
     >
-      <div className="relative aspect-[5/4] overflow-hidden bg-white">
-        {product.bestSeller && (
-          <div className="absolute top-0 left-0 w-full z-20 px-2 py-0.5 bg-charcoal text-white text-[10px] font-bold uppercase tracking-wide text-center pointer-events-none">
-            Best seller
-          </div>
-        )}
-        {product.label && !product.bestSeller && (
-          <div className={`absolute top-0 left-0 w-full z-20 px-2 py-0.5 text-center text-[10px] font-bold uppercase tracking-wide pointer-events-none ${labelColors[product.labelColor] || labelColors.green}`}>
-            {product.label}
-          </div>
-        )}
-        {product.onSale && discount > 0 && (
-          <span className={`absolute ${product.label || product.bestSeller ? 'top-8' : 'top-3'} right-3 z-20 px-2.5 py-1 rounded-full bg-forest text-white text-[10px] font-bold pointer-events-none`}>
+      <div className="relative aspect-[4/3] sm:aspect-[5/4] overflow-hidden bg-white">
+        <div className="absolute top-2 left-2 z-20 flex max-w-[calc(100%-3.5rem)] flex-col items-start gap-1 pointer-events-none">
+          {product.bestSeller ? (
+            <ProductBadge className="bg-charcoal text-white">Best seller</ProductBadge>
+          ) : null}
+          {product.label ? (
+            <ProductBadge glass className={labelGlass[product.labelColor] || labelGlass.green}>
+              {product.label}
+            </ProductBadge>
+          ) : null}
+        </div>
+        {product.onSale && discount > 0 ? (
+          <ProductBadge className="absolute top-2 right-2 z-20 rounded-full bg-forest text-white">
             −{discount}%
-          </span>
-        )}
+          </ProductBadge>
+        ) : null}
         <Link
           to={`/product/${product.id}`}
           state={linkState}
@@ -72,7 +85,7 @@ export default function ProductCard({ product, onAdd }) {
               alt={i === 0 ? product.name : `${product.name} view ${i + 1}`}
               loading={i === 0 ? 'lazy' : 'eager'}
               decoding="async"
-              className={`absolute inset-0 w-full h-full object-contain p-2 sm:p-3 transition-opacity duration-300 ease-out pointer-events-none ${
+              className={`absolute inset-0 w-full h-full object-contain p-1.5 sm:p-3 transition-opacity duration-300 ease-out pointer-events-none ${
                 i === imageIndex ? 'opacity-100 z-[1]' : 'opacity-0 z-0'
               }`}
             />
@@ -111,8 +124,8 @@ export default function ProductCard({ product, onAdd }) {
         </div>
       </div>
 
-      <div className="p-3 sm:p-3.5 flex flex-col flex-1">
-        <div className="flex items-center justify-between gap-2 mb-2">
+      <div className="p-2.5 sm:p-3.5 flex flex-col flex-1">
+        <div className="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
           <span className="text-[10px] font-bold uppercase tracking-wider text-forest">{getCatLabel(product.category)}</span>
           {product.rating > 0 && (
             <span className="flex items-center gap-0.5 text-xs font-semibold text-charcoal">

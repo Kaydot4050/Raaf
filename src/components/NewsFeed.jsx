@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { externalApi } from '../lib/api.js';
-import { ExternalLink } from 'lucide-react';
+import { externalApi, externalImageUrl } from '../lib/api.js';
 
 export default function NewsFeed() {
   const [news, setNews] = useState([]);
@@ -40,15 +39,15 @@ export default function NewsFeed() {
       
       <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
         {news.map((item, index) => (
-          <Link 
-            key={index} 
-            to={`/news/article?url=${encodeURIComponent(item.link)}`}
+          <Link
+            key={index}
+            to={`/news/article?url=${encodeURIComponent(item.link || item.url)}`}
             className="block p-3 rounded-xl border border-transparent hover:bg-cream hover:border-border transition-colors group"
           >
             <div className="flex gap-4">
-              {item.imageUrl && (
+              {(item.image || item.imageUrl) && (
                 <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-100 hidden sm:block">
-                  <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={externalImageUrl(item.image || item.imageUrl)} alt="" className="w-full h-full object-cover" />
                 </div>
               )}
               <div className="flex-1 min-w-0">
@@ -59,7 +58,6 @@ export default function NewsFeed() {
                   <span className="truncate">{item.source}</span>
                   <span>•</span>
                   <span>{new Date(item.pubDate).toLocaleDateString()}</span>
-                  <ExternalLink className="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </div>
             </div>

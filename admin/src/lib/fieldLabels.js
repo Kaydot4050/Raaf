@@ -39,7 +39,14 @@ const LABELS = {
   suffix: 'Symbol after number (e.g. + or %)',
   value: 'Number',
   label: 'Label',
-  desc: 'Description',
+  desc: 'Long description',
+  short: 'Short summary (shown in slider)',
+  tag: 'Category tag (e.g. Poultry)',
+  isCore: 'Show in “All” category view',
+  titleLine1: 'Heading — first line',
+  titleLine2: 'Heading — second line',
+  categories: 'Filter buttons',
+  items: 'Service cards',
   progressPercent: 'Bar fill amount (0–100)',
 
   // Buttons & links
@@ -133,6 +140,8 @@ const LIST_NAMES = {
   values: 'value',
   stats: 'stat',
   team: 'team member',
+  categories: 'category',
+  items: 'service',
 };
 
 export function humanLabel(key) {
@@ -176,6 +185,9 @@ export function sectionGroupLabel(key) {
     values: 'Company values',
     stats: 'Statistics',
     team: 'Team areas',
+    capabilities: 'Capabilities section',
+    categories: 'Category filters',
+    items: 'Service cards (photos & text)',
   };
   return groups[key] || humanLabel(key);
 }

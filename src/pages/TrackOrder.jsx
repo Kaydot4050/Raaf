@@ -1,41 +1,56 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Truck, CheckCircle2, MapPin, Clock, HelpCircle } from 'lucide-react';
+import { MapPin, Clock, HelpCircle } from 'lucide-react';
 import CmsPageHero from '../components/CmsPageHero.jsx';
 import Button from '../components/ui/Button.jsx';
 import { fadeUp } from '../lib/motion.js';
-
-const demoSteps = [
-  { id: 'placed', label: 'Order placed', desc: 'We received your order', icon: Package, done: true },
-  { id: 'prep', label: 'Preparing', desc: 'Stock selected & health checked', icon: Package, done: true },
-  { id: 'transit', label: 'In transit', desc: 'On the way to your farm', icon: Truck, done: true, active: true },
-  { id: 'delivered', label: 'Delivered', desc: 'Handed to you or your agent', icon: CheckCircle2, done: false },
-];
+import { fetchOrderById } from '../lib/orders.js';
+import { buildOrderTimeline } from '../lib/orderTracking.js';
 
 export default function TrackOrder() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orderId, setOrderId] = useState(searchParams.get('order') || '');
-  const [tracked, setTracked] = useState(Boolean(searchParams.get('order')));
+  const [order, setOrder] = useState(null);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  async function track(id) {
+    const trimmed = id.trim();
+    if (!trimmed) return;
+    setLoading(true);
+    setError('');
+    setOrder(null);
+    try {
+      const found = await fetchOrderById(trimmed);
+      if (!found) {
+        setError('Order not found. Check your order ID and try again.');
+        return;
+      }
+      setOrder(found);
+      setSearchParams({ order: trimmed }, { replace: true });
+    } catch (err) {
+      setError(err.message || 'Could not load order.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     const id = searchParams.get('order');
     if (id) {
       setOrderId(id);
-      setTracked(true);
+      track(id);
     }
-  }, [searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!orderId.trim()) return;
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setTracked(true);
-    }, 800);
+    track(orderId);
   };
+
+  const timeline = order ? buildOrderTimeline(order.status) : null;
 
   return (
     <div>
@@ -65,11 +80,14 @@ export default function TrackOrder() {
                   type="text"
                   value={orderId}
                   onChange={(e) => setOrderId(e.target.value)}
-                  placeholder="e.g. RAF-2024-10482"
+                  placeholder="e.g. RAF-6KMRBQ"
                   required
                   className="mt-1.5 w-full px-4 py-3.5 rounded-xl border border-border text-charcoal focus:outline-none focus:ring-2 focus:ring-forest/30"
                 />
               </label>
+              {error && (
+                <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-2">{error}</p>
+              )}
               <Button type="submit" size="lg" className="w-full justify-center" disabled={loading}>
                 {loading ? 'Tracking…' : 'Track shipment'}
               </Button>
@@ -77,7 +95,7 @@ export default function TrackOrder() {
           </motion.div>
 
           <AnimatePresence>
-            {tracked && (
+            {order && timeline && (
               <motion.div
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -88,15 +106,23 @@ export default function TrackOrder() {
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-border">
                     <div>
                       <p className="text-xs text-text-muted uppercase tracking-wide">Order</p>
-                      <p className="font-display font-bold text-charcoal text-lg">{orderId}</p>
+                      <p className="font-display font-bold text-charcoal text-lg">{order.id}</p>
                     </div>
-                    <span className="px-4 py-1.5 rounded-full bg-forest/10 text-forest text-sm font-semibold">In transit</span>
+                    <span
+                      className={`px-4 py-1.5 rounded-full text-sm font-semibold ${
+                        timeline.cancelled
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-forest/10 text-forest'
+                      }`}
+                    >
+                      {timeline.statusLabel}
+                    </span>
                   </div>
 
                   <div className="relative pl-2">
-                    {demoSteps.map((step, i) => {
+                    {timeline.steps.map((step, i) => {
                       const Icon = step.icon;
-                      const isLast = i === demoSteps.length - 1;
+                      const isLast = i === timeline.steps.length - 1;
                       return (
                         <motion.div
                           key={step.id}
@@ -134,6 +160,17 @@ export default function TrackOrder() {
                       );
                     })}
                   </div>
+
+                  {(order.trackingCode || order.logisticsProvider) && (
+                    <div className="mt-2 pt-6 border-t border-border text-sm space-y-1">
+                      {order.logisticsProvider && (
+                        <p><span className="text-text-muted">Carrier:</span> <span className="font-medium text-charcoal">{order.logisticsProvider}</span></p>
+                      )}
+                      {order.trackingCode && (
+                        <p><span className="text-text-muted">Tracking code:</span> <span className="font-medium text-charcoal">{order.trackingCode}</span></p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -141,14 +178,22 @@ export default function TrackOrder() {
                     <Clock className="w-5 h-5 text-forest shrink-0 mt-0.5" />
                     <div>
                       <p className="text-xs text-text-muted uppercase tracking-wide">Estimated arrival</p>
-                      <p className="font-semibold text-charcoal mt-1">Within 24–48 hours</p>
+                      <p className="font-semibold text-charcoal mt-1">
+                        {order.status === 'completed' || order.status === 'delivered'
+                          ? 'Delivered'
+                          : order.status === 'processing'
+                            ? 'Within 24–48 hours'
+                            : 'After dispatch'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3 p-5 rounded-2xl bg-white border border-border">
                     <MapPin className="w-5 h-5 text-forest shrink-0 mt-0.5" />
                     <div>
                       <p className="text-xs text-text-muted uppercase tracking-wide">Delivery region</p>
-                      <p className="font-semibold text-charcoal mt-1">As per order address</p>
+                      <p className="font-semibold text-charcoal mt-1">
+                        {order.customer?.region || order.customer?.address || 'As per order address'}
+                      </p>
                     </div>
                   </div>
                 </div>

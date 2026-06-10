@@ -15,10 +15,11 @@ import Button from '../components/ui/Button.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { products, getRelatedProducts } from '../data/products.js';
 
-const labelColors = {
-  green: 'bg-forest text-white',
-  gold: 'bg-amber-500 text-white',
-  silver: 'bg-slate-400 text-white',
+const labelGlass = {
+  green: 'bg-forest/45 text-white border-white/25',
+  gold: 'bg-amber-500/45 text-white border-white/25',
+  silver: 'bg-slate-500/40 text-white border-white/25',
+  brown: 'bg-accent/55 text-white border-white/25',
 };
 
 export default function ProductDetail() {
@@ -194,7 +195,7 @@ export default function ProductDetail() {
                 {product.category}
               </span>
               {product.label && (
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${labelColors[product.labelColor] || labelColors.green}`}>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg border text-[10px] font-bold uppercase tracking-wide backdrop-blur-md shadow-sm saturate-150 ${labelGlass[product.labelColor] || labelGlass.green}`}>
                   {product.label}
                 </span>
               )}

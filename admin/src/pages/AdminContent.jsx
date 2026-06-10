@@ -196,6 +196,8 @@ export default function AdminContent() {
                   onChange={setVisualData}
                   onSave={save}
                   saving={saving}
+                  sectionKey={activeSection}
+                  pageKey={activePage}
                 />
               </div>
             ) : (

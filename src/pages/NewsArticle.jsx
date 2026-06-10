@@ -2,24 +2,17 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
-import { externalApi } from '../lib/api.js';
+import { externalApi, externalImageUrl } from '../lib/api.js';
 import Button from '../components/ui/Button.jsx';
 
-/**
- * Post-process Readability HTML:
- * - Promote bold-only paragraphs (<p><strong>...</strong></p>) to styled h3s
- * - Alternate images float left / right
- */
 function enhanceArticleHtml(html) {
   if (!html) return '';
 
-  // 1. Promote lone <strong> paragraphs to h3 headings
   let result = html.replace(
     /<p>\s*<strong>([^<]{6,})<\/strong>\s*<\/p>/gi,
-    '<h3 class="ra-article-h3">$1</h3>'
+    '<h3 class="ra-article-h3">$1</h3>',
   );
 
-  // 2. Alternate image float: odd = left, even = right
   let imgCount = 0;
   result = result.replace(/<img([^>]*)>/gi, (match, attrs) => {
     imgCount++;
@@ -30,6 +23,34 @@ function enhanceArticleHtml(html) {
   return result;
 }
 
+function feedItemToArticle(item) {
+  const summary = item.summary || item.contentSnippet || '';
+  const image = externalImageUrl(item.image || item.imageUrl);
+  let content = summary ? `<p>${summary}</p>` : '';
+  if (image) content = `<figure><img src="${image}" alt=""></figure>${content}`;
+  return {
+    title: item.title,
+    excerpt: summary,
+    content,
+    byline: item.source,
+    publishedTime: item.publishedAt || item.pubDate,
+    partial: true,
+  };
+}
+
+function findFeedItem(items, url) {
+  const norm = (u) => {
+    try {
+      const p = new URL(u);
+      return `${p.hostname}${p.pathname}`.replace(/^www\./, '').toLowerCase();
+    } catch {
+      return (u || '').toLowerCase();
+    }
+  };
+  const key = norm(url);
+  return items.find((item) => norm(item.url || item.link) === key);
+}
+
 export default function NewsArticle() {
   const [searchParams] = useSearchParams();
   const url = searchParams.get('url');
@@ -37,28 +58,28 @@ export default function NewsArticle() {
   const [article, setArticle] = useState(null);
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
       if (!url) {
-        setError('No article URL provided.');
         setLoading(false);
         return;
       }
       try {
         setLoading(true);
-        const [articleData, newsData] = await Promise.all([
-          externalApi.newsArticle(url),
-          externalApi.news(),
-        ]);
-        setArticle(articleData);
-        if (newsData?.items) {
-          setRelated(newsData.items.filter((item) => item.link !== url).slice(0, 8));
+        const newsData = await externalApi.news();
+        const items = newsData?.items || [];
+        setRelated(items.filter((item) => (item.link || item.url) !== url).slice(0, 8));
+
+        try {
+          const articleData = await externalApi.newsArticle(url);
+          setArticle(articleData);
+        } catch {
+          const feedItem = findFeedItem(items, url);
+          if (feedItem) setArticle(feedItemToArticle(feedItem));
         }
       } catch (err) {
         console.error('Article error:', err);
-        setError('Could not load the article content.');
       } finally {
         setLoading(false);
       }
@@ -74,25 +95,28 @@ export default function NewsArticle() {
     );
   }
 
-  if (error || !article) {
+  if (!url || !article) {
     return (
-      <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6 min-h-[50vh]">
-        <p className="text-red-600 bg-red-50 p-4 rounded-xl border border-red-200">
-          {error || 'Failed to load article.'}
-        </p>
-        <Link to="/blog?tab=news" className="text-forest font-semibold mt-4 inline-block">
-          Back to news
+      <div className="py-12 max-w-4xl mx-auto px-4 sm:px-6 min-h-[50vh]">
+        <Link to="/blog?tab=news" className="inline-flex items-center text-sm text-forest font-semibold mb-6">
+          ← Back to news
         </Link>
+        <p className="text-text-muted">Could not load this article. Try another from the news list.</p>
       </div>
     );
   }
 
-  const sourceName = new URL(url).hostname.replace(/^www\./, '');
+  let sourceName = 'Source';
+  try {
+    sourceName = new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    /* ignore */
+  }
+
   const enhancedContent = enhanceArticleHtml(article.content);
 
   return (
     <>
-      {/* Scoped article styles */}
       <style>{`
         .ra-article-body h3,
         .ra-article-h3 {
@@ -157,9 +181,7 @@ export default function NewsArticle() {
             margin: 0 0 1rem 0;
           }
         }
-        .ra-article-body figure {
-          margin: 1.5rem 0;
-        }
+        .ra-article-body figure { margin: 1.5rem 0; }
         .ra-article-body figcaption {
           font-size: 0.8rem;
           color: #6b7280;
@@ -189,15 +211,12 @@ export default function NewsArticle() {
           </Link>
 
           <div className="lg:grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] gap-10 xl:gap-16 items-start">
-
-            {/* Main Article */}
             <motion.article
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               className="pb-12 min-w-0"
             >
-              {/* Meta bar */}
               <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-4">
                   <span className="bg-beige-soft text-charcoal font-semibold text-sm px-4 py-1.5 rounded-lg shadow-sm">
@@ -205,7 +224,7 @@ export default function NewsArticle() {
                   </span>
                   <div className="flex items-center gap-1.5 text-forest font-medium text-sm">
                     <MapPin className="w-4 h-4" />
-                    <span>{sourceName}</span>
+                    <span>{article.byline || sourceName}</span>
                   </div>
                 </div>
                 <span className="text-forest font-medium text-sm">
@@ -219,16 +238,22 @@ export default function NewsArticle() {
                 {article.title}
               </h1>
 
-              {article.byline && (
+              {article.byline && !article.partial ? (
                 <p className="text-sm font-semibold text-text-muted mb-8 uppercase tracking-wider">
                   By {article.byline}
                 </p>
-              )}
+              ) : null}
 
-              <div
-                className="ra-article-body"
-                dangerouslySetInnerHTML={{ __html: enhancedContent }}
-              />
+              <div className="ra-article-body" dangerouslySetInnerHTML={{ __html: enhancedContent }} />
+
+              {article.partial ? (
+                <p className="mt-8 text-sm text-text-muted bg-beige-soft/50 border border-border rounded-xl px-4 py-3">
+                  Summary preview —{' '}
+                  <a href={url} target="_blank" rel="noopener noreferrer" className="text-forest font-semibold hover:underline">
+                    read the full story on {sourceName}
+                  </a>
+                </p>
+              ) : null}
 
               <div className="mt-12 pt-8 border-t border-border">
                 <p className="text-sm text-text-muted">
@@ -245,7 +270,6 @@ export default function NewsArticle() {
               </div>
             </motion.article>
 
-            {/* Sidebar */}
             <aside className="relative lg:sticky lg:top-24">
               <div className="absolute inset-0 bg-beige-soft rounded-[40px] lg:rounded-l-[80px] lg:rounded-br-[40px] -z-10 lg:-mr-[100vw]" />
               <div className="p-6 sm:p-8 lg:pr-0">
@@ -261,13 +285,13 @@ export default function NewsArticle() {
                   {related.map((item, i) => (
                     <Link
                       key={i}
-                      to={`/news/article?url=${encodeURIComponent(item.link)}`}
+                      to={`/news/article?url=${encodeURIComponent(item.link || item.url)}`}
                       className="flex gap-4 group"
                     >
                       <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden bg-white shadow-sm">
-                        {item.imageUrl ? (
+                        {item.image || item.imageUrl ? (
                           <img
-                            src={item.imageUrl}
+                            src={externalImageUrl(item.image || item.imageUrl)}
                             alt=""
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
@@ -290,7 +314,6 @@ export default function NewsArticle() {
                 </div>
               </div>
             </aside>
-
           </div>
         </div>
       </div>

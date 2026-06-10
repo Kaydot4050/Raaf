@@ -13,18 +13,59 @@ import UserMenu from './auth/UserMenu.jsx';
 
 const DEFAULT_NAV = [
   { to: '/', label: 'Home', end: true },
-  { 
-    to: '/shop', 
+  {
+    to: '/shop',
     label: 'Shop',
     dropdown: [
       { to: '/shop', label: 'All Products', end: true },
-      { to: '/track-order', label: 'Track Order' }
-    ]
+      { to: '/track-order', label: 'Track Order' },
+    ],
   },
   { to: '/services', label: 'Services' },
   { to: '/about', label: 'Our Mission' },
+  {
+    to: '/blog?tab=news',
+    label: 'News',
+    dropdown: [
+      { to: '/blog?tab=news', label: 'Industry News' },
+      { to: '/news/weather', label: 'Weather' },
+    ],
+  },
   { to: '/contact', label: 'Contact' },
 ];
+
+function isRouteActive(to, location) {
+  const [path, search = ''] = to.split('?');
+  if (location.pathname !== path) return false;
+  if (!search) return true;
+  const expected = new URLSearchParams(search);
+  const actual = new URLSearchParams(location.search);
+  for (const [key, val] of expected.entries()) {
+    if (actual.get(key) !== val) return false;
+  }
+  return true;
+}
+
+function isNavGroupActive(item, location) {
+  if (isRouteActive(item.to, location)) return true;
+  return item.dropdown?.some((d) => isRouteActive(d.to, location)) ?? false;
+}
+
+/** CMS nav may omit dropdowns; fill from defaults (e.g. News → Industry News + Weather). */
+function mergeNavWithDefaults(items) {
+  const source = items?.length ? items : DEFAULT_NAV;
+  return source.map((item) => {
+    const fallback = DEFAULT_NAV.find(
+      (d) => d.label === item.label || d.to?.split('?')[0] === item.to?.split('?')[0],
+    );
+    if (!fallback?.dropdown) return item;
+    return {
+      ...fallback,
+      ...item,
+      dropdown: item.dropdown?.length ? item.dropdown : fallback.dropdown,
+    };
+  });
+}
 
 function NavPillLink({ to, label, end }) {
   return (
@@ -43,14 +84,17 @@ function NavPillLink({ to, label, end }) {
 }
 
 function NavDropdownPill({ to, label, end, dropdown }) {
+  const location = useLocation();
+  const groupActive = isNavGroupActive({ to, dropdown }, location);
+
   return (
     <div className="relative group">
       <NavLink
         to={to}
         end={end}
-        className={({ isActive }) =>
+        className={() =>
           `flex items-center gap-1.5 px-4 xl:px-5 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-200 ${
-            isActive ? 'bg-beige text-charcoal shadow-sm' : 'text-charcoal/75 hover:text-charcoal'
+            groupActive ? 'bg-beige text-charcoal shadow-sm' : 'text-charcoal/75 hover:text-charcoal'
           }`
         }
       >
@@ -59,11 +103,12 @@ function NavDropdownPill({ to, label, end, dropdown }) {
       </NavLink>
       <div className="absolute top-full left-1/2 -translate-x-1/2 pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
         <div className="bg-white rounded-xl shadow-lg border border-border/60 p-1.5 min-w-[150px] flex flex-col gap-0.5">
-          {dropdown.map(item => (
+          {dropdown.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
+              isActive={() => isRouteActive(item.to, location)}
               className={({ isActive }) =>
                 `px-3 py-2 text-sm rounded-lg transition-colors ${
                   isActive ? 'bg-beige-soft font-semibold text-charcoal' : 'text-charcoal/80 hover:bg-beige-soft/60 hover:text-charcoal'
@@ -81,7 +126,9 @@ function NavDropdownPill({ to, label, end, dropdown }) {
 
 function MobileNavItem({ item, closeMenu }) {
   const { to, label, end, dropdown } = item;
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const groupActive = isNavGroupActive(item, location);
 
   if (!dropdown) {
     return (
@@ -90,6 +137,7 @@ function MobileNavItem({ item, closeMenu }) {
           to={to}
           end={end}
           onClick={closeMenu}
+          isActive={() => isRouteActive(to, location)}
           className={({ isActive }) =>
             `block px-4 py-3 rounded-full text-sm font-medium ${
               isActive ? 'bg-beige text-charcoal' : 'text-charcoal hover:bg-white'
@@ -109,9 +157,9 @@ function MobileNavItem({ item, closeMenu }) {
           to={to}
           end={end}
           onClick={closeMenu}
-          className={({ isActive }) =>
+          className={() =>
             `flex-1 block px-4 py-3 rounded-full text-sm font-medium ${
-              isActive ? 'bg-beige text-charcoal' : 'text-charcoal hover:bg-white'
+              groupActive ? 'bg-beige text-charcoal' : 'text-charcoal hover:bg-white'
             }`
           }
         >
@@ -138,12 +186,13 @@ function MobileNavItem({ item, closeMenu }) {
             exit={{ height: 0, opacity: 0 }}
             className="flex flex-col pl-4 ml-6 border-l border-border/60 gap-1 mb-2 overflow-hidden"
           >
-            {dropdown.map(d => (
+            {dropdown.map((d) => (
               <li key={d.to}>
                 <NavLink
                   to={d.to}
                   end={d.end}
                   onClick={closeMenu}
+                  isActive={() => isRouteActive(d.to, location)}
                   className={({ isActive }) =>
                     `block px-4 py-2.5 rounded-full text-sm font-medium ${
                       isActive ? 'text-forest font-semibold' : 'text-charcoal/70 hover:text-charcoal'
@@ -180,10 +229,7 @@ export default function Header({ className = '' }) {
     searchPlaceholder: 'Search products…',
     nav: DEFAULT_NAV,
   });
-  const nav = (() => {
-    const items = header.nav?.filter?.((n) => n?.label?.trim());
-    return items?.length ? items : DEFAULT_NAV;
-  })();
+  const nav = mergeNavWithDefaults(header.nav?.filter?.((n) => n?.label?.trim()));
   const [open, setOpen] = useState(false);
   const location = useLocation();
 

@@ -50,6 +50,7 @@ function SaveBanner({ show, message = 'Changes saved.' }) {
 const statusColors = {
   Delivered: 'bg-forest/10 text-forest',
   'In transit': 'bg-amber-100 text-amber-800',
+  'Order placed': 'bg-blue-100 text-blue-800',
   Processing: 'bg-blue-100 text-blue-800',
   Cancelled: 'bg-red-100 text-red-700',
 };

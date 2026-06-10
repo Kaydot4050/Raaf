@@ -1,5 +1,5 @@
 import { query } from '../db.js';
-import { defaultSiteContent, defaultBlogPosts } from './defaultSiteContent.js';
+import { defaultSiteContent, defaultBlogPosts, defaultServicesCapabilitiesData } from './defaultSiteContent.js';
 import { allBlogPosts } from './posts/index.js';
 
 const FOOTER_SOCIAL_DEFAULTS = {
@@ -65,6 +65,20 @@ async function migrateHeroSlidesMobileSrc() {
   console.log('Added mobile photo field to homepage slider.');
 }
 
+async function migrateServicesCapabilities() {
+  const result = await query(
+    `SELECT data FROM site_content WHERE page = $1 AND section = $2`,
+    ['services', 'capabilities'],
+  );
+  if (result.rows[0]) return;
+
+  await query(
+    `INSERT INTO site_content (page, section, data) VALUES ($1, $2, $3)`,
+    ['services', 'capabilities', defaultServicesCapabilitiesData()],
+  );
+  console.log('Seeded services capabilities section for admin editing.');
+}
+
 async function migrateTrackOrderHeroImage() {
   const result = await query(
     `SELECT data FROM site_content WHERE page = $1 AND section = $2`,
@@ -90,6 +104,46 @@ const HERO_SLIDE_DEFAULTS = [
   { src: '/images/a.jpg', mobileSrc: '', alt: 'Sustainable agriculture', title: 'FARMING' },
   { src: '/images/istock-hero.jpg', mobileSrc: '', alt: 'Feed & nutrition', title: 'NUTRITION' },
 ];
+
+async function migrateHeaderNavDropdowns() {
+  const defaultHeader = defaultSiteContent.find((r) => r.page === 'global' && r.section === 'header');
+  if (!defaultHeader?.data?.nav) return;
+
+  const result = await query(
+    `SELECT data FROM site_content WHERE page = $1 AND section = $2`,
+    ['global', 'header'],
+  );
+  if (!result.rows[0]) return;
+
+  const data = result.rows[0].data;
+  const nav = Array.isArray(data.nav) ? [...data.nav] : [];
+  let changed = false;
+
+  for (const defaultItem of defaultHeader.data.nav) {
+    const idx = nav.findIndex((n) => n?.label === defaultItem.label);
+    if (idx >= 0) {
+      const current = nav[idx];
+      const needsDropdown =
+        defaultItem.dropdown &&
+        JSON.stringify(current.dropdown ?? null) !== JSON.stringify(defaultItem.dropdown);
+      if (needsDropdown || current.to !== defaultItem.to) {
+        nav[idx] = { ...current, to: defaultItem.to, dropdown: defaultItem.dropdown ?? current.dropdown };
+        changed = true;
+      }
+    } else {
+      nav.push(defaultItem);
+      changed = true;
+    }
+  }
+
+  if (!changed) return;
+
+  await query(
+    `UPDATE site_content SET data = $1, updated_at = NOW() WHERE page = $2 AND section = $3`,
+    [{ ...data, nav }, 'global', 'header'],
+  );
+  console.log('Updated header nav with News dropdown (Industry News + Weather).');
+}
 
 async function migrateHeroSlidesToFive() {
   const result = await query(
@@ -139,8 +193,10 @@ export async function seedSiteContent() {
   }
   await migrateHeroSlidesMobileSrc();
   await migrateHeroSlidesToFive();
+  await migrateHeaderNavDropdowns();
   await migrateFooterSocial();
   await migrateTrackOrderHeroImage();
+  await migrateServicesCapabilities();
 }
 
 export async function seedBlogPosts() {

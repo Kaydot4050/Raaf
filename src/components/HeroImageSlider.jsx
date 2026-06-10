@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { HERO_SLIDES } from '../data/heroSlides.js';
+import { usePageSection } from '../context/ContentContext.jsx';
 
 function SlideImage({ slide }) {
   return (
@@ -19,7 +20,19 @@ function SlideImage({ slide }) {
 }
 
 export default function HeroImageSlider({ className = '' }) {
-  const SLIDES = HERO_SLIDES;
+  const { data } = usePageSection('home', 'hero_slides', { slides: HERO_SLIDES });
+  const SLIDES = useMemo(() => {
+    const raw = Array.isArray(data.slides) && data.slides.length ? data.slides : HERO_SLIDES;
+    const merged = raw.map((slide, i) => ({
+      ...(HERO_SLIDES[i] || {}),
+      ...Object.fromEntries(
+        Object.entries(slide || {}).filter(([, v]) => v !== '' && v !== null && v !== undefined),
+      ),
+    }));
+    const withImages = merged.filter((slide) => String(slide.src || '').trim());
+    return withImages.length ? withImages : HERO_SLIDES;
+  }, [data.slides]);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isDesktop, setIsDesktop] = useState(
@@ -33,12 +46,16 @@ export default function HeroImageSlider({ className = '' }) {
   }, []);
 
   useEffect(() => {
-    if (isHovered) return;
-    
+    setActiveIndex((i) => (i >= SLIDES.length ? 0 : i));
+  }, [SLIDES.length]);
+
+  useEffect(() => {
+    if (isHovered || SLIDES.length < 2) return;
+
     const interval = setInterval(() => {
       setActiveIndex((current) => (current + 1) % SLIDES.length);
-    }, 4000); // Cycles every 4 seconds
-    
+    }, 4000);
+
     return () => clearInterval(interval);
   }, [isHovered, SLIDES.length]);
 
@@ -55,7 +72,7 @@ export default function HeroImageSlider({ className = '' }) {
           const isActive = i === activeIndex;
           return (
             <motion.article
-              key={slide.src || i}
+              key={`${slide.src}-${i}`}
               className="relative h-full overflow-hidden cursor-pointer"
               animate={{
                 flex: isActive ? (isDesktop ? 9.5 : 8) : isDesktop ? 0.7 : 1,

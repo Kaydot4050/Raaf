@@ -225,6 +225,11 @@ export const adminApi = {
   users: () => api('/admin/users'),
   setUserRole: (id, role) =>
     api(`/admin/users/${id}/role`, { method: 'PATCH', body: JSON.stringify({ role }) }),
+  coupons: () => api('/admin/coupons'),
+  createCoupon: (body) => api('/admin/coupons', { method: 'POST', body: JSON.stringify(body) }),
+  updateCoupon: (id, body) =>
+    api(`/admin/coupons/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteCoupon: (id) => api(`/admin/coupons/${id}`, { method: 'DELETE' }),
   reviews: () => api('/admin/reviews'),
   updateReviewStatus: (id, status) =>
     api(`/admin/reviews/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),

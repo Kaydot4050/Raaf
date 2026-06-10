@@ -23,7 +23,12 @@ import { adminApi } from '../lib/api.js';
 import { adminRowSurface } from '../lib/adminColors.js';
 import { cn } from '@/lib/utils';
 
-const STATUSES = ['pending', 'processing', 'completed', 'cancelled'];
+const STATUSES = [
+  { value: 'pending', label: 'Placed', hint: 'Order received — stock selected & health checked' },
+  { value: 'processing', label: 'In transit', hint: 'On the way to the customer' },
+  { value: 'completed', label: 'Delivered', hint: 'Handed to customer or agent' },
+  { value: 'cancelled', label: 'Cancelled', hint: 'Order cancelled' },
+];
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
@@ -64,7 +69,7 @@ export default function AdminOrders() {
   };
 
   return (
-    <AdminPage title="Orders" description="Track and update customer order status.">
+    <AdminPage title="Orders" description="Set delivery status: Placed → In transit → Delivered. Customers see this on Track Order.">
       <AdminSection
         tone="sage"
         title="All orders"
@@ -81,7 +86,8 @@ export default function AdminOrders() {
                   #{o.id} · {o.customer?.name || 'Guest customer'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {o.customer?.phone || '—'} · GH₵ {(o.subtotal + (o.shippingCost || 0))?.toLocaleString()} · Paid: {o.paymentStatus}
+                  {o.customer?.phone || '—'} · GH₵ {o.subtotal?.toLocaleString()}
+                  {o.discountAmount > 0 ? ` · coupon ${o.couponCode}` : ''} · Paid: {o.paymentStatus}
                 </p>
               </div>
               <div className="flex gap-2 items-center">
@@ -92,13 +98,15 @@ export default function AdminOrders() {
                   Details
                 </Button>
                 <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue />
+                  <SelectTrigger className="w-[148px]">
+                    <SelectValue placeholder="Status">
+                      {STATUSES.find((s) => s.value === o.status)?.label || o.status}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {STATUSES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
+                      <SelectItem key={s.value} value={s.value} title={s.hint}>
+                        {s.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -118,6 +126,13 @@ export default function AdminOrders() {
             <DialogTitle>Order #{editingOrder?.id}</DialogTitle>
           </DialogHeader>
           <form onSubmit={saveTracking} className="space-y-4 py-4">
+            {editingOrder?.discountAmount > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Items GH₵ {(editingOrder.itemsTotal ?? editingOrder.subtotal)?.toLocaleString()} · Coupon{' '}
+                {editingOrder.couponCode} (−GH₵ {editingOrder.discountAmount?.toLocaleString()}) · Total GH₵{' '}
+                {editingOrder.subtotal?.toLocaleString()}
+              </p>
+            ) : null}
             <div>
               <label className="text-sm font-semibold block mb-1">Logistics Provider</label>
               <Input 

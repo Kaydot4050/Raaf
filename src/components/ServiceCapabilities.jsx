@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { usePageSection } from '../context/ContentContext.jsx';
 import { servicesCatalog, serviceCategories } from '../data/servicesCatalog.js';
 import ServiceShowcaseSlider from './ServiceShowcaseSlider.jsx';
 
@@ -12,23 +13,44 @@ const fadeUp = {
   }),
 };
 
+const FALLBACK_CAPABILITIES = {
+  eyebrow: 'Capabilities',
+  titleLine1: 'Everything Your',
+  titleLine2: 'Farm Needs',
+  description:
+    'From chicks and feed to consultancy and logistics — browse our core services and find the right fit for your operation.',
+  categories: serviceCategories,
+  items: servicesCatalog.map((s) => ({
+    title: s.title,
+    tag: s.tag,
+    short: s.short,
+    desc: s.desc || '',
+    image: s.image || '',
+    isCore: !!s.isCore,
+  })),
+};
+
 export default function ServiceCapabilities() {
+  const { data: cms } = usePageSection('services', 'capabilities', FALLBACK_CAPABILITIES);
   const [activeCategory, setActiveCategory] = useState('All');
+
+  const categories = cms.categories?.length ? cms.categories : FALLBACK_CAPABILITIES.categories;
+  const items = cms.items?.length ? cms.items : FALLBACK_CAPABILITIES.items;
 
   const sliderItems = useMemo(() => {
     const list =
       activeCategory === 'All'
-        ? servicesCatalog.filter((s) => s.isCore)
-        : servicesCatalog.filter((s) => s.tag === activeCategory);
+        ? items.filter((s) => s.isCore !== false)
+        : items.filter((s) => s.tag === activeCategory);
 
-    return list.slice(0, 5).map((s) => ({
+    return list.map((s) => ({
       name: s.title,
       role: s.tag,
       short: s.short,
+      desc: s.desc,
       image: s.image,
-      icon: s.icon,
     }));
-  }, [activeCategory]);
+  }, [activeCategory, items]);
 
   return (
     <section className="py-20 md:py-28 bg-cream relative overflow-hidden">
@@ -45,7 +67,7 @@ export default function ServiceCapabilities() {
               viewport={{ once: true }}
               className="text-forest text-xs font-bold uppercase tracking-[0.2em] mb-4"
             >
-              Capabilities
+              {cms.eyebrow || FALLBACK_CAPABILITIES.eyebrow}
             </motion.p>
             <motion.h2
               variants={fadeUp}
@@ -55,17 +77,17 @@ export default function ServiceCapabilities() {
               viewport={{ once: true }}
               className="font-display text-4xl md:text-5xl font-bold text-charcoal leading-tight"
             >
-              Everything Your
+              {cms.titleLine1 || FALLBACK_CAPABILITIES.titleLine1}
               <br />
-              Farm Needs
+              {cms.titleLine2 || FALLBACK_CAPABILITIES.titleLine2}
             </motion.h2>
           </div>
           <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <p className="text-text leading-relaxed mb-6">
-              From chicks and feed to consultancy and logistics — browse our core services and find the right fit for your operation.
+              {cms.description || FALLBACK_CAPABILITIES.description}
             </p>
             <div className="flex flex-wrap gap-2">
-              {serviceCategories.map((cat) => (
+              {categories.map((cat) => (
                 <button
                   key={cat}
                   type="button"

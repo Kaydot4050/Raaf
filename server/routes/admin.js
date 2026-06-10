@@ -13,6 +13,7 @@ import {
   getCloudinaryPublicConfig,
 } from '../lib/cloudinary.js';
 import { compressImageBuffer } from '../lib/imageCompress.js';
+import { couponFromBody, rowToCoupon } from '../lib/coupons.js';
 
 const router = Router();
 router.use(requireAdmin);
@@ -401,6 +402,82 @@ router.patch(
     );
     if (!result.rows[0]) return res.status(404).json({ error: 'Review not found.' });
     res.json({ review: result.rows[0] });
+  }),
+);
+
+router.get(
+  '/coupons',
+  asyncHandler(async (_req, res) => {
+    const result = await query('SELECT * FROM coupons ORDER BY created_at DESC');
+    res.json({ coupons: result.rows.map(rowToCoupon) });
+  }),
+);
+
+router.post(
+  '/coupons',
+  asyncHandler(async (req, res) => {
+    const c = couponFromBody(req.body);
+    if (!c.code) return res.status(400).json({ error: 'Coupon code is required.' });
+    if (!Number.isFinite(c.discount_value) || c.discount_value <= 0) {
+      return res.status(400).json({ error: 'Discount value must be greater than zero.' });
+    }
+    if (c.discount_type === 'percent' && c.discount_value > 100) {
+      return res.status(400).json({ error: 'Percent discount cannot exceed 100.' });
+    }
+    const result = await query(
+      `INSERT INTO coupons (code, description, discount_type, discount_value, min_order_amount, max_uses, active, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [
+        c.code,
+        c.description,
+        c.discount_type,
+        c.discount_value,
+        c.min_order_amount,
+        c.max_uses,
+        c.active,
+        c.expires_at,
+      ],
+    );
+    res.status(201).json({ coupon: rowToCoupon(result.rows[0]) });
+  }),
+);
+
+router.put(
+  '/coupons/:id',
+  asyncHandler(async (req, res) => {
+    const c = couponFromBody(req.body);
+    if (!c.code) return res.status(400).json({ error: 'Coupon code is required.' });
+    if (!Number.isFinite(c.discount_value) || c.discount_value <= 0) {
+      return res.status(400).json({ error: 'Discount value must be greater than zero.' });
+    }
+    const result = await query(
+      `UPDATE coupons SET
+        code = $2, description = $3, discount_type = $4, discount_value = $5,
+        min_order_amount = $6, max_uses = $7, active = $8, expires_at = $9
+       WHERE id = $1 RETURNING *`,
+      [
+        req.params.id,
+        c.code,
+        c.description,
+        c.discount_type,
+        c.discount_value,
+        c.min_order_amount,
+        c.max_uses,
+        c.active,
+        c.expires_at,
+      ],
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Coupon not found.' });
+    res.json({ coupon: rowToCoupon(result.rows[0]) });
+  }),
+);
+
+router.delete(
+  '/coupons/:id',
+  asyncHandler(async (req, res) => {
+    const result = await query('DELETE FROM coupons WHERE id = $1 RETURNING id', [req.params.id]);
+    if (!result.rows[0]) return res.status(404).json({ error: 'Coupon not found.' });
+    res.json({ ok: true });
   }),
 );
 

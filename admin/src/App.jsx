@@ -11,6 +11,7 @@ import AdminInquiries from './pages/AdminInquiries.jsx';
 import AdminUsers from './pages/AdminUsers.jsx';
 import AdminReviews from './pages/AdminReviews.jsx';
 import AdminProductPhotos from './pages/AdminProductPhotos.jsx';
+import AdminCoupons from './pages/AdminCoupons.jsx';
 import { ThemeProvider } from './components/ThemeProvider.jsx';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="content" element={<AdminContent />} />
             <Route path="product-photos" element={<AdminProductPhotos />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="coupons" element={<AdminCoupons />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="reviews" element={<AdminReviews />} />
             <Route path="blog" element={<AdminBlog />} />

@@ -13,6 +13,8 @@ That HTML *"Service Unavailable… Technical Support"* means **Node is not runni
    - `JWT_SECRET=` long random string
    - `CLIENT_ORIGIN=https://raafortagro.com,https://admin.raafortagro.com`
    - `COOKIE_DOMAIN=.raafortagro.com`
+   - `PUBLIC_API_URL=https://api.raafortagro.com/api` (news image proxy)
+   - `GNEWS_API_KEY=` (optional farm news)
 5. **Stop** app → **Run NPM Install** → **Start**
 6. **Terminal** (use cPanel’s “Enter virtual environment” command first):
    ```bash

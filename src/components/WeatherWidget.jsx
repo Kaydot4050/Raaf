@@ -1,100 +1,197 @@
-import { useEffect, useState } from 'react';
-import { Cloud, Droplets, Wind, Sun, CloudRain, CloudLightning, Snowflake } from 'lucide-react';
-import { loadWeather } from '../lib/weatherClient.js';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { FARM_HUBS, formatCoordinates, getCurrentCoords, loadWeather, placeFromCoords, reverseGeocode } from '../lib/weatherClient.js';
+import WeatherForecastPanel from './WeatherForecastPanel.jsx';
+import WeatherGlobe from './WeatherGlobe.jsx';
+import WeatherPlaceSearch from './WeatherPlaceSearch.jsx';
 
-function getWeatherIcon(code) {
-  if (code === 0) return <Sun className="w-8 h-8 text-yellow-500" />;
-  if (code > 0 && code <= 3) return <Cloud className="w-8 h-8 text-gray-400" />;
-  if (code >= 51 && code <= 67) return <CloudRain className="w-8 h-8 text-blue-400" />;
-  if (code >= 71 && code <= 77) return <Snowflake className="w-8 h-8 text-blue-200" />;
-  if (code >= 80 && code <= 82) return <CloudRain className="w-8 h-8 text-blue-500" />;
-  if (code >= 95) return <CloudLightning className="w-8 h-8 text-yellow-600" />;
-  return <Cloud className="w-8 h-8 text-gray-400" />;
-}
+const DEFAULT = FARM_HUBS[0];
 
-function getWeatherDescription(code) {
-  if (code === 0) return 'Clear sky';
-  if (code === 1) return 'Mainly clear';
-  if (code === 2) return 'Partly cloudy';
-  if (code === 3) return 'Overcast';
-  if (code >= 51 && code <= 55) return 'Drizzle';
-  if (code >= 61 && code <= 65) return 'Rain';
-  if (code >= 71 && code <= 77) return 'Snow fall';
-  if (code >= 80 && code <= 82) return 'Rain showers';
-  if (code >= 95) return 'Thunderstorm';
-  return 'Cloudy';
-}
-
-export default function WeatherWidget({ lat, lon }) {
+export default function WeatherWidget() {
+  const globeRef = useRef(null);
+  const autoLocatedRef = useRef(false);
+  const [searchLabel, setSearchLabel] = useState(`${DEFAULT.name}, ${DEFAULT.country}`);
+  const [coords, setCoords] = useState({
+    lat: DEFAULT.lat,
+    lng: DEFAULT.lng,
+    place: DEFAULT.name,
+    town: DEFAULT.name,
+    country: DEFAULT.country,
+    coordinates: formatCoordinates(DEFAULT.lat, DEFAULT.lng),
+    label: `${DEFAULT.name}, ${DEFAULT.country}`,
+  });
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const applyLocation = useCallback((lat, lng, geo, fallback = {}) => {
+    const label = geo?.label || fallback.label || formatCoordinates(lat, lng);
+    setCoords({
+      lat,
+      lng,
+      place: geo?.place || fallback.place || null,
+      town: geo?.town || fallback.place || null,
+      region: geo?.region || fallback.region || null,
+      district: geo?.district || null,
+      country: geo?.country || fallback.country || null,
+      continent: fallback.continent || null,
+      countryCode: geo?.countryCode || null,
+      timezone: geo?.timezone || null,
+      elevation: geo?.elevation || null,
+      population: geo?.population || null,
+      featureType: geo?.featureType || null,
+      coordinates: geo?.coordinates || formatCoordinates(lat, lng),
+      label,
+    });
+    setSearchLabel(label);
+  }, []);
+
+  const handleSelect = useCallback(
+    async ({ lat, lng, label, country: clickCountry, continent: clickContinent, place: clickPlace }) => {
+      if (label && clickPlace) {
+        applyLocation(lat, lng, null, {
+          place: clickPlace,
+          country: clickCountry,
+          continent: clickContinent,
+          label,
+        });
+        const geo = await reverseGeocode(lat, lng).catch(() => null);
+        if (geo) {
+          applyLocation(lat, lng, geo, {
+            place: clickPlace,
+            country: clickCountry,
+            continent: clickContinent,
+          });
+        }
+        return;
+      }
+
+      applyLocation(lat, lng, null, {
+        place: clickPlace,
+        country: clickCountry,
+        continent: clickContinent,
+        label: clickCountry ? `…, ${clickCountry}` : formatCoordinates(lat, lng),
+      });
+
+      const geo = await reverseGeocode(lat, lng).catch(() => null);
+      if (geo) {
+        applyLocation(lat, lng, geo, { country: clickCountry, continent: clickContinent });
+      } else if (clickCountry) {
+        applyLocation(lat, lng, null, {
+          place: clickPlace,
+          country: clickCountry,
+          continent: clickContinent,
+          label: clickPlace ? `${clickPlace}, ${clickCountry}` : clickCountry,
+        });
+      }
+    },
+    [applyLocation],
+  );
+
+  const applyPlace = useCallback(
+    (place) => {
+      handleSelect({
+        lat: place.lat,
+        lng: place.lng,
+        place: place.name,
+        country: place.country,
+        label: place.label,
+      });
+      globeRef.current?.flyTo(place.lat, place.lng);
+    },
+    [handleSelect],
+  );
+
+  const detectMyLocation = useCallback(async () => {
+    const { lat, lng } = await getCurrentCoords();
+    const place = await placeFromCoords(lat, lng);
+    autoLocatedRef.current = true;
+    applyPlace(place);
+    return place;
+  }, [applyPlace]);
+
   useEffect(() => {
+    if (!navigator.geolocation) {
+      reverseGeocode(DEFAULT.lat, DEFAULT.lng)
+        .then((geo) => {
+          if (geo) applyLocation(DEFAULT.lat, DEFAULT.lng, geo, { place: DEFAULT.name, country: DEFAULT.country });
+        })
+        .catch(() => {});
+      return;
+    }
+
+    const fallbackDefault = () => {
+      reverseGeocode(DEFAULT.lat, DEFAULT.lng)
+        .then((geo) => {
+          if (geo) applyLocation(DEFAULT.lat, DEFAULT.lng, geo, { place: DEFAULT.name, country: DEFAULT.country });
+        })
+        .catch(() => {});
+    };
+
+    const tryAutoLocate = () => {
+      detectMyLocation().catch(() => {
+        if (!autoLocatedRef.current) fallbackDefault();
+      });
+    };
+
+    if (navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: 'geolocation' })
+        .then((result) => {
+          if (result.state === 'granted' || result.state === 'prompt') {
+            tryAutoLocate();
+          } else {
+            fallbackDefault();
+          }
+        })
+        .catch(tryAutoLocate);
+    } else {
+      tryAutoLocate();
+    }
+  }, [applyLocation, detectMyLocation]);
+
+  useEffect(() => {
+    let cancelled = false;
     async function fetchWeather() {
       try {
         setLoading(true);
-        const data = await loadWeather(lat, lon);
-        setWeather(data);
+        setError(null);
+        const data = await loadWeather(coords.lat, coords.lng);
+        if (!cancelled) setWeather(data);
       } catch (err) {
         console.error('Weather error:', err);
-        setError('Could not load weather');
+        if (!cancelled) setError('Could not load weather');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     fetchWeather();
-  }, [lat, lon]);
-
-  if (loading) return <div className="p-6 bg-white rounded-2xl shadow-sm border border-border flex items-center justify-center min-h-[160px]"><span className="text-sm text-text-muted">Loading weather...</span></div>;
-  if (error) return <div className="p-6 bg-white rounded-2xl shadow-sm border border-border flex items-center justify-center min-h-[160px]"><span className="text-sm text-red-500">{error}</span></div>;
-  if (!weather || !weather.current) return null;
-
-  const current = weather.current;
-  const todayMax = weather.daily?.temperature_2m_max?.[0];
-  const todayMin = weather.daily?.temperature_2m_min?.[0];
+    return () => {
+      cancelled = true;
+    };
+  }, [coords.lat, coords.lng]);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-border p-6 relative overflow-hidden">
-      <div className="absolute top-0 right-0 p-4 opacity-10">
-        {getWeatherIcon(current.weather_code)}
-      </div>
-      
-      <h3 className="text-sm font-semibold text-charcoal mb-4 uppercase tracking-wider">Local Weather</h3>
-      
-      <div className="flex items-center gap-4 mb-6">
-        <div className="p-3 bg-cream rounded-xl">
-          {getWeatherIcon(current.weather_code)}
+    <div className="rounded-xl border border-border bg-white shadow-sm">
+      <div className="grid lg:grid-cols-2 gap-0 overflow-hidden rounded-xl">
+        <div className="relative min-h-[360px] h-[min(65vh,560px)] lg:h-[620px] xl:h-[680px] bg-[#0a0f14] lg:border-r border-border overflow-hidden">
+          <WeatherGlobe ref={globeRef} selected={coords} onSelect={handleSelect} />
         </div>
-        <div>
-          <div className="text-3xl font-bold text-charcoal">{current.temperature_2m}°C</div>
-          <div className="text-sm text-text font-medium">{getWeatherDescription(current.weather_code)}</div>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex items-center gap-2">
-          <Droplets className="w-4 h-4 text-forest" />
-          <div className="text-xs">
-            <p className="text-text-muted">Humidity</p>
-            <p className="font-semibold text-charcoal">{current.relative_humidity_2m}%</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Wind className="w-4 h-4 text-forest" />
-          <div className="text-xs">
-            <p className="text-text-muted">Wind</p>
-            <p className="font-semibold text-charcoal">{current.wind_speed_10m} km/h</p>
-          </div>
-        </div>
-      </div>
 
-      {(todayMax !== undefined && todayMin !== undefined) && (
-        <div className="mt-4 pt-4 border-t border-border flex justify-between text-xs text-text-muted">
-          <span>High: <span className="text-charcoal font-semibold">{todayMax}°C</span></span>
-          <span>Low: <span className="text-charcoal font-semibold">{todayMin}°C</span></span>
+        <div className="relative px-5 pt-4 pb-5 sm:px-6 sm:pt-5 sm:pb-6 lg:px-8 lg:pt-6 lg:pb-8 flex flex-col justify-start min-h-[280px] gap-5 overflow-visible">
+          <WeatherPlaceSearch
+            onSelect={applyPlace}
+            onLocate={detectMyLocation}
+            selectedLabel={searchLabel}
+            className="w-full"
+          />
+          <WeatherForecastPanel
+            weather={weather}
+            locationLabel={coords.town || coords.place || coords.label}
+            loading={loading}
+            error={error}
+          />
         </div>
-      )}
+      </div>
     </div>
   );
 }

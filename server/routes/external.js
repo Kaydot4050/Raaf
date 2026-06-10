@@ -1,26 +1,21 @@
 import { Router } from 'express';
-import Parser from 'rss-parser';
 import { JSDOM } from 'jsdom';
 import { Readability } from '@mozilla/readability';
 import { asyncHandler } from '../middleware/asyncHandler.js';
+import { getFarmNews } from '../lib/farmNews.js';
+import { isGoogleNewsUrl, resolveGoogleNewsUrl } from '../lib/googleNews.js';
+import { absolutizeNewsImage, proxyNewsImage } from '../lib/newsImageUrl.js';
+import {
+  cleanArticleText,
+  extractMetaArticle,
+  feedItemToArticle,
+  findFeedItem,
+  proxyArticleImages,
+} from '../lib/articleParse.js';
+import { fetchGoogleWeather, isGoogleWeatherConfigured } from '../lib/googleWeather.js';
+import { fetchOpenMeteoWeather } from '../lib/openMeteoWeather.js';
 
 const router = Router();
-const parser = new Parser({
-  customFields: {
-    item: ['media:content', 'media:thumbnail', 'enclosure', 'content:encoded'],
-  },
-});
-
-// RSS Feed URLs for agriculture/poultry news (ordered by relevance)
-const NEWS_FEEDS = [
-  'https://poultrytimes.com/feed',
-  'https://news.google.com/rss/search?q=poultry+farming+agriculture&hl=en-US&gl=US&ceid=US:en',
-  'https://farmpolicynews.illinois.edu/feed',
-];
-
-// In-memory cache to avoid hammering feeds on every page load
-let newsCache = { items: null, fetchedAt: 0 };
-const NEWS_CACHE_MS = 15 * 60 * 1000; // 15 minutes
 
 const geocodeSearchCache = new Map();
 const GEOCODE_CACHE_MS = 10 * 60 * 1000;
@@ -90,212 +85,110 @@ router.get('/geocode/reverse', asyncHandler(async (req, res) => {
 }));
 
 router.get('/weather', asyncHandler(async (req, res) => {
-  const { lat, lon } = req.query;
-  
-  // Default to Accra, Ghana coordinates if not provided
-  const latitude = lat || '5.6037';
-  const longitude = lon || '-0.1870';
+  const latitude = Number.parseFloat(req.query.lat) || 5.6037;
+  const longitude = Number.parseFloat(req.query.lon) || -0.187;
 
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
-
-  const response = await fetch(url, { signal: AbortSignal.timeout(12_000) });
-  if (!response.ok) {
-    throw new Error('Failed to fetch weather data');
+  let data;
+  if (isGoogleWeatherConfigured()) {
+    try {
+      data = await fetchGoogleWeather(latitude, longitude);
+    } catch (err) {
+      console.warn('Google Weather failed, using Open-Meteo:', err.message);
+      data = await fetchOpenMeteoWeather(latitude, longitude);
+    }
+  } else {
+    data = await fetchOpenMeteoWeather(latitude, longitude);
   }
 
-  const data = await response.json();
   res.json(data);
 }));
 
-/**
- * Try each RSS feed in order until one succeeds.
- * Returns the parsed feed or throws if all fail.
- */
-async function fetchFirstWorkingFeed(urls) {
-  let lastError;
-  for (const url of urls) {
-    try {
-      const feed = await parser.parseURL(url);
-      if (feed && feed.items && feed.items.length > 0) {
-        return feed;
-      }
-    } catch (err) {
-      console.warn(`RSS feed failed (${url}):`, err.message);
-      lastError = err;
-    }
-  }
-  throw lastError || new Error('All RSS feeds failed');
-}
-
 router.get('/news', asyncHandler(async (req, res) => {
   try {
-    // Return cached data if still fresh
-    if (newsCache.items && Date.now() - newsCache.fetchedAt < NEWS_CACHE_MS) {
-      return res.json({ items: newsCache.items });
-    }
-
-    const feed = await fetchFirstWorkingFeed(NEWS_FEEDS);
-    
-    const items = feed.items.slice(0, 10).map(item => {
-      // Try to extract an image if available in standard RSS fields
-      let imageUrl = null;
-      if (item['media:content'] && item['media:content']['$'] && item['media:content']['$'].url) {
-        const raw = decodeURIComponent(item['media:content']['$'].url);
-        imageUrl = `/api/external/image?url=${encodeURIComponent(raw)}`;
-      } else if (item.enclosure && item.enclosure.url) {
-        const raw = decodeURIComponent(item.enclosure.url);
-        imageUrl = `/api/external/image?url=${encodeURIComponent(raw)}`;
-      }
-
-      // Fallback: try to find an <img> in the HTML content
-      if (!imageUrl) {
-        const htmlContent = item['content:encoded'] || item.content || '';
-        const imgMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)/i);
-        if (imgMatch && imgMatch[1].startsWith('http')) {
-          imageUrl = `/api/external/image?url=${encodeURIComponent(imgMatch[1])}`;
-        }
-      }
-
-      let cleanSnippet = item.contentSnippet || '';
-      const boilerplatePatterns = [
-        /Join \d+,?\d*\+? subscribers/gi,
-        /Subscribe to our newsletter to stay updated about all the need-to-know content in the poultry sector, three times a week\.?/gi,
-        /.*?indicates required fields.*/gi,
-        /Subscribe to our newsletter/gi
-      ];
-
-      boilerplatePatterns.forEach(pattern => {
-        cleanSnippet = cleanSnippet.replace(pattern, '');
-      });
-
-      return {
-        title: item.title,
-        link: item.link,
-        pubDate: item.pubDate,
-        contentSnippet: cleanSnippet.trim(),
-        imageUrl,
-        source: item.creator || feed.title || 'Agriculture News'
-      };
+    const region = req.query.region || 'all';
+    const category = req.query.category || 'all';
+    const items = await getFarmNews({ region, category });
+    res.json({
+      items: items.map((item) => ({
+        ...item,
+        image: absolutizeNewsImage(item.image),
+        imageUrl: absolutizeNewsImage(item.imageUrl || item.image),
+      })),
     });
-
-    // For items still missing images, scrape article pages in parallel
-    const fetchPromises = items.map(async (item) => {
-      if (item.imageUrl || !item.link) return item;
-      try {
-        const resp = await fetch(item.link, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          },
-          signal: AbortSignal.timeout(6000),
-          redirect: 'follow',
-        });
-        if (!resp.ok) return item;
-        const html = await resp.text();
-
-        let foundUrl = null;
-
-        // 1. og:image
-        const og = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i)
-                || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-        if (og) foundUrl = og[1];
-
-        // 2. twitter:image
-        if (!foundUrl) {
-          const tw = html.match(/<meta[^>]+(?:name|property)=["']twitter:image["'][^>]+content=["']([^"']+)/i)
-                  || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:name|property)=["']twitter:image["']/i);
-          if (tw) foundUrl = tw[1];
-        }
-
-        // 3. First <img> inside <article>
-        if (!foundUrl) {
-          const artImg = html.match(/<article[^>]*>[\s\S]*?<img[^>]+src=["']([^"']+)/i);
-          if (artImg) foundUrl = artImg[1];
-        }
-
-        // 4. WordPress featured image (wp-post-image class)
-        if (!foundUrl) {
-          const wpImg = html.match(/<img[^>]+class=["'][^"']*wp-post-image[^"']*["'][^>]+src=["']([^"']+)/i);
-          if (wpImg) foundUrl = wpImg[1];
-        }
-
-        if (foundUrl && foundUrl.startsWith('http')) {
-          item.imageUrl = `/api/external/image?url=${encodeURIComponent(foundUrl)}`;
-        }
-      } catch {
-        // Silently skip — image is optional
-      }
-      return item;
-    });
-
-    const enrichedItems = await Promise.all(fetchPromises);
-
-    // Update cache
-    newsCache = { items: enrichedItems, fetchedAt: Date.now() };
-
-    res.json({ items: enrichedItems });
   } catch (error) {
-    console.error('Error fetching RSS:', error);
-    // If cache exists but is stale, serve stale data rather than error
-    if (newsCache.items) {
-      return res.json({ items: newsCache.items });
-    }
+    console.error('Error fetching farm news:', error);
     res.status(500).json({ error: 'Failed to fetch news feed' });
   }
 }));
 
+// Proxy for fetching article content (to bypass CORS) and parse with Readability
 router.get('/news/article', asyncHandler(async (req, res) => {
-  const { url } = req.query;
-  if (!url) return res.status(400).json({ error: 'URL is required' });
+  let { url } = req.query;
+  if (!url) {
+    return res.status(400).json({ error: 'URL is required' });
+  }
+
+  url = decodeURIComponent(url);
+
+  const respondWithFeedFallback = async () => {
+    const feedItem = await findFeedItem(url);
+    if (!feedItem) return false;
+    res.json(feedItemToArticle(feedItem));
+    return true;
+  };
 
   try {
-    const response = await fetch(url, {
+    const resolvedUrl = await resolveGoogleNewsUrl(url);
+    if (isGoogleNewsUrl(resolvedUrl)) {
+      if (await respondWithFeedFallback()) return;
+      return res.status(422).json({ error: 'Could not resolve article URL' });
+    }
+
+    const response = await fetch(resolvedUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+      },
+      signal: AbortSignal.timeout(12000),
+      redirect: 'follow',
     });
-    if (!response.ok) throw new Error('Failed to fetch article');
-    
+
+    if (!response.ok) {
+      if (await respondWithFeedFallback()) return;
+      return res.status(502).json({ error: 'Failed to fetch article' });
+    }
+
     const html = await response.text();
-    const doc = new JSDOM(html, { url });
+    const doc = new JSDOM(html, { url: resolvedUrl });
     const reader = new Readability(doc.window.document);
-    const article = reader.parse();
+    let article = reader.parse();
 
-    if (!article) throw new Error('Failed to parse article content');
+    if (!article?.content) {
+      article = extractMetaArticle(html, resolvedUrl) || article;
+    }
 
-    // Clean up known newsletter boilerplate from PoultryWorld
-    const boilerplatePatterns = [
-      /Join \d+,?\d*\+? subscribers/gi,
-      /Subscribe to our newsletter to stay updated about all the need-to-know content in the poultry sector, three times a week\.?/gi,
-      /.*?indicates required fields.*/gi,
-      /Subscribe to our newsletter/gi
-    ];
+    if (!article?.title && !article?.content) {
+      if (await respondWithFeedFallback()) return;
+      return res.status(422).json({ error: 'Failed to parse article' });
+    }
 
-    let cleanContent = article.content || '';
-    let cleanExcerpt = article.excerpt || '';
+    const isGoogleLanding =
+      article.title === 'Google News' ||
+      /Comprehensive, up-to-date news coverage/i.test(article.excerpt || article.content || '');
+    if (isGoogleLanding) {
+      if (await respondWithFeedFallback()) return;
+      return res.status(422).json({ error: 'Article source blocked inline reading' });
+    }
 
-    boilerplatePatterns.forEach(pattern => {
-      cleanContent = cleanContent.replace(pattern, '');
-      cleanExcerpt = cleanExcerpt.replace(pattern, '');
-    });
-
-    article.content = cleanContent;
-    article.excerpt = cleanExcerpt;
-
-    // Rewrite all img src attributes in article body to go through our image proxy
-    article.content = article.content.replace(
-      /(<img[^>]+src=["'])([^"']+)(["'])/gi,
-      (match, before, imgUrl, quote) => {
-        // Only proxy absolute external URLs
-        if (imgUrl.startsWith('http')) {
-          return `${before}/api/external/image?url=${encodeURIComponent(imgUrl)}${quote}`;
-        }
-        return match;
-      }
-    );
+    article.content = proxyArticleImages(cleanArticleText(article.content || ''));
+    article.excerpt = cleanArticleText(article.excerpt || '');
+    article.partial = Boolean(article.partial);
 
     res.json(article);
   } catch (error) {
     console.error('Error parsing article:', error);
+    if (await respondWithFeedFallback()) return;
     res.status(500).json({ error: 'Failed to parse article' });
   }
 }));
@@ -305,10 +198,13 @@ router.get('/image', asyncHandler(async (req, res) => {
   const { url } = req.query;
   if (!url) return res.status(400).send('URL required');
 
-  const response = await fetch(decodeURIComponent(url), {
+  const decodedUrl = decodeURIComponent(url);
+  const targetUrl = new URL(decodedUrl);
+
+  const response = await fetch(targetUrl.href, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Referer': 'https://www.poultryworld.net/',
+      'Referer': targetUrl.origin + '/',
       'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
     },
   });

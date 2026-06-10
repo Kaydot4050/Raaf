@@ -1,6 +1,26 @@
 /** Default CMS content — seeded / synced into site_content */
 
 import { allBlogPosts } from './posts/index.js';
+import { servicesCatalog, serviceCategories } from '../../src/data/servicesCatalog.js';
+
+export function defaultServicesCapabilitiesData() {
+  return {
+    eyebrow: 'Capabilities',
+    titleLine1: 'Everything Your',
+    titleLine2: 'Farm Needs',
+    description:
+      'From chicks and feed to consultancy and logistics — browse our core services and find the right fit for your operation.',
+    categories: serviceCategories,
+    items: servicesCatalog.map((s) => ({
+      title: s.title,
+      tag: s.tag,
+      short: s.short,
+      desc: s.desc || '',
+      image: s.image || '',
+      isCore: !!s.isCore,
+    })),
+  };
+}
 
 const FOOTER_COLUMNS = [
   {
@@ -79,7 +99,14 @@ export const defaultSiteContent = [
         },
         { to: '/services', label: 'Services' },
         { to: '/about', label: 'Our Mission' },
-        { to: '/blog?tab=news', label: 'News' },
+        {
+          to: '/blog?tab=news',
+          label: 'News',
+          dropdown: [
+            { to: '/blog?tab=news', label: 'Industry News' },
+            { to: '/news/weather', label: 'Weather' },
+          ],
+        },
         { to: '/contact', label: 'Contact' },
       ],
     },
@@ -313,6 +340,11 @@ export const defaultSiteContent = [
       description: 'From day-old chicks to advisory and logistics — everything your operation needs under one roof.',
       image: '/images/Raafortagro-2.png',
     },
+  },
+  {
+    page: 'services',
+    section: 'capabilities',
+    data: defaultServicesCapabilitiesData(),
   },
   {
     page: 'contact',

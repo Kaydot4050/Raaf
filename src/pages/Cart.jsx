@@ -1,14 +1,18 @@
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { formatPrice } from '../data/products.js';
 import Button from '../components/ui/Button.jsx';
+import CouponField from '../components/CouponField.jsx';
 import usePageMeta from '../hooks/usePageMeta.js';
 
 export default function Cart() {
   usePageMeta('Cart', 'Review items in your cart before checkout.');
   const { items, removeItem, updateQty, clear } = useCart();
+  const [coupon, setCoupon] = useState(null);
+  const handleCouponChange = useCallback((next) => setCoupon(next), []);
 
   if (items.length === 0) {
     return (
@@ -22,7 +26,9 @@ export default function Cart() {
     );
   }
 
-  const total = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const itemsTotal = items.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const discountAmount = coupon?.discountAmount || 0;
+  const total = Math.max(0, itemsTotal - discountAmount);
 
   return (
     <div className="py-12 sm:py-16 md:py-20 min-h-[50vh]">
@@ -90,15 +96,22 @@ export default function Cart() {
             transition={{ delay: 0.1 }}
           >
             <h2 className="font-display text-lg font-bold text-charcoal pb-3 border-b border-border">Order summary</h2>
+            <div className="mt-4">
+              <CouponField subtotal={itemsTotal} onChange={handleCouponChange} />
+            </div>
             <div className="space-y-2 mt-4 text-sm">
-              <p className="flex justify-between text-text-muted">
-                <span>Subtotal</span>
-                <span className="font-semibold text-charcoal">{formatPrice(total)}</span>
-              </p>
-              <p className="flex justify-between text-text-muted">
-                <span>Shipping</span>
-                <span className="font-semibold text-charcoal text-xs sm:text-sm">At checkout</span>
-              </p>
+              {discountAmount > 0 ? (
+                <>
+                  <p className="flex justify-between">
+                    <span className="text-text-muted">Subtotal</span>
+                    <span>{formatPrice(itemsTotal)}</span>
+                  </p>
+                  <p className="flex justify-between text-forest">
+                    <span>Coupon</span>
+                    <span>−{formatPrice(discountAmount)}</span>
+                  </p>
+                </>
+              ) : null}
               <p className="flex justify-between text-base font-bold text-charcoal pt-3 border-t border-border">
                 <span>Total</span>
                 <span>{formatPrice(total)}</span>
