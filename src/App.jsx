@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout.jsx';
 import Home from './pages/Home.jsx';
@@ -8,7 +8,7 @@ import About from './pages/About.jsx';
 import Services from './pages/Services.jsx';
 import Contact from './pages/Contact.jsx';
 import Blog from './pages/Blog.jsx';
-import FarmWeather from './pages/FarmWeather.jsx';
+const FarmWeather = lazy(() => import('./pages/FarmWeather.jsx'));
 import BlogPost from './pages/BlogPost.jsx';
 import NewsArticle from './pages/NewsArticle.jsx';
 import Cart from './pages/Cart.jsx';
@@ -103,7 +103,14 @@ export default function App() {
         <Route path="contact" element={<Contact />} />
         <Route path="blog" element={<Blog />} />
         <Route path="blog/:id" element={<BlogPost />} />
-        <Route path="news/weather" element={<FarmWeather />} />
+        <Route
+          path="news/weather"
+          element={
+            <Suspense fallback={<div className="py-16 text-center text-text-muted">Loading weather…</div>}>
+              <FarmWeather />
+            </Suspense>
+          }
+        />
         <Route path="news/article" element={<NewsArticle />} />
         <Route path="cart" element={<Cart />} />
         <Route path="checkout" element={<Checkout />} />

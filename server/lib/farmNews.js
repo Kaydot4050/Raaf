@@ -181,12 +181,22 @@ function publishableItem(item) {
   return Boolean(item?.title && item?.url);
 }
 
+async function parseFeedUrl(url) {
+  const timeoutMs = process.env.NEWS_SNAPSHOT_MODE === '1' ? 8_000 : 12_000;
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'RaafortagroNewsBot/1.0' },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return parser.parseString(await res.text());
+}
+
 async function fetchRssFeeds(region) {
   const feeds = FEEDS[region] || [];
   const batches = await Promise.all(
     feeds.map(async ({ url, filter }) => {
       try {
-        const feed = await parser.parseURL(url);
+        const feed = await parseFeedUrl(url);
         return (feed?.items || [])
           .map((item) => {
             const articleLink = item.link;

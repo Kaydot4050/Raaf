@@ -43,5 +43,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('globe.gl') || id.includes('three-globe') || id.includes('/three/')) {
+            return 'globe';
+          }
+          if (id.includes('recharts')) return 'charts';
+        },
+      },
+    },
   },
 });

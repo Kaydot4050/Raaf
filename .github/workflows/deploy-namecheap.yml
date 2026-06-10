@@ -26,6 +26,7 @@ jobs:
       - name: Build Main Frontend
         run: npm run build
         env:
+          NODE_OPTIONS: --max-old-space-size=4096
           VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.raafortagro.com/api' }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_ADMIN_URL: ${{ secrets.VITE_ADMIN_URL || 'https://admin.raafortagro.com' }}
