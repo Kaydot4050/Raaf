@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { externalImageUrl } from '../lib/api.js';
-import { industryNewsError, loadIndustryNews } from '../lib/newsClient.js';
+import { externalApi, externalImageUrl } from '../lib/api.js';
 
 export default function NewsFeed() {
   const [news, setNews] = useState([]);
@@ -12,11 +11,15 @@ export default function NewsFeed() {
     async function fetchNews() {
       try {
         setLoading(true);
-        const data = await loadIndustryNews();
-        setNews(data.items || []);
+        const data = await externalApi.news();
+        setNews(data?.items || []);
       } catch (err) {
         console.error('News error:', err);
-        setError(industryNewsError(err));
+        setError(
+          err?.message?.includes('Cannot reach') || err?.status === 503
+            ? 'News needs the site API — check api.raafortagro.com/api/health'
+            : err?.message || 'Could not load industry news',
+        );
       } finally {
         setLoading(false);
       }

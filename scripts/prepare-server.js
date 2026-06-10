@@ -117,6 +117,14 @@ for (const name of modules) {
   }
 }
 if (!ok) process.exit(1);
+try {
+  await import('./server/lib/defaultSiteContent.js');
+  console.log('✓ server imports');
+} catch (e) {
+  console.error('✗ server imports:', e.message);
+  ok = false;
+}
+if (!ok) process.exit(1);
 console.log('Deps OK. Next: node app.js');
 `,
 );
@@ -131,6 +139,9 @@ JWT_SECRET=
 CLIENT_ORIGIN=https://raafortagro.com,https://www.raafortagro.com,https://admin.raafortagro.com
 COOKIE_DOMAIN=.raafortagro.com
 GOOGLE_CLIENT_ID=
+PUBLIC_API_URL=https://api.raafortagro.com/api
+PAYSTACK_SECRET_KEY=
+PAYSTACK_CURRENCY=GHS
 `,
 );
 

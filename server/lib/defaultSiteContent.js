@@ -1,7 +1,7 @@
 /** Default CMS content — seeded / synced into site_content */
 
 import { allBlogPosts } from './posts/index.js';
-import { servicesCatalog, serviceCategories } from '../../src/data/servicesCatalog.js';
+import { servicesCatalog, serviceCategories } from './servicesCatalogData.js';
 
 export function defaultServicesCapabilitiesData() {
   return {

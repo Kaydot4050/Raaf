@@ -40,6 +40,9 @@ jobs:
       - name: Prepare Backend Server
         run: node scripts/prepare-server.js
 
+      - name: Verify API bundle starts
+        run: node -e "import('./deploy-server/server/lib/defaultSiteContent.js').then(() => console.log('API bundle OK'))"
+
       - name: Deploy Main Frontend (Customer)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:

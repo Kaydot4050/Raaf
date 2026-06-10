@@ -3,8 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { posts as fallback } from '../data/blog.js';
 import { cardImageForPost } from '../data/blogCardImages.js';
-import { contentApi, externalImageUrl } from '../lib/api.js';
-import { industryNewsError, loadIndustryNews } from '../lib/newsClient.js';
+import { contentApi, externalApi, externalImageUrl } from '../lib/api.js';
 import SectionTitle from '../components/SectionTitle.jsx';
 import usePageMeta from '../hooks/usePageMeta.js';
 
@@ -230,9 +229,16 @@ export default function Blog() {
     if (activeTab !== 'news') return;
     setLoadingNews(true);
     setNewsError(null);
-    loadIndustryNews({ region: newsRegion, category: newsCategory })
-      .then((data) => setNews(data.items || []))
-      .catch((err) => setNewsError(industryNewsError(err)))
+    externalApi
+      .news({ region: newsRegion, category: newsCategory })
+      .then((data) => setNews(data?.items || []))
+      .catch((err) => {
+        setNewsError(
+          err?.message?.includes('Cannot reach') || err?.status === 503
+            ? 'Industry news needs the API online. Open api.raafortagro.com/api/health — you should see JSON, not 503.'
+            : err?.message || 'Could not load industry news.',
+        );
+      })
       .finally(() => setLoadingNews(false));
   }, [activeTab, newsRegion, newsCategory]);
 
