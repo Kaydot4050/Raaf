@@ -19,7 +19,7 @@ function sanitizeDatabaseUrl(url) {
 
 const connectionString = sanitizeDatabaseUrl(process.env.DATABASE_URL);
 
-if (!connectionString) {
+if (!connectionString && process.env.NEWS_SNAPSHOT_MODE !== '1') {
   console.warn('DATABASE_URL is not set — API will fail until .env is configured.');
 }
 
